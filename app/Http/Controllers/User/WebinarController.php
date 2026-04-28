@@ -1,0 +1,223 @@
+<?php
+
+namespace App\Http\Controllers\User;
+
+use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Invoice;
+use App\Models\Webinar;
+use App\Services\TripayService;
+use App\Services\MidtransService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+
+class WebinarController extends Controller
+{
+    private const ADMIN_WHATSAPP_URL = 'https://wa.me/+6281252683108';
+
+    protected $tripayService;
+    protected $midtransService;
+
+    public function __construct(TripayService $tripayService, MidtransService $midtransService)
+    {
+        $this->tripayService = $tripayService;
+        $this->midtransService = $midtransService;
+    }
+
+    public function index()
+    {
+        $categories = Category::all();
+        $webinars = Webinar::with(['category', 'user'])
+            ->where('status', 'published')
+            ->where('registration_deadline', '>=', now())
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        $myWebinarIds = [];
+        if (Auth::check()) {
+            $userId = Auth::id();
+            $myWebinarIds = Invoice::with('webinarItems.webinar.category')
+                ->where('user_id', $userId)
+                ->where('status', 'paid')
+                ->get()
+                ->flatMap(function ($invoice) {
+                    return $invoice->webinarItems->pluck('webinar_id');
+                })
+                ->unique()
+                ->values()
+                ->all();
+        }
+        return Inertia::render('user/webinar/dashboard/index', ['categories' => $categories, 'webinars' => $webinars, 'myWebinarIds' => $myWebinarIds]);
+    }
+
+    public function detail(Request $request, Webinar $webinar)
+    {
+        $this->handleReferralCode($request);
+
+        if ($webinar->status !== 'published') {
+            return Inertia::render('user/unavailable/index', [
+                'title' => 'Webinar Tidak Tersedia',
+                'item' => $webinar->only(['title', 'slug', 'status']),
+                'adminWhatsappUrl' => self::ADMIN_WHATSAPP_URL,
+                'message' => 'Webinar tidak tersedia. Silahkan hubungi admin.',
+                'backUrl' => route('webinar.index'),
+                'backLabel' => 'Kembali ke Daftar Webinar',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $webinar->load(['category', 'tools', 'user']);
+
+        $relatedWebinars = Webinar::with(['category', 'user'])
+            ->where('status', 'published')
+            ->where('category_id', $webinar->category_id)
+            ->where('id', '!=', $webinar->id)
+            ->where('registration_deadline', '>=', now())
+            ->orderBy('registration_deadline', 'asc')
+            ->limit(3)
+            ->get();
+
+        $myWebinarIds = [];
+        if (Auth::check()) {
+            $userId = Auth::id();
+            $myWebinarIds = Invoice::with('webinarItems.webinar.category')
+                ->where('user_id', $userId)
+                ->where('status', 'paid')
+                ->get()
+                ->flatMap(function ($invoice) {
+                    return $invoice->webinarItems->pluck('webinar_id');
+                })
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return Inertia::render('user/webinar/detail/index', [
+            'webinar' => $webinar,
+            'relatedWebinars' => $relatedWebinars,
+            'myWebinarIds' => $myWebinarIds,
+            'referralInfo' => $this->getReferralInfo(),
+        ]);
+    }
+
+    public function showRegister(Request $request, Webinar $webinar)
+    {
+        $this->handleReferralCode($request);
+
+        if ($webinar->status !== 'published') {
+            return Inertia::render('user/unavailable/index', [
+                'title' => 'Webinar Tidak Tersedia',
+                'item' => $webinar->only(['title', 'slug', 'status']),
+                'adminWhatsappUrl' => self::ADMIN_WHATSAPP_URL,
+                'message' => 'Webinar tidak tersedia. Silahkan hubungi admin.',
+                'backUrl' => route('webinar.index'),
+                'backLabel' => 'Kembali ke Daftar Webinar',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        // if (!Auth::check()) {
+        //     $currentUrl = $request->fullUrl();
+        //     return redirect()->route('login', ['redirect' => $currentUrl]);
+        // }
+
+        $webinar->load(['tools', 'user', 'category']);
+        $hasAccess = false;
+        $pendingInvoice = null;
+        $transactionDetail = null;
+
+        $userId = Auth::id();
+
+        $hasAccess = Invoice::where('user_id', $userId)
+            ->where('status', 'paid')
+            ->whereHas('webinarItems', function ($query) use ($webinar) {
+                $query->where('webinar_id', $webinar->id);
+            })
+            ->exists();
+
+        if (!$hasAccess) {
+            $invoice = Invoice::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->whereHas('webinarItems', function ($query) use ($webinar) {
+                    $query->where('webinar_id', $webinar->id);
+                })
+                ->latest()
+                ->first();
+
+            if ($invoice) {
+                $pendingInvoice = [
+                    'id' => $invoice->id,
+                    'invoice_code' => $invoice->invoice_code,
+                    'status' => $invoice->status,
+                    'amount' => $invoice->amount,
+                    'payment_method' => $invoice->payment_method,
+                    // 'payment_channel' => $invoice->payment_channel,
+                    'va_number' => $invoice->va_number,
+                    'qr_code_url' => $invoice->qr_code_url,
+                    'bank_name' => $invoice->bank_name ?? null,
+                    'created_at' => $invoice->created_at,
+                    'expires_at' => $invoice->expires_at,
+                ];
+
+                // if ($invoice->payment_reference) {
+                //     try {
+                //         $tripayDetail = $this->tripayService->detailTransaction($invoice->payment_reference);
+                //         if (isset($tripayDetail->data)) {
+                //             $transactionDetail = [
+                //                 'reference' => $tripayDetail->data->reference ?? null,
+                //                 'payment_name' => $tripayDetail->data->payment_name ?? null,
+                //                 'pay_code' => $tripayDetail->data->pay_code ?? null,
+                //                 'instructions' => $tripayDetail->data->instructions ?? [],
+                //                 'status' => $tripayDetail->data->status ?? 'PENDING',
+                //                 'paid_at' => $tripayDetail->data->paid_at ?? null,
+                //             ];
+                //         }
+                //     } catch (\Exception $e) {
+                //         \Illuminate\Support\Facades\Log::warning('Failed to fetch Tripay details', [
+                //             'invoice_code' => $invoice->invoice_code,
+                //             'error' => $e->getMessage()
+                //         ]);
+                //     }
+                // }
+            }
+        }
+
+        return Inertia::render('user/webinar/register/index', [
+            'webinar' => $webinar,
+            'hasAccess' => $hasAccess,
+            'pendingInvoice' => $pendingInvoice,
+            'transactionDetail' => $transactionDetail,
+            // 'channels' => $this->tripayService->getPaymentChannels(),
+            'referralInfo' => $this->getReferralInfo(),
+        ]);
+    }
+
+    public function showRegisterSuccess()
+    {
+        return Inertia::render('user/checkout/success');
+    }
+
+    /**
+     * Handle referral code dari URL parameter
+     */
+    private function handleReferralCode(Request $request): void
+    {
+        $referralCode = $request->query('ref');
+
+        if ($referralCode) {
+            session([
+                'referral_code' => $referralCode,
+            ]);
+        }
+    }
+
+    /**
+     * Get referral info untuk frontend
+     */
+    private function getReferralInfo(): array
+    {
+        return [
+            'code' => session('referral_code'),
+            'hasActive' => session('referral_code') && session('referral_code') !== 'SPJ2025',
+        ];
+    }
+}

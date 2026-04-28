@@ -1,0 +1,345 @@
+<?php
+
+namespace App\Http\Controllers\User;
+
+use Inertia\Inertia;
+use App\Models\Bundle;
+use App\Models\Invoice;
+use Illuminate\Http\Request;
+use App\Models\EnrollmentBundle;
+use App\Http\Controllers\Controller;
+use App\Services\TripayService;
+use App\Services\MidtransService;
+use Illuminate\Support\Facades\Auth;
+
+class BundleController extends Controller
+{
+    private const ADMIN_WHATSAPP_URL = 'https://wa.me/+6281252683108';
+
+    protected $tripayService;
+    protected $midtransService;
+
+    public function __construct(TripayService $tripayService, MidtransService $midtransService)
+    {
+        $this->tripayService = $tripayService;
+        $this->midtransService = $midtransService;
+    }
+
+    public function index()
+    {
+        $bundles = Bundle::with(['user','bundleItems.bundleable'])
+            ->where('status', 'published')
+            ->where(function ($query) {
+                $query->whereNull('registration_deadline')
+                    ->orWhere('registration_deadline', '>=', now());
+            })
+            ->withCount('bundleItems')
+            ->orderBy('registration_deadline', 'asc')
+            ->get()
+            ->map(function ($bundle) {
+                $totalOriginalPrice = $bundle->bundleItems->sum('price');
+                $bundle->strikethrough_price = $totalOriginalPrice;
+
+                if (!isset($bundle->bundle_items_count)) {
+                    $bundle->bundle_items_count = $bundle->bundleItems->count();
+                }
+
+                return $bundle;
+            });
+
+        return Inertia::render('user/bundling/dashboard/index', [
+            'bundles' => $bundles,
+        ]);
+    }
+
+    public function detail(Request $request, Bundle $bundle)
+    {
+        $this->handleReferralCode($request);
+
+        if ($bundle->status !== 'published') {
+            return Inertia::render('user/unavailable/index', [
+                'title' => 'Bundle Tidak Tersedia',
+                'item' => $bundle->only(['title', 'slug', 'status']),
+                'adminWhatsappUrl' => self::ADMIN_WHATSAPP_URL,
+                'message' => 'Bundle tidak tersedia. Silahkan hubungi admin.',
+                'backUrl' => route('bundle.index'),
+                'backLabel' => 'Kembali ke Daftar Bundle',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        if ($bundle->registration_deadline && now()->gt($bundle->registration_deadline)) {
+            return redirect()->route('bundle.index')->with('error', 'Pendaftaran untuk bundle ini sudah ditutup.');
+        }
+
+        $bundle->load([
+            'bundleItems.bundleable',
+            'user'
+        ]);
+
+        $bundle->load([
+            'bundleItems' => function ($query) {
+                $query->orderBy('order');
+            },
+            'bundleItems.bundleable' => function ($query) {
+                $query->select(['id', 'title', 'slug', 'price', 'thumbnail']);
+            },
+            'user'
+        ]);
+
+        $bundle->bundle_items_count = $bundle->bundleItems->count();
+
+        $totalOriginalPrice = $bundle->bundleItems->sum('price');
+        $bundle->strikethrough_price = $totalOriginalPrice;
+
+        $groupedItems = [
+            'courses' => $bundle->bundleItems->filter(function ($item) {
+                return $item->bundleable && str_contains($item->bundleable_type, 'Course');
+            })->values(),
+            'bootcamps' => $bundle->bundleItems->filter(function ($item) {
+                return $item->bundleable && str_contains($item->bundleable_type, 'Bootcamp');
+            })->values(),
+            'webinars' => $bundle->bundleItems->filter(function ($item) {
+                return $item->bundleable && str_contains($item->bundleable_type, 'Webinar');
+            })->values(),
+        ];
+
+        // Calculate discount
+        $discountAmount = $totalOriginalPrice - $bundle->price;
+        $discountPercentage = $totalOriginalPrice > 0
+            ? round(($discountAmount / $totalOriginalPrice) * 100)
+            : 0;
+
+        // Check if user already owns any items in the bundle
+        $ownedItems = [];
+        $hasOwnedItems = false;
+
+        if (Auth::check()) {
+            $userId = Auth::id();
+
+            $ownedCourseIds = Invoice::with('courseItems')
+                ->where('user_id', $userId)
+                ->where('status', 'paid')
+                ->get()
+                ->flatMap(fn($invoice) => $invoice->courseItems->pluck('course_id'))
+                ->unique()
+                ->toArray();
+
+            $ownedBootcampIds = Invoice::with('bootcampItems')
+                ->where('user_id', $userId)
+                ->where('status', 'paid')
+                ->get()
+                ->flatMap(fn($invoice) => $invoice->bootcampItems->pluck('bootcamp_id'))
+                ->unique()
+                ->toArray();
+
+            $ownedWebinarIds = Invoice::with('webinarItems')
+                ->where('user_id', $userId)
+                ->where('status', 'paid')
+                ->get()
+                ->flatMap(fn($invoice) => $invoice->webinarItems->pluck('webinar_id'))
+                ->unique()
+                ->toArray();
+
+            foreach ($bundle->bundleItems as $item) {
+                if (!$item->bundleable) continue;
+
+                $isOwned = false;
+                $itemType = '';
+
+                if (str_contains($item->bundleable_type, 'Course') && in_array($item->bundleable_id, $ownedCourseIds)) {
+                    $isOwned = true;
+                    $itemType = 'Kelas';
+                } elseif (str_contains($item->bundleable_type, 'Bootcamp') && in_array($item->bundleable_id, $ownedBootcampIds)) {
+                    $isOwned = true;
+                    $itemType = 'Bootcamp';
+                } elseif (str_contains($item->bundleable_type, 'Webinar') && in_array($item->bundleable_id, $ownedWebinarIds)) {
+                    $isOwned = true;
+                    $itemType = 'Webinar';
+                }
+
+                if ($isOwned) {
+                    $hasOwnedItems = true;
+                    $ownedItems[] = [
+                        'id' => $item->bundleable_id,
+                        'title' => $item->bundleable->title,
+                        'type' => $itemType,
+                    ];
+                }
+            }
+        }
+
+        $relatedBundles = Bundle::with(['user','bundleItems.bundleable'])
+            ->where('status', 'published')
+            ->where('id', '!=', $bundle->id)
+            ->where(function ($query) {
+                $query->whereNull('registration_deadline')
+                    ->orWhere('registration_deadline', '>=', now());
+            })
+            ->withCount('bundleItems')
+            ->orderBy('registration_deadline', 'asc')
+            ->limit(3)
+            ->get()
+            ->map(function ($bundle) {
+                $totalOriginalPrice = $bundle->bundleItems->sum('price');
+                $bundle->strikethrough_price = $totalOriginalPrice;
+
+                if (!isset($bundle->bundle_items_count)) {
+                    $bundle->bundle_items_count = $bundle->bundleItems->count();
+                }
+
+                return $bundle;
+            });
+
+        return Inertia::render('user/bundling/detail/index', [
+            'bundle' => $bundle,
+            'groupedItems' => $groupedItems,
+            'totalOriginalPrice' => $totalOriginalPrice,
+            'discountAmount' => $discountAmount,
+            'discountPercentage' => $discountPercentage,
+            'relatedBundles' => $relatedBundles,
+            'hasOwnedItems' => $hasOwnedItems,
+            'ownedItems' => $ownedItems,
+        ]);
+    }
+
+    public function showCheckout(Request $request, Bundle $bundle)
+    {
+        $this->handleReferralCode($request);
+
+        if ($bundle->status !== 'published') {
+            return Inertia::render('user/unavailable/index', [
+                'title' => 'Bundle Tidak Tersedia',
+                'item' => $bundle->only(['title', 'slug', 'status']),
+                'adminWhatsappUrl' => self::ADMIN_WHATSAPP_URL,
+                'message' => 'Bundle tidak tersedia. Silahkan hubungi admin.',
+                'backUrl' => route('bundle.index'),
+                'backLabel' => 'Kembali ke Daftar Bundle',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        // if (!Auth::check()) {
+        //     $currentUrl = $request->fullUrl();
+        //     return redirect()->route('login', ['redirect' => $currentUrl]);
+        // }
+
+        if ($bundle->registration_deadline && now()->gt($bundle->registration_deadline)) {
+            return redirect()->route('bundle.show', $bundle->slug)
+                ->with('error', 'Pendaftaran untuk bundle ini sudah ditutup.');
+        }
+
+        if ($bundle->price === 0) {
+            return redirect()->route('bundle.show', $bundle->slug)
+                ->with('error', 'Bundle ini gratis, tidak perlu checkout.');
+        }
+
+        $bundle->load([
+            'bundleItems' => function ($query) {
+                $query->orderBy('order');
+            },
+            'bundleItems.bundleable' => function ($query) {
+                $query->select(['id', 'title', 'slug', 'price', 'thumbnail']);
+            }
+        ]);
+
+        $bundle->bundle_items_count = $bundle->bundleItems->count();
+        $totalOriginalPrice = $bundle->bundleItems->sum('price');
+        $bundle->strikethrough_price = $totalOriginalPrice;
+
+        $hasAccess = false;
+        $pendingInvoice = null;
+        $transactionDetail = null;
+        $userId = Auth::id();
+
+        $hasAccess = EnrollmentBundle::whereHas('invoice', function ($query) use ($userId) {
+            $query->where('user_id', $userId)
+                ->where('status', 'paid');
+        })
+            ->where('bundle_id', $bundle->id)
+            ->exists();
+
+        if (!$hasAccess) {
+            $invoice = Invoice::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->whereHas('bundleEnrollments', function ($query) use ($bundle) {
+                    $query->where('bundle_id', $bundle->id);
+                })
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')
+                        ->orWhere('expires_at', '>', now());
+                })
+                ->latest()
+                ->first();
+
+            if ($invoice) {
+                $pendingInvoice = [
+                    'id' => $invoice->id,
+                    'invoice_code' => $invoice->invoice_code,
+                    'status' => $invoice->status,
+                    'amount' => $invoice->amount,
+                    'payment_method' => $invoice->payment_method,
+                    // 'payment_channel' => $invoice->payment_channel,
+                    'va_number' => $invoice->va_number,
+                    'qr_code_url' => $invoice->qr_code_url,
+                    'bank_name' => $invoice->bank_name ?? null,
+                    'created_at' => $invoice->created_at,
+                    'expires_at' => $invoice->expires_at,
+                ];
+
+                // if ($invoice->payment_reference) {
+                //     try {
+                //         $tripayDetail = $this->tripayService->detailTransaction($invoice->payment_reference);
+                //         if (isset($tripayDetail->data)) {
+                //             $transactionDetail = [
+                //                 'reference' => $tripayDetail->data->reference ?? null,
+                //                 'payment_name' => $tripayDetail->data->payment_name ?? null,
+                //                 'pay_code' => $tripayDetail->data->pay_code ?? null,
+                //                 'instructions' => $tripayDetail->data->instructions ?? [],
+                //                 'status' => $tripayDetail->data->status ?? 'PENDING',
+                //                 'paid_at' => $tripayDetail->data->paid_at ?? null,
+                //             ];
+                //         }
+                //     } catch (\Exception $e) {
+                //         \Illuminate\Support\Facades\Log::warning('Failed to fetch Tripay details', [
+                //             'invoice_code' => $invoice->invoice_code,
+                //             'error' => $e->getMessage()
+                //         ]);
+                //     }
+                // }
+            }
+        }
+
+        return Inertia::render('user/bundling/checkout/index', [
+            'bundle' => $bundle,
+            'hasAccess' => $hasAccess,
+            'pendingInvoice' => $pendingInvoice,
+            'transactionDetail' => $transactionDetail,
+            // 'channels' => $this->tripayService->getPaymentChannels(),
+            'referralInfo' => $this->getReferralInfo(),
+        ]);
+    }
+
+    /**
+     * Handle referral code dari URL parameter
+     */
+    private function handleReferralCode(Request $request): void
+    {
+        $referralCode = $request->query('ref');
+
+        if ($referralCode) {
+            session([
+                'referral_code' => $referralCode,
+            ]);
+        }
+    }
+
+    /**
+     * Get referral info untuk frontend
+     */
+    private function getReferralInfo(): array
+    {
+        return [
+            'code' => session('referral_code'),
+            'hasActive' => session('referral_code') && session('referral_code') !== 'SPJ2025',
+        ];
+    }
+}
