@@ -108,66 +108,114 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
     return (
         <>
-            <div className="border-sidebar-border/80 bg-background fixed top-0 right-0 left-0 z-40 border-b shadow-xs">
-                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
-                    <Link href="/" prefetch className="flex items-center space-x-2">
-                        <img src="/assets/images/logo-primary.png" alt="Sekolah Pajak" className="block w-32 fill-current dark:hidden" />
-                        <img src="/assets/images/logo-secondary.png" alt="Sekolah Pajak" className="hidden w-32 fill-current dark:block" />
-                    </Link>
+            {/* ===== MOBILE HEADER (visible below lg) ===== */}
+            <div className="bg-background fixed top-0 right-0 left-0 z-40 flex h-16 items-center justify-between px-4 shadow-sm lg:hidden">
+                <Link href="/" className="flex items-center">
+                    <img src="/assets/images/logo-primary.png" alt="LevelUp Accounting" className="w-32" />
+                </Link>
+                <div className="flex items-center gap-2">
+                    {auth.user ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="size-9 rounded-full p-1">
+                                    <Avatar className="size-7 overflow-hidden rounded-full">
+                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                        <AvatarFallback className="bg-primary/10 text-primary rounded-full text-xs">
+                                            {getInitials(auth.user.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end">
+                                <UserMenuContent user={auth.user} />
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <Button variant="default" asChild className="rounded-full px-6 py-1.5 text-sm">
+                            <Link href={route('login')}>Login</Link>
+                        </Button>
+                    )}
+                </div>
+            </div>
 
-                    <div className="ml-6 hidden h-full items-center space-x-6 lg:flex flex-1 justify-center">
-                        <NavigationMenu className="flex h-full items-stretch">
+            {/* ===== DESKTOP HEADER (visible at lg and above) ===== */}
+            <div className="fixed top-0 right-0 left-0 z-40 hidden lg:flex">
+
+                <div className="absolute inset-0 flex">
+                    <div className="bg-background" style={{ flex: '0 0 calc(50% - 100px)' }} />
+                    <div className="bg-primary flex-1" />
+                </div>
+
+                <div className="relative mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4">
+                    {/* Logo Section */}
+                    <div className="flex-shrink-0 pr-82 bg-background">
+                        <Link href="/" className="flex items-center space-x-2">
+                            <img src="/assets/images/logo-primary.png" alt="LevelUp Accounting" className="block w-40" />
+                        </Link>
+                    </div>
+
+                    {/* Navigation Section */}
+                    <div className="relative flex h-full flex-1 items-center justify-between bg-primary pl-8">
+                        <div className="pointer-events-none absolute -left-2 top-0 h-full w-40 text-background">
+                            <svg
+                                viewBox="0 0 160 80"
+                                preserveAspectRatio="none"
+                                className="h-full w-full"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M0,0 H90 C70,0 45,80 0,80 Z"
+                                    fill="currentColor"
+                                    transform="scale(1,-1) translate(0,-80)"
+                                />
+                            </svg>
+                        </div>
+
+                        <NavigationMenu className="relative z-10 ml-16 flex h-full items-stretch">
                             <NavigationMenuList className="flex h-full items-stretch space-x-2">
-                                {/* Beranda */}
+                                {/* Home */}
                                 <NavigationMenuItem className="relative flex h-full items-center">
-                                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                                    <NavigationMenuLink asChild>
                                         <Link
                                             href="/"
                                             className={cn(
-                                                'hover:bg-primary/5 dark:hover:bg-primary/40 h-9 cursor-pointer px-3',
-                                                isHomepage && activeItemStyles,
+                                                'rounded-full px-5 py-2 text-sm font-semibold transition-colors border border-white/50',
+                                                isHomepage ? 'bg-white text-primary' : 'text-white hover:bg-white/20',
                                             )}
                                         >
-                                            <Home className="mr-2 h-4 w-4" />
-                                            Beranda
+                                            Home
                                         </Link>
                                     </NavigationMenuLink>
-                                    {isHomepage && (
-                                        <div className="bg-primary absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-white"></div>
-                                    )}
                                 </NavigationMenuItem>
 
+                                {/* About */}
                                 <NavigationMenuItem className="relative flex h-full items-center">
-                                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                                    <NavigationMenuLink asChild>
                                         <Link
                                             href="/about"
                                             className={cn(
-                                                'hover:bg-primary/5 dark:hover:bg-primary/40 h-9 cursor-pointer px-3',
-                                                page.url.startsWith('/about') && activeItemStyles,
+                                                'rounded-full px-5 py-2 text-sm font-semibold transition-colors border border-white/50',
+                                                page.url.startsWith('/about') ? 'bg-white text-primary' : 'text-white hover:bg-white/20',
                                             )}
                                         >
-                                            <Info className="mr-2 h-4 w-4" />
-                                            Tentang
+                                            About
                                         </Link>
                                     </NavigationMenuLink>
-                                    {page.url.startsWith('/about') && (
-                                        <div className="bg-primary absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-white"></div>
-                                    )}
                                 </NavigationMenuItem>
 
-                                {/* Layanan Mega Menu */}
+                                {/* Program Mega Menu */}
                                 <NavigationMenuItem className="relative flex h-full items-center">
                                     <NavigationMenuTrigger
-                                        className={cn('hover:bg-primary/5 dark:hover:bg-primary/40 h-9 px-3', isServicesActive && activeItemStyles)}
+                                        className={cn(
+                                            'rounded-full px-5 py-2 text-sm font-semibold transition-colors border border-white/50 bg-transparent',
+                                            isServicesActive ? 'bg-white !text-primary' : 'text-white hover:bg-white/20 hover:text-white',
+                                        )}
                                     >
-                                        Program & Layanan
+                                        Program
                                     </NavigationMenuTrigger>
-                                        <NavigationMenuContent>
-                                            <ul className="grid w-[600px] gap-3 p-4 md:grid-cols-[.75fr_1fr]">
-                                                {/* Row Span - Bundling */}
-
-                                                <li className="row-span-3">
-                                                {/* 3 Produk Utama */}
+                                    <NavigationMenuContent>
+                                        <ul className="grid w-[600px] gap-3 p-4 md:grid-cols-[.75fr_1fr]">
+                                            <li className="row-span-3">
                                                 <ListItem href="/course" title="Kelas Online" icon={BookText}>
                                                     Belajar dengan video pembelajaran terstruktur dan materi lengkap
                                                 </ListItem>
@@ -177,147 +225,95 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 <ListItem href="/webinar" title="Webinar" icon={MonitorPlay}>
                                                     Seminar online dengan topik terkini dan expert speaker
                                                 </ListItem>
-                                                </li>
-                                                    <li className="row-span-3 relative overflow-hidden">
-                                                    <img
-                                                        src="/assets/images/circle_cta.png"
-                                                        alt=""
-                                                        className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 object-contain select-none"
-                                                        draggable={false}
-                                                        style={{ zIndex: 1 }}
-                                                    />
-                                                    <NavigationMenuLink asChild>
-                                                        <Link
-                                                            href="/bundle"
-                                                            className={cn(
-                                                                'from-primary-foreground to-primary flex h-full w-full flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-hidden transition-all duration-200 select-none hover:shadow-md',
-                                                                page.url.startsWith('/bundle') && 'ring-primary ring-2',
-                                                            )}
-                                                        >
-                                                            <Icon iconNode={Album} className="text-white mb-2 h-8 w-8" />
-                                                            <div className="mb-2 text-lg text-white font-medium">Paket Bundling</div>
-                                                            <p className="text-white text-sm leading-tight">
-                                                                Hemat lebih banyak dengan paket bundling berbagai produk edukasi kami
-                                                            </p>
-                                                        </Link>
-                                                    </NavigationMenuLink>
-                                                </li>
-
-                                            </ul>
-                                        </NavigationMenuContent>
-                                    {isServicesActive && (
-                                        <div className="bg-primary absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-white"></div>
-                                    )}
+                                            </li>
+                                            <li className="row-span-3 relative overflow-hidden">
+                                                <img
+                                                    src="/assets/images/circle_cta.png"
+                                                    alt=""
+                                                    className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 object-contain select-none"
+                                                    draggable={false}
+                                                    style={{ zIndex: 1 }}
+                                                />
+                                                <NavigationMenuLink asChild>
+                                                    <Link
+                                                        href="/bundle"
+                                                        className={cn(
+                                                            'from-primary-foreground to-primary flex h-full w-full flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-hidden transition-all duration-200 select-none hover:shadow-md',
+                                                            page.url.startsWith('/bundle') && 'ring-primary ring-2',
+                                                        )}
+                                                    >
+                                                        <Icon iconNode={Album} className="text-white mb-2 h-8 w-8" />
+                                                        <div className="mb-2 text-lg text-white font-medium">Paket Bundling</div>
+                                                        <p className="text-white text-sm leading-tight">
+                                                            Hemat lebih banyak dengan paket bundling berbagai produk edukasi kami
+                                                        </p>
+                                                    </Link>
+                                                </NavigationMenuLink>
+                                            </li>
+                                        </ul>
+                                    </NavigationMenuContent>
                                 </NavigationMenuItem>
 
                                 {/* Sertifikasi */}
-                                  <NavigationMenuItem className="relative flex h-full items-center">
-                                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                                <NavigationMenuItem className="relative flex h-full items-center">
+                                    <NavigationMenuLink asChild>
                                         <Link
                                             href="/certification"
                                             className={cn(
-                                                'hover:bg-primary/5 dark:hover:bg-primary/40 h-9 cursor-pointer px-3',
-                                                page.url.startsWith('/certification') && activeItemStyles,
+                                                'rounded-full px-5 py-2 text-sm font-semibold transition-colors border border-white/50',
+                                                page.url.startsWith('/certification') ? 'bg-white text-primary' : 'text-white hover:bg-white/20',
                                             )}
                                         >
-                                            <BriefcaseBusiness className="mr-2 h-4 w-4" />
                                             Sertifikasi
                                         </Link>
                                     </NavigationMenuLink>
-                                    {page.url.startsWith('/certification') && (
-                                        <div className="bg-primary absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-white"></div>
-                                    )}
-                                </NavigationMenuItem> 
+                                </NavigationMenuItem>
 
                                 {/* Artikel */}
                                 <NavigationMenuItem className="relative flex h-full items-center">
-                                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                                    <NavigationMenuLink asChild>
                                         <Link
                                             href="/article"
                                             className={cn(
-                                                'hover:bg-primary/5 dark:hover:bg-primary/40 h-9 cursor-pointer px-3',
-                                                page.url.startsWith('/article') && activeItemStyles,
+                                                'rounded-full px-5 py-2 text-sm font-semibold transition-colors border border-white/50',
+                                                page.url.startsWith('/article') ? 'bg-white text-primary' : 'text-white hover:bg-white/20',
                                             )}
                                         >
-                                            <FileText className="mr-2 h-4 w-4" />
                                             Artikel
                                         </Link>
                                     </NavigationMenuLink>
-                                    {page.url.startsWith('/article') && (
-                                        <div className="bg-primary absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-white"></div>
-                                    )}
                                 </NavigationMenuItem>
-
-                                {/* Profil Saya (if logged in) */}
-                                {auth.user && (
-                                    <NavigationMenuItem className="relative flex h-full items-center">
-                                        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                                            <Link
-                                                href="/profile"
-                                                className={cn(
-                                                    'hover:bg-primary/5 dark:hover:bg-primary/40 h-9 cursor-pointer px-3',
-                                                    page.url.startsWith('/profile') && activeItemStyles,
-                                                )}
-                                            >
-                                                Profil Saya
-                                            </Link>
-                                        </NavigationMenuLink>
-                                        {page.url.startsWith('/profile') && (
-                                            <div className="bg-primary absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-white"></div>
-                                        )}
-                                    </NavigationMenuItem>
-                                )}
                             </NavigationMenuList>
                         </NavigationMenu>
-                    </div>
 
-                    <div className="ml-auto flex items-center space-x-2">
-                        <div className="relative flex items-center space-x-1">
-                            {/* <Button variant="outline" onClick={() => setSearchOpen(true)}>
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
-                                <p className="mr-4 hidden lg:block">Cari Produk...</p>
-                                <div className="hidden lg:block">
-                                    <kbd className="bg-muted text-muted-foreground pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none">
-                                        <span className="text-xs">⌘</span>K
-                                    </kbd>{' '}
-                                    /{' '}
-                                    <kbd className="bg-muted text-muted-foreground pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none">
-                                        <span className="text-xs">Ctrl</span>K
-                                    </kbd>
-                                </div>
-                            </Button> */}
+                        <div className="relative z-10 flex items-center">
+                            {auth.user ? (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="size-10 rounded-full p-1">
+                                            <Avatar className="size-8 overflow-hidden rounded-full">
+                                                <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                                <AvatarFallback className="bg-background text-primary rounded-lg dark:bg-neutral-700 dark:text-white">
+                                                    {getInitials(auth.user.name)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56" align="end">
+                                        <UserMenuContent user={auth.user} />
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            ) : (
+                                <Button variant="default" asChild className="bg-secondary hover:bg-secondary/90 rounded-full px-8 py-2 text-base">
+                                    <Link href={route('login')}>Login</Link>
+                                </Button>
+                            )}
                         </div>
-                        {auth.user ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="size-10 rounded-full p-1">
-                                        <Avatar className="size-8 overflow-hidden rounded-full">
-                                            <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                            <AvatarFallback className="bg-primary text-primary-foreground rounded-lg dark:bg-neutral-700 dark:text-white">
-                                                {getInitials(auth.user.name)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56" align="end">
-                                    <UserMenuContent user={auth.user} />
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
-                            <>
-                                <Button variant="outline" asChild>
-                                    <Link href={route('login')}>Masuk</Link>
-                                </Button>
-                                <Button variant="default" asChild className="hidden lg:inline-flex">
-                                    <Link href={route('register')}>Daftar</Link>
-                                </Button>
-                            </>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Mobile Navigation Dock */}
+            {/* ===== MOBILE BOTTOM NAVIGATION DOCK ===== */}
             <div className="fixed right-0 bottom-0 left-0 z-50 lg:hidden">
                 <div className="bg-background/95 border-border border-t pb-2 shadow-lg backdrop-blur-md">
                     <div className={`grid gap-1 px-2 py-2 ${auth.user ? 'grid-cols-5' : 'grid-cols-4'}`}>

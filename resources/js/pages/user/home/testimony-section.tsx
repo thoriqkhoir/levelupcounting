@@ -75,7 +75,11 @@ export default function TestimonySection() {
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-16">
       <div className="mx-auto text-center mb-4">
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">Apa Kata Mereka? </h2>
+        <div className='flex justify-center'>
+        <h3 className="text-lg md:text-xl bg-muted-foreground font-av-estiana mb-6 border w-32 rounded-full py-1 items-center text-white dark:text-white">Testimoni</h3>
+        </div>
+        <h2 className="text-2xl md:text-3xl font-semibold font-av-estiana dark:text-white">Trusted by leaders </h2>
+        <h2 className="text-2xl md:text-3xl font-semibold font-av-estiana text-muted-foreground dark:text-white">From Various Industries </h2>
       </div>
       
       <Carousel index={index} onIndexChange={handleIndexChange} disableDrag className="relative">

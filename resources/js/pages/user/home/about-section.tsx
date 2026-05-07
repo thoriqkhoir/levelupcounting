@@ -31,187 +31,131 @@ const MouseIcon = (props: SVGProps<SVGSVGElement>) => {
 
 export default function AboutSection() {
     return (
-        <section className="relative mx-auto w-full max-w-7xl px-4 py-8">
-            <div className="bg-primary absolute bottom-50 -left-25 h-[200px] w-[100px] rounded-full blur-3xl xl:bottom-20 xl:-left-42"></div>
-            <div className="bg-secondary absolute top-25 -right-25 h-[200px] w-[100px] blur-3xl xl:top-0 xl:-right-42"></div>
-            <div className="mx-auto text-center">
-                <motion.h2
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, delay: 0.2 }}
-                    className="dark:text-primary-foreground mx-auto font-bold max-w-2xl text-3xl leading-snug md:text-4xl"
-                >
-                    Kenapa Harus Sekolah Pajak?
-                <motion.h2
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, delay: 0.2 }}
-                    className="dark:text-primary-foreground mx-auto font-bold max-w-2xl text-3xl leading-snug md:text-4xl"
-                >
-                    Mulai Karier Profesionalmu dari Sini
-                
+        <section className="relative mx-auto w-full max-w-7xl px-4 py-16">
+            <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center">
+
+                {/* Kolom Kiri */}
+                <div className="flex flex-1 flex-col gap-6">
+
+                    {/* Badge */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <span className="inline-flex items-center gap-2 rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary">
+                            <span className="h-2 w-2 rounded-full bg-primary" />
+                            Educate, Innovate and Lead
+                        </span>
+                    </motion.div>
+
+                    {/* Heading */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.1 }}
+                        className="space-y-1"
+                    >
+                        <h1 className="font-av-estiana text-4xl font-bold leading-tight text-foreground md:text-5xl">
+                            Learn Without Limits
+                        </h1>
+                        <h2 className="text-4xl font-bold leading-tight md:text-5xl">
+                            Grow Without{' '}
+                            <span className="text-primary">Boundaries</span>
+                        </h2>
+                    </motion.div>
+
+                    {/* Deskripsi */}
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
-                        className=" text-zinc-600 dark:text-zinc-100 mx-auto w-fit px-4 py-1 mt-2 mb-4  text-sm font-medium sm:text-base"
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="max-w-md text-base text-muted-foreground"
                     >
                         Kami menghadirkan pelatihan Akuntansi dan Pajak berbasis praktik, sertifikasi, dan kelas online untuk membantumu siap bersaing di dunia kerja.
                     </motion.p>
-                </motion.h2>
 
-                </motion.h2>
+                    {/* CTA Buttons */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                        className="flex flex-wrap gap-3"
+                    >
+                        <Button asChild size="default" className="rounded-full px-6">
+                            <Link href="/course">Browse Program</Link>
+                        </Button>
+                        <Button asChild variant="outline" size="default" className="rounded-full px-6">
+                            <Link href="/contact">Get In Touch</Link>
+                        </Button>
+                    </motion.div>
+
+                    {/* Stats */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                        className="flex items-center gap-6 pt-2"
+                    >
+                        {/* Success Rate */}
+                        <div>
+                            <p className="text-4xl font-extrabold text-foreground">99%</p>
+                            <p className="text-sm text-muted-foreground">Success Rate</p>
+                        </div>
+
+                        {/* Total Students */}
+                        <div className="flex items-center gap-3 rounded-full bg-primary/10 px-4 py-2">
+                            <div className="flex -space-x-2">
+                                <div className="h-8 w-8 rounded-full border-2 border-white bg-primary/30 overflow-hidden">
+                                    <img src="/assets/images/avatar-1.jpg" alt="Student" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                                </div>
+                                <div className="h-8 w-8 rounded-full border-2 border-white bg-primary/50 overflow-hidden">
+                                    <img src="/assets/images/avatar-2.jpg" alt="Student" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                                </div>
+                                <div className="h-8 w-8 rounded-full border-2 border-white bg-primary/70 overflow-hidden">
+                                    <img src="/assets/images/avatar-3.jpg" alt="Student" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                                </div>
+                            </div>
+                            <p className="text-sm font-semibold text-primary">30k Total Students</p>
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* Kolom Kanan — Dua Gambar Overlapping */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
+                    initial={{ opacity: 0, x: 40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.7, delay: 0.2 }}
+                    className="relative w-full flex-1 lg:min-h-[420px]"
                 >
-                    <Button asChild variant="outline" size="default" className="">
-                        <Link href="/course">
-                            Kenal Lebih Dekat
-                        </Link>
-                    </Button>
+                    {/* Gambar utama (kanan atas) */}
+                    <div className="ml-auto w-[85%] overflow-hidden rounded-2xl shadow-xl">
+                        <img
+                            src="/assets/images/about-main.jpg"
+                            alt="Professional meeting"
+                            className="h-[320px] w-full object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&fit=crop';
+                            }}
+                        />
+                    </div>
+
+                    {/* Gambar kecil (kiri bawah, overlapping) */}
+                    <div className="absolute bottom-0 left-0 w-[52%] overflow-hidden rounded-2xl border-4 border-background shadow-xl">
+                        <img
+                            src="/assets/images/about-secondary.jpg"
+                            alt="Team collaboration"
+                            className="h-[200px] w-full object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop';
+                            }}
+                        />
+                    </div>
                 </motion.div>
-                {/* <h2 className="dark:text-primary-foreground mx-auto font-bold max-w-2xl text-3xl leading-snug md:text-4xl">
-                    Lorem ipsum dolor sit amet consectetur adipisicing
-                    <p className=" text-zinc-600 dark:text-zinc-100 mx-auto w-fit px-4 py-1 mt-2 mb-4  text-sm font-medium sm:text-base">
-                    Lorem ipsum dolor sit, amet consectetur adipisicing elit. Deleniti, nesciunt! Officiis ratione necessitatibus animi doloremque.
-                    </p>
-                </h2>
-                    <Button asChild variant="outline" size="default" className="">
-                        <Link href="/course">
-                            Bergabung Sekarang
-                        </Link>
-                    </Button> */}
 
-                {/* <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <div>
-                        <Cursor
-                            attachToParent
-                            variants={{
-                                initial: { scale: 0.3, opacity: 0 },
-                                animate: { scale: 1, opacity: 1 },
-                                exit: { scale: 0.3, opacity: 0 },
-                            }}
-                            transition={{
-                                ease: 'easeInOut',
-                                duration: 0.15,
-                            }}
-                            className="top-4 left-12"
-                        >
-                            <div>
-                                <MouseIcon className="h-6 w-6" />
-                                <div className="bg-secondary mt-1 ml-4 rounded-[4px] px-2 py-0.5 text-neutral-50">Web & App Development</div>
-                            </div>
-                        </Cursor>
-                        <Tilt rotationFactor={10} isRevese>
-                            <Link
-                                href="/"
-                                className="hover:border-secondary relative flex w-full cursor-none flex-col items-center justify-center rounded-xl border-2 border-gray-300 p-4 shadow-lg backdrop-blur-md transition duration-200 ease-in dark:border-zinc-100/20 dark:bg-zinc-800/20"
-                            >
-                                <img src="/assets/images/web-app-icon.webp" loading="lazy" alt="Web Development" className="mx-auto mb-4" />
-                                <h2 className="mb-1 text-lg font-semibold">Web & App Development</h2>
-                                <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                    Membangun aplikasi web dan mobile yang responsif dan efisien
-                                </p>
-                            </Link>
-                        </Tilt>
-                    </div>
-                    <div>
-                        <Cursor
-                            attachToParent
-                            variants={{
-                                initial: { scale: 0.3, opacity: 0 },
-                                animate: { scale: 1, opacity: 1 },
-                                exit: { scale: 0.3, opacity: 0 },
-                            }}
-                            transition={{
-                                ease: 'easeInOut',
-                                duration: 0.15,
-                            }}
-                            className="top-4 left-12"
-                        >
-                            <div>
-                                <MouseIcon className="h-6 w-6" />
-                                <div className="bg-secondary mt-1 ml-4 rounded-[4px] px-2 py-0.5 text-neutral-50">Data Science</div>
-                            </div>
-                        </Cursor>
-                        <Tilt rotationFactor={10} isRevese>
-                            <Link
-                                href="/"
-                                className="hover:border-secondary relative flex w-full cursor-none flex-col items-center justify-center rounded-xl border-2 border-gray-300 p-4 shadow-lg backdrop-blur-md transition duration-200 ease-in dark:border-zinc-100/20 dark:bg-zinc-800/20"
-                            >
-                                <img src="/assets/images/data-science-icon.webp" loading="lazy" alt="Data Science" className="mx-auto mb-4" />
-                                <h2 className="mb-1 text-lg font-semibold">Data Science</h2>
-                                <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                    Menganalisis data untuk mendapatkan wawasan yang berharga
-                                </p>
-                            </Link>
-                        </Tilt>
-                    </div>
-                    <div>
-                        <Cursor
-                            attachToParent
-                            variants={{
-                                initial: { scale: 0.3, opacity: 0 },
-                                animate: { scale: 1, opacity: 1 },
-                                exit: { scale: 0.3, opacity: 0 },
-                            }}
-                            transition={{
-                                ease: 'easeInOut',
-                                duration: 0.15,
-                            }}
-                            className="top-4 left-12"
-                        >
-                            <div>
-                                <MouseIcon className="h-6 w-6" />
-                                <div className="bg-secondary mt-1 ml-4 rounded-[4px] px-2 py-0.5 text-neutral-50">Graphic Design</div>
-                            </div>
-                        </Cursor>
-
-                        <Tilt rotationFactor={10} isRevese>
-                            <Link
-                                href="/"
-                                className="hover:border-secondary relative flex w-full cursor-none flex-col items-center justify-center rounded-xl border-2 border-gray-300 p-4 shadow-lg backdrop-blur-md transition duration-200 ease-in dark:border-zinc-100/20 dark:bg-zinc-800/20"
-                            >
-                                <img src="/assets/images/graphic-design-icon.webp" loading="lazy" alt="Graphic Design" className="mx-auto mb-4" />
-                                <h2 className="mb-1 text-lg font-semibold">Graphic Design</h2>
-                                <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">Mendesain antarmuka yang menarik dan fungsional</p>
-                            </Link>
-                        </Tilt>
-                    </div>
-                    <div>
-                        <Cursor
-                            attachToParent
-                            variants={{
-                                initial: { scale: 0.3, opacity: 0 },
-                                animate: { scale: 1, opacity: 1 },
-                                exit: { scale: 0.3, opacity: 0 },
-                            }}
-                            transition={{
-                                ease: 'easeInOut',
-                                duration: 0.15,
-                            }}
-                            className="top-4 left-12"
-                        >
-                            <div>
-                                <MouseIcon className="h-6 w-6" />
-                                <div className="bg-secondary mt-1 ml-4 rounded-[4px] px-2 py-0.5 text-neutral-50">Accounting</div>
-                            </div>
-                        </Cursor>
-                        <Tilt rotationFactor={10} isRevese>
-                            <Link
-                                href="/"
-                                className="hover:border-secondary relative flex w-full cursor-none flex-col items-center justify-center rounded-xl border-2 border-gray-300 p-4 shadow-lg backdrop-blur-md transition duration-200 ease-in dark:border-zinc-100/20 dark:bg-zinc-800/20"
-                            >
-                                <img src="/assets/images/accounting-tax-icon.webp" loading="lazy" alt="Accounting" className="mx-auto mb-4" />
-                                <h2 className="mb-1 text-lg font-semibold">Accounting, Finance, & Tax</h2>
-                                <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">Membantu mengelola keuangan dan laporan keuangan</p>
-                            </Link>
-                        </Tilt>
-                    </div>
-                </div> */}
             </div>
         </section>
     );
 }
+
+

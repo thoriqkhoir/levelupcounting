@@ -12,7 +12,7 @@
 
 @theme {
     --font-sans:
-        'Sinteca', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Mansfield', 'AV Estiana', 'Averta Demo PE', 'Sinteca', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
     --radius-lg: var(--radius);
@@ -86,22 +86,22 @@
     }
     body {
         @apply bg-background text-foreground;
-        font-family: 'Sinteca', ui-sans-serif, system-ui, sans-serif;
+        font-family: var(--font-sans);
     }
 }
 
 :root {
-    --background: #ffffff;
+    --background: #F4EFED;
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: #1B805B;
+    --primary: #0360ED;
     --primary-foreground: #DCFCE7;
-    --secondary: #000000;
+    --secondary: #032B82;
     --secondary-foreground: #fdfbf7;
-    --tertiary: #edebde;
+    --tertiary: #99BBFF;
     --card:#E9F5EE;
     --muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);
@@ -183,6 +183,9 @@
     @layer utilities {
         .font-sinteca {
             font-family: 'Sinteca', sans-serif;
+        }
+        .font-av-estiana {
+            font-family: 'AV Estiana', sans-serif;
         }
     }
     @layer utilities {
@@ -313,6 +316,255 @@
     font-family: 'Sinteca';
     src: url('/assets/fonts/Sinteca-SemiBoldItalic.otf') format('opentype');
     font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Tambahan @font-face untuk font AV Estiana */
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-Regular-BF67761220bee90.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-Oblique-BF67761220b3654.otf') format('opentype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-Light-BF67761220ce8a3.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-LightOblique-BF67761220c8ea4.otf') format('opentype');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-Medium-BF677612209558b.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-MediumOblique-BF6776122082e6d.otf') format('opentype');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-Bold-BF677612208ac8d.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-BoldOblique-BF677612200ac99.otf') format('opentype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-Black-BF6776121fde086.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana';
+    src: url('/assets/fonts/AVEstiana-BlackOblique-BF6776121fc34c0.otf') format('opentype');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AV Estiana VF';
+    src: url('/assets/fonts/AV-Estiana-VF-BF67761221254cd.otf') format('opentype');
+    font-display: swap;
+}
+
+/* Tambahan @font-face untuk font Averta Demo PE */
+@font-face {
+    font-family: 'Averta Demo PE';
+    src: url('/assets/fonts/AvertaDemoPE-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Averta Demo PE';
+    src: url('/assets/fonts/AvertaDemoPE-ExtraboldItalic.otf') format('opentype');
+    font-weight: 800;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Tambahan @font-face untuk font Mansfield */
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-iF66c703e50e674.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Italic-iF66c703e4a6951.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Thin-iF66c703e503e5b.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Thin-Italic-iF66c703e4edb9c.ttf') format('truetype');
+    font-weight: 100;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Extra-Light-iF66c703e49cb27.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Extra-Light-Italic-iF66c703e491cc4.ttf') format('truetype');
+    font-weight: 200;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Light-iF66c703e4baba9.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Light-Italic-iF66c703e4b09c0.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Medium-iF66c703e4cf4a2.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Medium-Italic-iF66c703e4c5283.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Semi-Bold-iF66c703e4e3977.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Semi-Bold-Italic-iF66c703e4d92e5.ttf') format('truetype');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Bold-iF66c703e473e0c.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Bold-Italic-iF66c703e469c14.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Extra-Bold-iF66c703e487e58.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Extra-Bold-Italic-iF66c703e47ddeb.ttf') format('truetype');
+    font-weight: 800;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Black-iF66c703e45fe6e.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Mansfield';
+    src: url('/assets/fonts/Mansfield-Black-Italic-iF66c703e454469.ttf') format('truetype');
+    font-weight: 900;
     font-style: italic;
     font-display: swap;
 }

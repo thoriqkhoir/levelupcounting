@@ -6,12 +6,13 @@ export default function FaqSection() {
     const [expanded, setExpanded] = useState<React.Key | null>('getting-started');
 
     return (
-        <section className="mx-auto w-full max-w-7xl px-4 py-8">
-            <div className="mx-auto text-center">
-                <h2 className="dark:text-primary-foreground mx-auto mb-8 max-w-2xl text-2xl md:text-3xl font-semibold">Yang Sering Ditanyakan</h2>
+        <section className="mx-auto w-full max-w-7xl px-4 py-8 flex items-center gap-8">
+            <div className="w-1/2 text-start">
+                <h2 className="dark:text-primary-foreground mx-auto mb-2 max-w-2xl text-2xl md:text-3xl font-av-estiana font-semibold">Explore the Frequently Asked Questions</h2>
+                <h3 className="dark:text-primary-foreground mx-auto mb-8 max-w-3xl ">Here's a Frequently Asked Questions (FAQ) section for your AP! Selling Website, API key, and start integrating</h3>
             </div>
             <Accordion
-                className="flex w-full flex-col gap-2 divide-y divide-zinc-200 dark:divide-zinc-700"
+                className="w-1/2 flex flex-col gap-2 divide-y divide-zinc-200 dark:divide-zinc-700"
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                 expandedValue={expanded}
                 onValueChange={setExpanded}
@@ -26,7 +27,6 @@ export default function FaqSection() {
                     <AccordionContent>
                         <p className="text-sm text-zinc-500 md:text-base dark:text-zinc-400">
                             Sekolah Pajak adalah lembaga yang berfokus pada pengembangan kompetensi di bidang perpajakan dan akuntansi. Program kami dirancang praktis dan aplikatif untuk membantu peserta memahami pajak serta mempersiapkan diri menghadapi dunia kerja.
-
                         </p>
                     </AccordionContent>
                 </AccordionItem>

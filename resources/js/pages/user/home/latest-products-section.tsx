@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link } from '@inertiajs/react';
-import { Calendar, Clock, Package, Percent } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Package, Percent } from 'lucide-react';
 
 interface Category {
     id: string;
@@ -272,14 +272,11 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
 
     return (
         <section id="latest-products" className="mx-auto w-full max-w-7xl px-4 py-8">
-            <div className="mx-auto text-center">
-                {/* <p className="border-primary bg-background text-primary mx-auto mb-4 w-fit rounded-full border bg-gradient-to-t from-[#D9E5FF] to-white px-4 py-1 text-sm font-medium shadow-xs">
-                    Produk Terbaru
-                </p> */}
-                <h2 className="dark:text-primary-foreground mx-auto max-w-2xl pb-8 text-2xl font-semibold text-gray-900 md:text-3xl">
-                    Pelatihan Terbaru
+            <div className="mx-auto">
+                <h2 className="dark:text-primary-foreground font-av-estiana mx-auto text-center max-w-2xl pb-8 text-2xl font-semibold text-gray-900 md:text-3xl">
+                    Unlock New Possibilities
                 </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {(() => {
                         if (safeLatestProducts.length === 0) {
                             return (
@@ -308,137 +305,151 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
 
                             return (
                                 <Link key={product.id} href={productUrl} className="group h-full">
-                                    <div className="group-hover:ring-primary/40 relative h-full overflow-hidden rounded-2xl border transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:ring-2 dark:bg-zinc-700/30">
-                                        <div className="relative flex h-full flex-col rounded-lg bg-white dark:bg-zinc-800">
-                                            <div className="w-full flex-shrink-0 overflow-hidden rounded-t-lg">
-                                                <div className="relative">
-                                                    <img
-                                                        src={product.thumbnail ? `/storage/${product.thumbnail}` : '/assets/images/placeholder.png'}
-                                                        alt={product.title}
-                                                        className="h-48 w-full rounded-t-lg object-cover transition-transform duration-300 group-hover:scale-105"
-                                                    />
+                                    <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border-2 border-gray-100 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:border-primary group-hover:ring-2 group-hover:ring-primary dark:border-zinc-700 dark:bg-zinc-800">
+                                        {/* Image Section */}
+                                        <div className="relative w-full overflow-hidden">
+                                            <img
+                                                src={product.thumbnail ? `/storage/${product.thumbnail}` : '/assets/images/placeholder.png'}
+                                                alt={product.title}
+                                                className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            />
 
-                                                    {product.type === 'course' && product.level && (
-                                                        <div className="absolute bottom-2 left-2 z-20">
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <div
-                                                                        className={
-                                                                            product.level === 'beginner'
-                                                                                ? 'rounded-lg border border-green-300 bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-zinc-800 dark:text-green-300'
-                                                                                : product.level === 'intermediate'
-                                                                                  ? 'rounded-lg border border-yellow-300 bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700 dark:bg-zinc-800 dark:text-yellow-300'
-                                                                                  : 'rounded-lg border border-red-300 bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-zinc-800 dark:text-red-300'
-                                                                        }
-                                                                    >
-                                                                        <p>
-                                                                            {product.level === 'beginner'
-                                                                                ? 'Beginner'
-                                                                                : product.level === 'intermediate'
-                                                                                  ? 'Intermediate'
-                                                                                  : 'Advanced'}
-                                                                        </p>
-                                                                    </div>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    {product.level === 'beginner' && <p>Level Beginner</p>}
-                                                                    {product.level === 'intermediate' && <p>Level Intermediate</p>}
-                                                                    {product.level === 'advanced' && <p>Level Advanced</p>}
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </div>
-                                                    )}
-                                                    {getProductBadge(product.type)}
-                                                    {getDateDisplay(product)}
+                                            {/* Type Badge - Top Left */}
+                                            {getProductBadge(product.type)}
 
-                                                    {/* ✅ Discount Badge - Top Right (from bundling-section.tsx) */}
-                                                    {discount > 0 && (
-                                                        <div className="absolute top-2 right-2">
-                                                            <Badge className="bg-red-500 text-white shadow-lg">
-                                                                <Percent size={12} className="mr-1" />
-                                                                Hemat {discount}%
-                                                            </Badge>
-                                                        </div>
-                                                    )}
+                                            {/* Discount Badge - Top Right */}
+                                            {discount > 0 && (
+                                                <div className="absolute top-2 right-2">
+                                                    <Badge className="bg-red-500 text-white shadow-lg">
+                                                        <Percent size={12} className="mr-1" />
+                                                        Hemat {discount}%
+                                                    </Badge>
                                                 </div>
-                                                <h2 className="mx-4 mt-2 line-clamp-2 text-left text-lg font-semibold">{product.title}</h2>
-                                            </div>
-                                            <div className="mt-auto w-full p-2 text-left">
-                                                {product.strikethrough_price > 0 && product.strikethrough_price > product.price && (
-                                                    <p className="mb-0.5 px-2 text-xs text-red-600 line-through dark:text-gray-400">
-                                                        Rp {product.strikethrough_price.toLocaleString('id-ID')}
-                                                    </p>
-                                                )}
-                                                <div className="mb-2 flex items-center justify-between gap-2 px-2">
-                                                    {product.price === 0 ? (
-                                                        <p className="text-lg font-semibold text-green-600 dark:text-green-400">Gratis</p>
-                                                    ) : (
-                                                        <p className="text-primary text-base font-bold dark:text-gray-200">
-                                                            Rp {product.price.toLocaleString('id-ID')}
-                                                        </p>
-                                                    )}
+                                            )}
+
+                                            {/* Level Badge for courses - Bottom Left */}
+                                            {product.type === 'course' && product.level && (
+                                                <div className="absolute bottom-2 left-2 z-20">
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div
+                                                                className={
+                                                                    product.level === 'beginner'
+                                                                        ? 'rounded-lg border border-green-300 bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-zinc-800 dark:text-green-300'
+                                                                        : product.level === 'intermediate'
+                                                                          ? 'rounded-lg border border-yellow-300 bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700 dark:bg-zinc-800 dark:text-yellow-300'
+                                                                          : 'rounded-lg border border-red-300 bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-zinc-800 dark:text-red-300'
+                                                                }
+                                                            >
+                                                                <p>
+                                                                    {product.level === 'beginner'
+                                                                        ? 'Beginner'
+                                                                        : product.level === 'intermediate'
+                                                                          ? 'Intermediate'
+                                                                          : 'Advanced'}
+                                                                </p>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            {product.level === 'beginner' && <p>Level Beginner</p>}
+                                                            {product.level === 'intermediate' && <p>Level Intermediate</p>}
+                                                            {product.level === 'advanced' && <p>Level Advanced</p>}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </div>
+                                            )}
+
+                                            {/* Category Badge - Bottom Left (non-course types) */}
+                                            {product.type !== 'course' && getCategoryDisplay(product) && (
+                                                <div className="absolute bottom-2 left-2 z-20">
                                                     {getCategoryDisplay(product)}
                                                 </div>
+                                            )}
 
-                                                <div className="bg-primary/50 my-2 h-0.5 w-full rounded-full px-4" />
-                                                <div className="mx-4 mt-4 flex items-center gap-3">
-                                                    {product.type === 'bootcamp' && bootcampMentors.length > 0 ? (
-                                                        <div className="flex -space-x-2">
-                                                            {bootcampMentors.slice(0, 3).map((mentor, index) =>
-                                                                getAvatarSrc(mentor.avatar) ? (
-                                                                    <img
-                                                                        key={`${mentor.name}-${index}`}
-                                                                        src={getAvatarSrc(mentor.avatar) ?? undefined}
-                                                                        alt={mentor.name}
-                                                                        className="h-10 w-10 rounded-full border-2 border-white object-cover shadow-lg"
-                                                                    />
-                                                                ) : (
-                                                                    <div
-                                                                        key={`${mentor.name}-${index}`}
-                                                                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-white bg-gray-200 font-bold text-gray-600 shadow-lg"
-                                                                    >
-                                                                        {mentor.name
-                                                                            .split(' ')
-                                                                            .map((n) => n[0])
-                                                                            .join('')
-                                                                            .substring(0, 2)
-                                                                            .toUpperCase()}
-                                                                    </div>
-                                                                ),
-                                                            )}
-                                                        </div>
-                                                    ) : getAvatarSrc(presenter.avatar) ? (
-                                                        <img
-                                                            src={getAvatarSrc(presenter.avatar) ?? undefined}
-                                                            alt={presenter.name}
-                                                            className="h-10 w-10 rounded-full object-cover shadow-lg"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 font-bold text-gray-600 shadow-lg">
-                                                            {presenter.name !== '-'
-                                                                ? presenter.name
-                                                                      .split(' ')
-                                                                      .map((n) => n[0])
-                                                                      .join('')
-                                                                      .substring(0, 2)
-                                                                      .toUpperCase()
-                                                                : '-'}
-                                                        </div>
-                                                    )}
-                                                    <div>
-                                                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                            {product.type === 'bootcamp'
-                                                                ? getBootcampMentorSummary(product)
-                                                                : `${presenter.name}${presenter.extraLabel}`}
-                                                        </div>
-                                                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                            {product.type === 'bootcamp'
-                                                                ? `${bootcampMentors.length} mentor terdaftar`
-                                                                : presenter.bio}
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            {/* Date Display - Bottom Right */}
+                                            {getDateDisplay(product)}
+                                        </div>
+
+                                        {/* Content Section */}
+                                        <div className="flex flex-1 flex-col gap-3 p-5 transition-all duration-300 group-hover:rounded-b-2xl">
+                                            {/* Title */}
+                                            <h2 className="line-clamp-2 text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100">
+                                                {product.title}
+                                            </h2>
+
+                                            {/* Pricing */}
+                                            <div>
+                                                {product.strikethrough_price > 0 && product.strikethrough_price > product.price && (
+                                                    <p className="text-base text-red-500 line-through">
+                                                        Rp. {product.strikethrough_price.toLocaleString('id-ID')}
+                                                    </p>
+                                                )}
+                                                {product.price === 0 ? (
+                                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">Gratis</p>
+                                                ) : (
+                                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                                        Rp. {product.price.toLocaleString('id-ID')}
+                                                    </p>
+                                                )}
                                             </div>
+
+                                            {/* Mentor / Presenter Info */}
+                                            <div className="flex items-center gap-3">
+                                                {product.type === 'bootcamp' && bootcampMentors.length > 0 ? (
+                                                    <div className="flex -space-x-2">
+                                                        {bootcampMentors.slice(0, 3).map((mentor, index) =>
+                                                            getAvatarSrc(mentor.avatar) ? (
+                                                                <img
+                                                                    key={`${mentor.name}-${index}`}
+                                                                    src={getAvatarSrc(mentor.avatar) ?? undefined}
+                                                                    alt={mentor.name}
+                                                                    className="h-10 w-10 rounded-full border-2 border-white object-cover shadow"
+                                                                />
+                                                            ) : (
+                                                                <div
+                                                                    key={`${mentor.name}-${index}`}
+                                                                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-white bg-gray-200 text-sm font-bold text-gray-600 shadow"
+                                                                >
+                                                                    {mentor.name
+                                                                        .split(' ')
+                                                                        .map((n) => n[0])
+                                                                        .join('')
+                                                                        .substring(0, 2)
+                                                                        .toUpperCase()}
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                ) : getAvatarSrc(presenter.avatar) ? (
+                                                    <img
+                                                        src={getAvatarSrc(presenter.avatar) ?? undefined}
+                                                        alt={presenter.name}
+                                                        className="h-10 w-10 rounded-full object-cover shadow"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-600 shadow">
+                                                        {presenter.name !== '-'
+                                                            ? presenter.name
+                                                                  .split(' ')
+                                                                  .map((n) => n[0])
+                                                                  .join('')
+                                                                  .substring(0, 2)
+                                                                  .toUpperCase()
+                                                            : '-'}
+                                                    </div>
+                                                )}
+                                                <span className="text-base font-medium text-gray-700 dark:text-gray-300">
+                                                    {product.type === 'bootcamp'
+                                                        ? getBootcampMentorSummary(product)
+                                                        : `${presenter.name}${presenter.extraLabel}`}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* CTA Button - Outside content padding for flush edges on hover */}
+                                        <div className="mt-auto flex items-center justify-between px-5 py-3 mx-4 mb-4 rounded-xl border border-gray-200 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:bg-primary group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
+                                            <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">Daftar Sekarang</span>
+                                            <ArrowRight className="h-6 w-6 text-gray-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white dark:text-gray-400" />
                                         </div>
                                     </div>
                                 </Link>
