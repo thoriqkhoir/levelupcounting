@@ -46,8 +46,8 @@ class CertificatePdfService
 
             // Data dummy untuk preview
             $dummyData = [
-                'participant_name' => 'Sekolah Pajak',
-                'certificate_code' => 'SPJ-25AHBEFJ',
+                'participant_name' => 'Level Up Accounting',
+                'certificate_code' => 'LUC-25AHBEFJ',
                 'participant_issued_at' => now(),
                 'certificate_number' => '0001',
                 'completion_date' => now()->format('d F Y'),
@@ -56,7 +56,7 @@ class CertificatePdfService
             ];
 
             // Generate QR Code
-            $certificateUrl = "https://sekolahpajak.id/certificate/{$dummyData['certificate_code']}";
+            $certificateUrl = "https://levelupaccounting.id/certificate/{$dummyData['certificate_code']}";
             $qrCodeBase64 = $this->generateQrCode($certificateUrl);
 
             $html = $this->generateHtml($certificate, $dummyData, $qrCodeBase64, $certificateUrl);
@@ -92,7 +92,7 @@ class CertificatePdfService
             ];
 
             // Generate QR Code
-            $certificateUrl = "https://sekolahpajak.id/certificate/{$participant->certificate_code}";
+            $certificateUrl = "https://levelupaccounting.id/certificate/{$participant->certificate_code}";
             $qrCodeBase64 = $this->generateQrCode($certificateUrl);
 
             $html = $this->generateHtml($certificate, $participantData, $qrCodeBase64, $certificateUrl);

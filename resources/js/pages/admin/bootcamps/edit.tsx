@@ -989,7 +989,7 @@ export default function EditBootcamp({
                                             {...field}
                                             value={field.value ?? ''}
                                             className="w-full rounded border p-2"
-                                            placeholder="Contoh: Follow Instagram @sekolahpajak.id"
+                                            placeholder="Contoh: Follow Instagram @levelupaccounting.id"
                                             autoComplete="off"
                                         />
                                         <FormDescription>Teks persyaratan pertama yang akan ditampilkan untuk bootcamp gratis</FormDescription>
@@ -1007,7 +1007,7 @@ export default function EditBootcamp({
                                             {...field}
                                             value={field.value ?? ''}
                                             className="w-full rounded border p-2"
-                                            placeholder="Contoh: Follow TikTok @sekolahpajak.id"
+                                            placeholder="Contoh: Follow TikTok @levelupaccounting.id"
                                             autoComplete="off"
                                         />
                                         <FormDescription>Teks persyaratan kedua yang akan ditampilkan untuk bootcamp gratis</FormDescription>

@@ -51,7 +51,7 @@ export default function GalerySection() {
   return (
   <section className="mx-auto mb-4 w-full max-w-7xl px-4 sm:mb-8">
     <div className="mx-auto text-center mb-6">
-      <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">Galeri Sekolah Pajak</h2>
+      <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">Galeri Level Up Accounting</h2>
     </div>
 
     {/* Gallery Grid */}

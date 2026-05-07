@@ -11,23 +11,23 @@ export default function PrivacyPolicy() {
                     <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
                         <div className="mb-8 text-center">
                             <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">Kebijakan Privasi</h1>
-                            <p className="text-gray-600 dark:text-gray-400">Sekolah Pajak</p>
+                            <p className="text-gray-600 dark:text-gray-400">Level Up Accounting</p>
                         </div>
 
                         <div className="prose prose-gray dark:prose-invert text-justify max-w-none">
                             <section className="mb-8">
                                 <p className="mb-4 text-gray-700 dark:text-gray-300">
-                                    Sekolah Pajak ("Kami") berkomitmen untuk menjaga kerahasiaan, keamanan, dan perlindungan data pribadi setiap pengguna dan peserta ("Anda") yang mengakses situs, platform, maupun layanan pendidikan dan pelatihan yang kami selenggarakan.
+                                    Level Up Accounting ("Kami") berkomitmen untuk menjaga kerahasiaan, keamanan, dan perlindungan data pribadi setiap pengguna dan peserta ("Anda") yang mengakses situs, platform, maupun layanan pendidikan dan pelatihan yang kami selenggarakan.
                                 </p>
                                 <p className="text-gray-700 dark:text-gray-300">
-                                    Kebijakan Privasi ini menjelaskan bagaimana Kami mengumpulkan, menggunakan, menyimpan, dan melindungi data pribadi Anda. Dengan mengakses situs, mendaftar, atau mengikuti program Sekolah Pajak, Anda dianggap telah membaca, memahami, dan menyetujui Kebijakan Privasi ini. Kebijakan ini berlaku untuk seluruh layanan, program pelatihan, kelas, webinar, dan fitur yang disediakan oleh Sekolah Pajak.
+                                    Kebijakan Privasi ini menjelaskan bagaimana Kami mengumpulkan, menggunakan, menyimpan, dan melindungi data pribadi Anda. Dengan mengakses situs, mendaftar, atau mengikuti program Level Up Accounting, Anda dianggap telah membaca, memahami, dan menyetujui Kebijakan Privasi ini. Kebijakan ini berlaku untuk seluruh layanan, program pelatihan, kelas, webinar, dan fitur yang disediakan oleh Level Up Accounting.
                                 </p>
                             </section>
 
                             <section className="mb-8">
                                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">A. INFORMASI YANG DIKUMPULKAN SECARA OTOMATIS</h2>
                                 <p className="mb-4 text-gray-700 dark:text-gray-300">
-                                    Saat Anda mengakses atau menggunakan platform Sekolah Pajak, sistem kami dapat secara otomatis mengumpulkan informasi tertentu, antara lain:
+                                    Saat Anda mengakses atau menggunakan platform Level Up Accounting, sistem kami dapat secara otomatis mengumpulkan informasi tertentu, antara lain:
                                 </p>
 
                                 <div className="space-y-4">
@@ -79,7 +79,7 @@ export default function PrivacyPolicy() {
                                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">C. PENGGUNAAN INFORMASI</h2>
                                 <p className="mb-3 text-gray-700 dark:text-gray-300">Data pribadi yang Kami kumpulkan digunakan untuk:</p>
                                 <ul className="ml-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
-                                    <li>Menyediakan, mengelola, dan menjalankan program pelatihan Sekolah Pajak</li>
+                                    <li>Menyediakan, mengelola, dan menjalankan program pelatihan Level Up Accounting</li>
                                     <li>Mengelola administrasi peserta, kehadiran, dan sertifikat</li>
                                     <li>Meningkatkan kualitas materi, metode pembelajaran, dan layanan</li>
                                     <li>Menyampaikan informasi terkait jadwal, materi, promo, atau program baru</li>
@@ -97,7 +97,7 @@ export default function PrivacyPolicy() {
                                     <li>Mengajukan permohonan penghapusan data pribadi</li>
                                 </ul>
                                 <p className="mt-4 text-gray-700 dark:text-gray-300">
-                                    Permintaan dapat diajukan melalui email resmi Sekolah Pajak.
+                                    Permintaan dapat diajukan melalui email resmi Level Up Accounting.
                                 </p>
                                 <p className="mt-2 text-gray-700 dark:text-gray-300">
                                     Apabila penghapusan akun disetujui, maka akses Anda ke layanan akan dihentikan, dan data akan dihapus atau disimpan sesuai ketentuan hukum yang berlaku.
@@ -106,7 +106,7 @@ export default function PrivacyPolicy() {
 
                             <section className="mb-8">
                                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">E. COOKIES</h2>
-                                <p className="mb-3 text-gray-700 dark:text-gray-300">Sekolah Pajak menggunakan cookies untuk:</p>
+                                <p className="mb-3 text-gray-700 dark:text-gray-300">Level Up Accounting menggunakan cookies untuk:</p>
                                 <ul className="ml-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
                                     <li>Mengidentifikasi pengguna</li>
                                     <li>Meningkatkan kinerja dan keamanan situs</li>
@@ -120,7 +120,7 @@ export default function PrivacyPolicy() {
                             <section className="mb-8">
                                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">F. PERUBAHAN KEBIJAKAN PRIVASI</h2>
                                 <p className="text-gray-700 dark:text-gray-300">
-                                    Kebijakan Privasi ini dapat diperbarui sewaktu-waktu untuk menyesuaikan dengan perkembangan layanan, teknologi, maupun peraturan hukum. Versi terbaru akan dipublikasikan melalui situs resmi Sekolah Pajak dan berlaku sejak tanggal ditetapkan.
+                                    Kebijakan Privasi ini dapat diperbarui sewaktu-waktu untuk menyesuaikan dengan perkembangan layanan, teknologi, maupun peraturan hukum. Versi terbaru akan dipublikasikan melalui situs resmi Level Up Accounting dan berlaku sejak tanggal ditetapkan.
                                 </p>
                             </section>
 
@@ -131,10 +131,10 @@ export default function PrivacyPolicy() {
                                         Apabila Anda memiliki pertanyaan, masukan, atau permintaan terkait Kebijakan Privasi ini, silakan hubungi Kami melalui:
                                     </p>
                                     <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
-                                        <p className="font-semibold">Sekolah Pajak</p>
+                                        <p className="font-semibold">Level Up Accounting</p>
                                         <p>Permata Permadani Residence</p>
                                         <p>3HRP+R38, Pendem, Kec. Junrejo, Kota Batu, Jawa Timur</p>
-                                        <p className="mt-2">Info: @sekolahpajak.id</p>
+                                        <p className="mt-2">Info: @levelupaccounting.id</p>
                                     </div>
                                 </div>
                             </section>
@@ -142,7 +142,7 @@ export default function PrivacyPolicy() {
 
                         <div className="mt-8 border-t border-gray-200 pt-8 text-center dark:border-gray-700">
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Dengan menggunakan layanan Sekolah Pajak, Anda menyetujui kebijakan privasi di atas.
+                                Dengan menggunakan layanan Level Up Accounting, Anda menyetujui kebijakan privasi di atas.
                             </p>
                             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                 Baca juga{' '}

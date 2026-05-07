@@ -20,52 +20,52 @@ export default function FaqSection() {
                 <AccordionItem value="getting-started" className="rounded-lg border-2 border-primary/80 px-4 py-2">
                     <AccordionTrigger className="w-full text-left text-zinc-950 hover:cursor-pointer dark:text-zinc-50">
                         <div className="flex items-center justify-between">
-                            <p className="md:text-lg">Apa itu Sekolah Pajak?</p>
+                            <p className="md:text-lg">Apa itu Level Up Accounting?</p>
                             <ChevronUp className="text-primary h-4 w-4 transition-transform duration-200 group-data-expanded:-rotate-180 dark:text-zinc-50" />
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         <p className="text-sm text-zinc-500 md:text-base dark:text-zinc-400">
-                            Sekolah Pajak adalah lembaga yang berfokus pada pengembangan kompetensi di bidang perpajakan dan akuntansi. Program kami dirancang praktis dan aplikatif untuk membantu peserta memahami pajak serta mempersiapkan diri menghadapi dunia kerja.
+                            Level Up Accounting adalah lembaga yang berfokus pada pengembangan kompetensi di bidang perpajakan dan akuntansi. Program kami dirancang praktis dan aplikatif untuk membantu peserta memahami pajak serta mempersiapkan diri menghadapi dunia kerja.
                         </p>
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="animation-properties" className="rounded-lg border-2 border-primary/80 px-4 py-2">
                     <AccordionTrigger className="w-full text-left text-zinc-950 hover:cursor-pointer dark:text-zinc-50">
                         <div className="flex items-center justify-between">
-                            <p className="md:text-lg">Apa saja program yang tersedia di Sekolah Pajak?</p>
+                            <p className="md:text-lg">Apa saja program yang tersedia di Level Up Accounting?</p>
                             <ChevronUp className="text-primary h-4 w-4 transition-transform duration-200 group-data-expanded:-rotate-180 dark:text-zinc-50" />
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         <p className="text-sm text-zinc-500 md:text-base dark:text-zinc-400">
-                            Sekolah Pajak menyediakan program kelas online, sertifikasi, dan pelatihan di bidang perpajakan dan akuntansi yang dirancang sesuai dengan kebutuhan industri dan dunia kerja.
+                            Level Up Accounting menyediakan program kelas online, sertifikasi, dan pelatihan di bidang perpajakan dan akuntansi yang dirancang sesuai dengan kebutuhan industri dan dunia kerja.
                         </p>
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="advanced-usage" className="rounded-lg border-2 border-primary/80 px-4 py-2">
                     <AccordionTrigger className="w-full text-left text-zinc-950 hover:cursor-pointer dark:text-zinc-50">
                         <div className="flex items-center justify-between">
-                            <p className="md:text-lg">Siapa saja yang bisa mengikuti program di Sekolah Pajak?</p>
+                            <p className="md:text-lg">Siapa saja yang bisa mengikuti program di Level Up Accounting?</p>
                             <ChevronUp className="text-primary h-4 w-4 transition-transform duration-200 group-data-expanded:-rotate-180 dark:text-zinc-50" />
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         <p className="text-sm text-zinc-500 md:text-base dark:text-zinc-400">
-                            Program Sekolah Pajak terbuka untuk mahasiswa, fresh graduate, karyawan, pelaku UMKM, hingga praktisi yang ingin meningkatkan pemahaman dan keterampilan di bidang perpajakan dan akuntansi.
+                            Program Level Up Accounting terbuka untuk mahasiswa, fresh graduate, karyawan, pelaku UMKM, hingga praktisi yang ingin meningkatkan pemahaman dan keterampilan di bidang perpajakan dan akuntansi.
                         </p>
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="community-and-support" className="rounded-lg border-2 border-primary/80 px-4 py-2">
                     <AccordionTrigger className="w-full text-left text-zinc-950 hover:cursor-pointer dark:text-zinc-50">
                         <div className="flex items-center justify-between">
-                            <p className="md:text-lg">Bagaimana cara mendapatkan informasi lebih lanjut tentang Sekolah Pajak?</p>
+                            <p className="md:text-lg">Bagaimana cara mendapatkan informasi lebih lanjut tentang Level Up Accounting?</p>
                             <ChevronUp className="text-primary h-4 w-4 transition-transform duration-200 group-data-expanded:-rotate-180 dark:text-zinc-50" />
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         <p className="text-sm text-zinc-500 md:text-base dark:text-zinc-400">
-                            Untuk informasi lebih lengkap, Anda dapat menghubungi admin Sekolah Pajak melalui WhatsApp di{' '}
+                            Untuk informasi lebih lengkap, Anda dapat menghubungi admin Level Up Accounting melalui WhatsApp di{' '}
                             <a href="https://wa.me/+6281252683108" className="text-primary hover:underline">
                                 +6281252683108
                             </a>

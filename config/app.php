@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Sekolah Pajak'),
+    'name' => env('APP_NAME', 'Level Up Accounting'),
 
     /*
     |--------------------------------------------------------------------------

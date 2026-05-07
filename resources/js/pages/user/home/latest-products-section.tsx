@@ -291,7 +291,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                             return (
                                 <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
                                     <div className="text-center text-lg font-semibold">Anda sudah memiliki akses semua produk terbaru kami. 😁🙏</div>
-                                    <p className="text-center text-gray-500">Terima kasih telah menjadi bagian dari Sekolah Pajak!</p>
+                                    <p className="text-center text-gray-500">Terima kasih telah menjadi bagian dari Level Up Accounting!</p>
                                 </div>
                             );
                         }

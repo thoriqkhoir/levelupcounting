@@ -94,7 +94,7 @@ export default function MentorSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                         </div>
 
                                         <p className="mb-4 line-clamp-3 min-h-[3.75rem] text-sm text-gray-600 md:text-base dark:text-gray-400">
-                                            {mentor.bio ?? 'Mentor profesional Sekolah Pajak.'}
+                                            {mentor.bio ?? 'Mentor profesional Level Up Accounting.'}
                                         </p>
 
                                         <div className="text-primary inline-flex items-center gap-2 text-sm font-semibold transition-all group-hover:gap-3">

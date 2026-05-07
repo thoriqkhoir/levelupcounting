@@ -11,16 +11,16 @@ export default function TermsAndConditions() {
                     <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
                         <div className="mb-8 text-center">
                             <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">Syarat dan Ketentuan</h1>
-                            <p className="text-gray-600 dark:text-gray-400">Sekolah Pajak</p>
+                            <p className="text-gray-600 dark:text-gray-400">Level Up Accounting</p>
                         </div>
 
                         <div className="prose text-justify prose-gray dark:prose-invert max-w-none">
                             <section className="mb-8">
                                 <p className="mb-4 text-gray-700 dark:text-gray-300">
-                                    Sekolah Pajak adalah lembaga pendidikan dan pelatihan perpajakan yang berfokus pada peningkatan kompetensi di bidang akuntansi dan perpajakan, baik untuk mahasiswa, fresh graduate, karyawan, maupun praktisi. Kami berkomitmen membantu peserta memahami regulasi perpajakan secara komprehensif dan aplikatif sebagai bekal karier profesional.
+                                    Level Up Accounting adalah lembaga pendidikan dan pelatihan perpajakan yang berfokus pada peningkatan kompetensi di bidang akuntansi dan perpajakan, baik untuk mahasiswa, fresh graduate, karyawan, maupun praktisi. Kami berkomitmen membantu peserta memahami regulasi perpajakan secara komprehensif dan aplikatif sebagai bekal karier profesional.
                                 </p>
                                 <p className="text-gray-700 dark:text-gray-300">
-                                    Syarat dan Ketentuan ini mengatur penggunaan situs, layanan, program pelatihan, serta seluruh konten yang disediakan oleh Sekolah Pajak. Dengan mengakses, mendaftar, atau mengikuti program Sekolah Pajak, Anda dianggap telah membaca, memahami, dan menyetujui seluruh ketentuan yang berlaku.
+                                    Syarat dan Ketentuan ini mengatur penggunaan situs, layanan, program pelatihan, serta seluruh konten yang disediakan oleh Level Up Accounting. Dengan mengakses, mendaftar, atau mengikuti program Level Up Accounting, Anda dianggap telah membaca, memahami, dan menyetujui seluruh ketentuan yang berlaku.
                                 </p>
                             </section>
 
@@ -30,14 +30,14 @@ export default function TermsAndConditions() {
                                 <div className="mb-6">
                                     <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">1. Perjanjian Penggunaan</h3>
                                     <p className="text-gray-700 dark:text-gray-300">
-                                        Dokumen ini merupakan perjanjian resmi antara pengguna/peserta ("Anda") dan Sekolah Pajak ("Kami"). Ketentuan ini berlaku untuk seluruh layanan, program pelatihan, kelas, webinar, sertifikasi, serta konten yang tersedia. Dengan mendaftar atau mengikuti program, Anda menyetujui Syarat dan Ketentuan ini, termasuk Kebijakan Privasi dan Kebijakan Pengembalian Dana yang berlaku.
+                                        Dokumen ini merupakan perjanjian resmi antara pengguna/peserta ("Anda") dan Level Up Accounting ("Kami"). Ketentuan ini berlaku untuk seluruh layanan, program pelatihan, kelas, webinar, sertifikasi, serta konten yang tersedia. Dengan mendaftar atau mengikuti program, Anda menyetujui Syarat dan Ketentuan ini, termasuk Kebijakan Privasi dan Kebijakan Pengembalian Dana yang berlaku.
                                     </p>
                                 </div>
 
                                 <div className="mb-6">
                                     <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">2. Perubahan Ketentuan</h3>
                                     <p className="text-gray-700 dark:text-gray-300">
-                                        Sekolah Pajak berhak mengubah, memperbarui, atau menyesuaikan isi Syarat dan Ketentuan sewaktu-waktu tanpa pemberitahuan terlebih dahulu. Perubahan berlaku sejak dipublikasikan dan mengikat seluruh peserta. Peserta disarankan untuk meninjau halaman ini secara berkala.
+                                        Level Up Accounting berhak mengubah, memperbarui, atau menyesuaikan isi Syarat dan Ketentuan sewaktu-waktu tanpa pemberitahuan terlebih dahulu. Perubahan berlaku sejak dipublikasikan dan mengikat seluruh peserta. Peserta disarankan untuk meninjau halaman ini secara berkala.
                                     </p>
                                 </div>
 
@@ -51,19 +51,19 @@ export default function TermsAndConditions() {
                                 <div className="mb-6">
                                     <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">4. Perubahan Program</h3>
                                     <p className="text-gray-700 dark:text-gray-300">
-                                        Sekolah Pajak berhak melakukan penyesuaian jadwal, materi, metode pembelajaran, instruktur, atau media pelatihan apabila diperlukan, dengan tetap menjaga kualitas dan tujuan pembelajaran.
+                                        Level Up Accounting berhak melakukan penyesuaian jadwal, materi, metode pembelajaran, instruktur, atau media pelatihan apabila diperlukan, dengan tetap menjaga kualitas dan tujuan pembelajaran.
                                     </p>
                                 </div>
                             </section>
 
                             <section className="mb-8">
                                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">B. TANGGUNG JAWAB PESERTA</h2>
-                                <p className="mb-3 text-gray-700 dark:text-gray-300">Dalam mengikuti program Sekolah Pajak, peserta dilarang untuk:</p>
+                                <p className="mb-3 text-gray-700 dark:text-gray-300">Dalam mengikuti program Level Up Accounting, peserta dilarang untuk:</p>
                                 <ul className="ml-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
                                     <li>Mengakses sistem atau akun pihak lain secara tidak sah.</li>
                                     <li>Menyalin, merekam, mendistribusikan, atau memperjualbelikan materi pelatihan tanpa izin tertulis.</li>
                                     <li>Memindahtangankan akun kelas, akses video, atau sertifikat kepada pihak lain.</li>
-                                    <li>Menggunakan nama, logo, atau materi Sekolah Pajak untuk kepentingan komersial tanpa persetujuan tertulis.</li>
+                                    <li>Menggunakan nama, logo, atau materi Level Up Accounting untuk kepentingan komersial tanpa persetujuan tertulis.</li>
                                     <li>Melanggar hak cipta, merek dagang, dan hak kekayaan intelektual lainnya.</li>
                                 </ul>
                                 <p className="mt-3 text-gray-700 dark:text-gray-300">
@@ -74,7 +74,7 @@ export default function TermsAndConditions() {
                             <section className="mb-8">
                                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">C. PELANGGARAN</h2>
                                 <p className="text-gray-700 dark:text-gray-300">
-                                    Sekolah Pajak berhak memberikan sanksi berupa peringatan, pembatasan akses, hingga penghentian keikutsertaan peserta secara sementara atau permanen apabila terjadi pelanggaran. Atas pelanggaran tersebut, biaya yang telah dibayarkan tidak dapat diminta kembali.
+                                    Level Up Accounting berhak memberikan sanksi berupa peringatan, pembatasan akses, hingga penghentian keikutsertaan peserta secara sementara atau permanen apabila terjadi pelanggaran. Atas pelanggaran tersebut, biaya yang telah dibayarkan tidak dapat diminta kembali.
                                 </p>
                             </section>
 
@@ -84,7 +84,7 @@ export default function TermsAndConditions() {
                                 <div className="mb-4">
                                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200">1. Pendaftaran</h3>
                                     <p className="text-gray-700 dark:text-gray-300">
-                                        Setiap pendaftaran program akan dikonfirmasi melalui email atau media komunikasi resmi Sekolah Pajak.
+                                        Setiap pendaftaran program akan dikonfirmasi melalui email atau media komunikasi resmi Level Up Accounting.
                                     </p>
                                 </div>
 
@@ -98,7 +98,7 @@ export default function TermsAndConditions() {
                                 <div className="mb-4">
                                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200">3. Biaya & Pengembalian Dana</h3>
                                     <p className="text-gray-700 dark:text-gray-300">
-                                        Biaya program dapat berubah sewaktu-waktu. Pengembalian dana hanya dapat dilakukan apabila program dibatalkan oleh pihak Sekolah Pajak atau terjadi kendala teknis dari sistem, bukan akibat kelalaian peserta.
+                                        Biaya program dapat berubah sewaktu-waktu. Pengembalian dana hanya dapat dilakukan apabila program dibatalkan oleh pihak Level Up Accounting atau terjadi kendala teknis dari sistem, bukan akibat kelalaian peserta.
                                     </p>
                                 </div>
 
@@ -121,7 +121,7 @@ export default function TermsAndConditions() {
                                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">E. HAK CIPTA & LISENSI</h2>
                                 <div className="space-y-3 text-gray-700 dark:text-gray-300">
                                     <p>
-                                        Seluruh materi pembelajaran, modul, video, rekaman kelas, desain, dan konten lainnya merupakan milik Sekolah Pajak dan dilindungi oleh hukum yang berlaku.
+                                        Seluruh materi pembelajaran, modul, video, rekaman kelas, desain, dan konten lainnya merupakan milik Level Up Accounting dan dilindungi oleh hukum yang berlaku.
                                     </p>
                                     <p>
                                         Materi hanya boleh digunakan untuk keperluan belajar pribadi dan dilarang digunakan kembali untuk kepentingan komersial tanpa izin tertulis.
@@ -135,7 +135,7 @@ export default function TermsAndConditions() {
                             <section className="mb-8">
                                 <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">F. BATASAN TANGGUNG JAWAB</h2>
                                 <p className="text-gray-700 dark:text-gray-300">
-                                    Sekolah Pajak berupaya memberikan layanan terbaik. Namun, kami tidak menjamin layanan bebas dari gangguan teknis, keterbatasan jaringan, atau kondisi di luar kendali kami. Sekolah Pajak tidak bertanggung jawab atas kerugian langsung maupun tidak langsung yang timbul akibat penggunaan layanan di luar ketentuan.
+                                    Level Up Accounting berupaya memberikan layanan terbaik. Namun, kami tidak menjamin layanan bebas dari gangguan teknis, keterbatasan jaringan, atau kondisi di luar kendali kami. Level Up Accounting tidak bertanggung jawab atas kerugian langsung maupun tidak langsung yang timbul akibat penggunaan layanan di luar ketentuan.
                                 </p>
                             </section>
 
@@ -149,7 +149,7 @@ export default function TermsAndConditions() {
 
                         <div className="mt-8 border-t border-gray-200 pt-8 text-center dark:border-gray-700">
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Dengan mendaftar dan mengikuti program Sekolah Pajak, Anda menyatakan setuju dan terikat pada seluruh Syarat dan Ketentuan di atas.
+                                Dengan mendaftar dan mengikuti program Level Up Accounting, Anda menyatakan setuju dan terikat pada seluruh Syarat dan Ketentuan di atas.
                             </p>
                         </div>
                     </div>

@@ -217,7 +217,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                 </Badge>
                                                 <h1 className="mb-3 text-3xl font-bold md:text-4xl">{mentor.name}</h1>
                                                 <p className="mb-6 text-base text-gray-600 dark:text-gray-400 md:text-lg">
-                                                    {mentor.bio || 'Mentor profesional di Sekolah Pajak'}
+                                                    {mentor.bio || 'Mentor profesional di Level Up Accounting'}
                                                 </p>
                                             </motion.div>
 

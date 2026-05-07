@@ -126,8 +126,8 @@ export default function CreateWebinar({
             group_url: '',
             batch: 1,
             tools: [],
-            requirement_1: 'Follow Instagram @sekolahpajak.id',
-            requirement_2: 'Follow TikTok @sekolahpajak.id',
+            requirement_1: 'Follow Instagram @levelupaccounting.id',
+            requirement_2: 'Follow TikTok @levelupaccounting.id',
             requirement_3: 'Tag 3 teman di postingan Instagram kami',
         },
     });
@@ -765,7 +765,7 @@ export default function CreateWebinar({
                                             {...field}
                                             value={field.value ?? ''}
                                             className="w-full rounded border p-2"
-                                            placeholder="Contoh: Follow Instagram @sekolahpajak.id"
+                                            placeholder="Contoh: Follow Instagram @levelupaccounting.id"
                                             autoComplete="off"
                                         />
                                         <FormDescription>Teks persyaratan pertama yang akan ditampilkan untuk webinar gratis</FormDescription>
@@ -783,7 +783,7 @@ export default function CreateWebinar({
                                             {...field}
                                             value={field.value ?? ''}
                                             className="w-full rounded border p-2"
-                                            placeholder="Contoh: Follow TikTok @sekolahpajak.id"
+                                            placeholder="Contoh: Follow TikTok @levelupaccounting.id"
                                             autoComplete="off"
                                         />
                                         <FormDescription>Teks persyaratan kedua yang akan ditampilkan untuk webinar gratis</FormDescription>

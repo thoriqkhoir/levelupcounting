@@ -147,7 +147,7 @@ export default function AboutSection({ course }: { course: Course }) {
                                     {course.user?.name}
                                 </h4>
                                 <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                                    {course.user?.bio || 'Tim Expert Sekolah Pajak'}
+                                    {course.user?.bio || 'Tim Expert Level Up Accounting'}
                                 </p>
                                 <div className="flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => (

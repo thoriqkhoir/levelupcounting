@@ -308,10 +308,10 @@ class PartnershipProductController extends Controller
             $deadline = Carbon::parse($product->event_deadline);
             $deadlineText = $deadline->locale('id')->translatedFormat('d F Y') . ' pukul ' . $deadline->format('H.i') . ' WIB';
 
-            $message = "*[Sekolah Pajak – Pengumuman Beasiswa]* 🎉\n\n";
+            $message = "*[Level Up Accounting - Pengumuman Beasiswa]* 🎉\n\n";
             $message .= "Hai Kak {$participant->name},\n\n";
             $message .= "Selamat! ✨\n";
-            $message .= "Anda dinyatakan LOLOS sebagai penerima Beasiswa {$product->title} by Sekolah Pajak.\n\n";
+            $message .= "Anda dinyatakan LOLOS sebagai penerima Beasiswa {$product->title} by Level Up Accounting.\n\n";
             $message .= "Langkah Selanjutnya:\n";
             $message .= "Silakan melengkapi pendaftaran melalui link berikut 👇\n";
             $message .= "🔗 {$product->registration_url}\n\n";
@@ -325,7 +325,7 @@ class PartnershipProductController extends Controller
             $message .= "• Pastikan data diisi dengan benar agar proses berjalan lancar\n\n";
             $message .= "Jika mengalami kendala atau membutuhkan bantuan, silakan balas pesan ini.\n\n";
             $message .= "Terima kasih dan selamat bergabung! 🚀\n\n";
-            $message .= "Tim Sekolah Pajak – Customer Support";
+            $message .= "Tim Level Up Accounting – Customer Support";
 
             $waData = [
                 [

@@ -311,11 +311,11 @@
                     @if ($certificate->sign)
                         <div class="signature-name">{{ $certificate->sign->name }}</div>
                         <div class="signature-title">
-                            {{ $certificate->sign->position ?? 'Direktur Sekolah Pajak' }}
+                            {{ $certificate->sign->position ?? 'Direktur Level Up Accounting' }}
                         </div>
                     @else
                         <div class="signature-name">Direktur</div>
-                        <div class="signature-title">Sekolah Pajak</div>
+                        <div class="signature-title">Level Up Accounting</div>
                     @endif
                 </div>
 
@@ -341,7 +341,7 @@
                             <div class="certificate-url">{{ $certificateUrl }}</div>
                         @else
                             <div class="certificate-url">
-                                https://sekolahpajak.id/certificate/{{ $data['certificate_code'] }}
+                                https://levelupaccounting.id/certificate/{{ $data['certificate_code'] }}
                             </div>
                         @endif
                     </div>

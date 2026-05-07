@@ -36,18 +36,18 @@
         }
     </style>
 
-    <title inertia>{{ config('app.name', 'Sekolah Pajak') }}</title>
+    <title inertia>{{ config('app.name', 'Level Up Accounting') }}</title>
 
     <meta name="description"
-        content="Sekolah Pajak adalah platform edukasi digital yang menyediakan layanan pembelajaran mulai dari kelas online, webinar, dan bootcamp.">
+        content="Level Up Accounting adalah platform edukasi digital yang menyediakan layanan pembelajaran mulai dari kelas online, webinar, dan bootcamp.">
     <meta name="keywords"
-        content="Sekolah Pajak, platform edukasi, pembelajaran online, kelas online, webinar, bootcamp, pengembangan keterampilan, kursus digital">
-    <meta name="author" content="Sekolah Pajak">
+        content="Level Up Accounting, platform edukasi, pembelajaran online, kelas online, webinar, bootcamp, pengembangan keterampilan, kursus digital">
+    <meta name="author" content="Level Up Accounting">
     <meta name="robots" content="index, follow">
 
-    <meta property="og:title" content="Sekolah Pajak">
+    <meta property="og:title" content="Level Up Accounting">
     <meta property="og:description"
-        content="Sekolah Pajak adalah platform edukasi digital yang menyediakan layanan pembelajaran mulai dari kelas online, webinar, dan bootcamp.">
+        content="Level Up Accounting adalah platform edukasi digital yang menyediakan layanan pembelajaran mulai dari kelas online, webinar, dan bootcamp.">
     <meta property="og:image" content="{{ asset('assets/images/logo-primary2.png') }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="website">

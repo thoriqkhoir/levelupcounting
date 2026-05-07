@@ -65,12 +65,12 @@ export default function AppFooter() {
                             <div className="mb-4">
                                 <img 
                                     src="/assets/images/logo-footer.svg" 
-                                    alt="Logo Sekolah Pajak" 
+                                    alt="Logo Level Up Accounting" 
                                     className="block h-16 w-auto dark:hidden" 
                                 />
                                 <img 
                                     src="/assets/images/logo-secondary2.png" 
-                                    alt="Logo Sekolah Pajak" 
+                                    alt="Logo Level Up Accounting" 
                                     className="hidden h-10 w-auto dark:block" 
                                 />
                             </div>
@@ -197,7 +197,7 @@ export default function AppFooter() {
                     <div className="mx-auto max-w-7xl px-4 py-6">
                         <div className="flex items-center justify-center gap-4 text-center sm:flex-row sm:text-left">
                             <p className="text-sm opacity-70">
-                                &copy; {new Date().getFullYear()} LevelUpCounting. All rights reserved.
+                                &copy; {new Date().getFullYear()} LevelUpAccounting. All rights reserved.
                             </p>
                         </div>
                     </div>

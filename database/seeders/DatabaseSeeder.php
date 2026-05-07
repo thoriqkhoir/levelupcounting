@@ -21,19 +21,19 @@ class DatabaseSeeder extends Seeder
 
         $admin = User::factory()->create([
             'name' => 'Admin',
-            'email' => 'sekolahpajak15@gmail.com',
+            'email' => 'levelupaccounting@gmail.com',
             'phone_number' => '081252683108',
-            'bio' => 'Admin Sekolah Pajak',
-            'password' => bcrypt('niha1504'),
+            'bio' => 'Admin Level Up Accounting',
+            'password' => bcrypt('levelup1504'),
         ]);
 
         $adminAffiliate = User::factory()->create([
-            'name' => 'Sekolah Pajak Affiliate',
-            'email' => 'aaffiliatesekolahpajak15@gmail.com',
+            'name' => 'Level Up Accounting Affiliate',
+            'email' => 'aaffiliatelevelupaccounting@gmail.com',
             'phone_number' => '081252683108',
-            'bio' => "Sekolah Pajak's Affiliate",
-            'password' => bcrypt('sekolahpajak2025'),
-            'affiliate_code' => 'SPJ2025',
+            'bio' => "Level Up Accounting's Affiliate",
+            'password' => bcrypt('levelup1504'),
+            'affiliate_code' => 'LUC2025',
             'affiliate_status' => 'Active',
             'commission' => 15,
         ]);

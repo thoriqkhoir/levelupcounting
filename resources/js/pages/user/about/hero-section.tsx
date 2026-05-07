@@ -16,12 +16,12 @@ export function HeroSection() {
                     >
                         <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
                             <Award className="h-4 w-4" />
-                            <span>Tentang Sekolah Pajak</span>
+                            <span>Tentang Level Up Accounting</span>
                         </div>
                     </motion.div>
 
                     <div className="mb-12 grid items-center gap-8 md:grid-cols-[40%_60%]">
-                        {/* Logo Sekolah Pajak - Kiri (40%) */}
+                        {/* Logo Level Up Accounting - Kiri (40%) */}
                         <motion.div
                             initial={{ opacity: 0, x: -40 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -30,13 +30,13 @@ export function HeroSection() {
                         >
                             <img
                                 src="/assets/images/logo-primary.png"
-                                alt="Logo Sekolah Pajak"
+                                alt="Logo Level Up Accounting"
                                 className="h-auto w-full max-w-[200px] md:max-w-xs dark:hidden"
                                 draggable={false}
                             />
                             <img
                                 src="/assets/images/logo-secondary.png"
-                                alt="Logo Sekolah Pajak"
+                                alt="Logo Level Up Accounting"
                                 className="hidden h-auto w-full max-w-[200px] md:max-w-xs dark:block"
                                 draggable={false}
                             />
@@ -52,7 +52,7 @@ export function HeroSection() {
                                 className="mb-4 hidden md:inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
                             >
                                 <Award className="h-4 w-4" />
-                                <span>Tentang Sekolah Pajak</span>
+                                <span>Tentang Level Up Accounting</span>
                             </motion.div>
                             
                             <motion.h1
@@ -72,7 +72,7 @@ export function HeroSection() {
                                 transition={{ duration: 0.6, delay: 0.4 }}
                                 className="text-sm text-gray-600 dark:text-gray-400 md:text-base lg:text-lg"
                             >
-                                Sekolah Pajak adalah lembaga pendidikan dan pelatihan perpajakan yang berfokus pada peningkatan 
+                                Level Up Accounting adalah lembaga pendidikan dan pelatihan perpajakan yang berfokus pada peningkatan 
                                 kompetensi di bidang akuntansi dan perpajakan untuk mahasiswa, fresh graduate, karyawan, maupun praktisi.
                             </motion.p>
                         </div>

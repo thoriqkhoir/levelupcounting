@@ -258,7 +258,7 @@ export default function ScholarshipApplicationForm({ partnershipProduct }: { par
                             <p className="mb-3 text-xs font-semibold md:text-sm">📞 Untuk informasi lebih lanjut, silakan hubungi:</p>
                             <div className="space-y-1">
                                 <p className="text-sm">
-                                    📧 <span className="font-medium">sekolahpajak15@gmail.com</span>
+                                    📧 <span className="font-medium">levelupaccounting@gmail.com</span>
                                 </p>
                                 <p className="text-sm">
                                     💬 <span className="font-medium">+62 812-XXXX-XXXX</span>
@@ -523,7 +523,7 @@ export default function ScholarshipApplicationForm({ partnershipProduct }: { par
                                                     <FormItem>
                                                         <FormLabel className="flex items-center gap-2">
                                                             <span>📱</span>
-                                                            Foto Bukti Follow Instagram @sekolahpajak.id *
+                                                            Foto Bukti Follow Instagram @levelupaccounting.id *
                                                         </FormLabel>
                                                         <FormControl>
                                                             <div className="space-y-3">
@@ -571,7 +571,7 @@ export default function ScholarshipApplicationForm({ partnershipProduct }: { par
                                                     <FormItem>
                                                         <FormLabel className="flex items-center gap-2">
                                                             <span>👥</span>
-                                                            Foto Bukti Tag 3 Teman di Instagram @sekolahpajak.id *
+                                                            Foto Bukti Tag 3 Teman di Instagram @levelupaccounting.id *
                                                         </FormLabel>
                                                         <FormControl>
                                                             <div className="space-y-3">

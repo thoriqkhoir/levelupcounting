@@ -7,7 +7,7 @@ const ratings = [
         name: 'Ramadhani Pasuleri',
         rating: 5,
         comment:
-            'Sekolah Pajak tempat belajarnya nyaman, materi yang disampaikan cukup jelas, mudah dipahami, banyak case² latihan untuk kita lebih cepat paham.',
+            'Level Up Accounting tempat belajarnya nyaman, materi yang disampaikan cukup jelas, mudah dipahami, banyak case² latihan untuk kita lebih cepat paham.',
     },
     {
         id: 2,

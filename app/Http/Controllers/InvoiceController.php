@@ -1159,12 +1159,12 @@ class InvoiceController extends Controller
                 $itemType = 'Webinar';
             }
 
-            $message = "*[Sekolah Pajak - Pembayaran {$itemType} Gagal]*\n\n";
+            $message = "*[Level Up Accounting - Pembayaran {$itemType} Gagal]*\n\n";
             $message .= "Hai *{$user->name}*,\n\n";
             $message .= "Maaf, pembayaran {$itemType} untuk invoice *{$invoice->invoice_code}* tidak berhasil atau telah kadaluarsa.\n\n";
             $message .= "Silakan melakukan pembelian ulang jika Anda masih berminat.\n\n";
             $message .= "Terima kasih atas perhatiannya.\n\n";
-            $message .= "*Sekolah Pajak Customer Support*";
+            $message .= "*Level Up Accounting Customer Support*";
 
             $waData = [
                 [
@@ -1248,11 +1248,11 @@ class InvoiceController extends Controller
         $isFreePurchase = $invoice->amount == 0;
 
         if ($isFreePurchase) {
-            $message = "*[Sekolah Pajak - Pendaftaran {$typeInfo['name']} Berhasil]* ✅\n\n";
+            $message = "*[Level Up Accounting - Pendaftaran {$typeInfo['name']} Berhasil]* ✅\n\n";
             $message .= "Hai *{$user->name}*,\n\n";
             $message .= "Selamat! Anda telah berhasil mendaftar untuk {$typeInfo['name']} GRATIS.\n\n";
         } else {
-            $message = "*[Sekolah Pajak - Pembayaran {$typeInfo['name']} Berhasil]* ✅\n\n";
+            $message = "*[Level Up Accounting - Pembayaran {$typeInfo['name']} Berhasil]* ✅\n\n";
             $message .= "Hai *{$user->name}*,\n\n";
             $message .= "Terima kasih! Pembayaran {$typeInfo['name']} Anda telah berhasil diproses.\n\n";
         }
@@ -1322,13 +1322,13 @@ class InvoiceController extends Controller
         }
 
         if ($isFreePurchase) {
-            $message .= "Terima kasih telah bergabung dengan Sekolah Pajak! 🚀\n\n";
+            $message .= "Terima kasih telah bergabung dengan Level Up Accounting! 🚀\n\n";
         } else {
             $message .= "Jika ada pertanyaan, jangan ragu untuk menghubungi kami.\n\n";
             $message .= "Selamat belajar! 🚀\n\n";
         }
 
-        $message .= "*Sekolah Pajak Customer Support*";
+        $message .= "*Level Up Accounting Customer Support*";
 
         return $message;
     }
@@ -1554,11 +1554,11 @@ class InvoiceController extends Controller
         $data = [
             'invoice' => $invoice,
             'company' => [
-                'name' => 'Sekolah Pajak',
+                'name' => 'Level Up Accounting',
                 'address' => 'Perumahan Permata Permadani, Blok B1. Kel. Pendem Kec. Junrejo Kota Batu Prov. Jawa Timur, 65324',
                 'phone' => '+6281252683108',
-                'email' => 'sekolahpajak15@gmail.com',
-                'website' => 'www.sekolahpajak.id'
+                'email' => 'levelupaccounting.id@gmail.com',
+                'website' => 'www.levelupaccounting.id'
             ]
         ];
 

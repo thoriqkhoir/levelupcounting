@@ -141,9 +141,9 @@ export function AppSidebar() {
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/admin/dashboard" prefetch>
                                 {/* Logo untuk light mode */}
-                                <img src="/assets/images/logo-primary.png" alt="Sekolah Pajak" className="block w-32 fill-current dark:hidden" />
+                                <img src="/assets/images/logo-primary.png" alt="Level Up Accounting" className="block w-32 fill-current dark:hidden" />
                                 {/* Logo untuk dark mode */}
-                                <img src="/assets/images/logo-secondary.png" alt="Sekolah Pajak" className="hidden w-32 fill-current dark:block" />
+                                <img src="/assets/images/logo-secondary.png" alt="Level Up Accounting" className="hidden w-32 fill-current dark:block" />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

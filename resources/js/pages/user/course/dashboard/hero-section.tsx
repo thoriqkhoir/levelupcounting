@@ -31,7 +31,7 @@ export default function HeroSection() {
                         className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary shadow-sm"
                     >
                         <Sparkles className="h-4 w-4 text-primary" />
-                        Kelas Online Sekolah Pajak
+                        Kelas Online Level Up Accounting
                     </motion.span>
                     <motion.h1
                         initial={{ opacity: 0, y: 30 }}

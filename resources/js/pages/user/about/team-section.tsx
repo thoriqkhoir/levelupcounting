@@ -31,7 +31,7 @@ export function TeamSection({ mentors }: TeamSectionProps) {
             name: 'Dr. Ahmad Hidayat',
             bio: 'Pakar perpajakan dengan pengalaman 15+ tahun',
             avatar: undefined,
-            email: 'ahmad@sekolahpajak.id',
+            email: 'ahmad@levelupaccounting.id',
             total_courses: 0,
             total_articles: 0,
             total_webinars: 0,
@@ -42,7 +42,7 @@ export function TeamSection({ mentors }: TeamSectionProps) {
             name: 'Siti Nurhaliza, S.E., M.Ak',
             bio: 'Spesialis pendidikan akuntansi dan perpajakan',
             avatar: undefined,
-            email: 'siti@sekolahpajak.id',
+            email: 'siti@levelupaccounting.id',
             total_courses: 0,
             total_articles: 0,
             total_webinars: 0,
@@ -53,7 +53,7 @@ export function TeamSection({ mentors }: TeamSectionProps) {
             name: 'Budi Santoso, BKP',
             bio: 'Konsultan pajak bersertifikat dengan track record solid',
             avatar: undefined,
-            email: 'budi@sekolahpajak.id',
+            email: 'budi@levelupaccounting.id',
             total_courses: 0,
             total_articles: 0,
             total_webinars: 0,
@@ -64,7 +64,7 @@ export function TeamSection({ mentors }: TeamSectionProps) {
             name: 'Dr. Lestari Wijaya',
             bio: 'Ahli konsultasi pajak internasional',
             avatar: undefined,
-            email: 'lestari@sekolahpajak.id',
+            email: 'lestari@levelupaccounting.id',
             total_courses: 0,
             total_articles: 0,
             total_webinars: 0,
@@ -75,7 +75,7 @@ export function TeamSection({ mentors }: TeamSectionProps) {
             name: 'Rizki Pratama, S.Ak',
             bio: 'Spesialis perpajakan UMKM dan e-commerce',
             avatar: undefined,
-            email: 'rizki@sekolahpajak.id',
+            email: 'rizki@levelupaccounting.id',
             total_courses: 0,
             total_articles: 0,
             total_webinars: 0,
@@ -123,7 +123,7 @@ export function TeamSection({ mentors }: TeamSectionProps) {
                                         : 'Mentor'}
                                 </p>
                                 <p className="mb-4 line-clamp-3 text-xs text-gray-600 dark:text-gray-400 md:mb-6 md:text-sm">
-                                    {member.bio || 'Mentor berpengalaman di Sekolah Pajak'}
+                                    {member.bio || 'Mentor berpengalaman di Level Up Accounting'}
                                 </p>
 
                                 <Button size="sm" variant="default" className="w-full text-xs md:text-sm" asChild>

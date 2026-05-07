@@ -8,7 +8,7 @@ export default function TestimonySection() {
       name: "Nihayatul Maulasari",
       role: "Mentor Akuntan",
       avatar: "/assets/images/mentor-dummy.jpg",
-      text: "Saya sangat terbantu dengan materi yang disampaikan di Sekolah Pajak. Instruktur yang berpengalaman dan metode pembelajaran yang interaktif membuat saya lebih memahami konsep perpajakan dengan mudah."
+      text: "Saya sangat terbantu dengan materi yang disampaikan di Level Up Accounting. Instruktur yang berpengalaman dan metode pembelajaran yang interaktif membuat saya lebih memahami konsep perpajakan dengan mudah."
     },
     {
       name: "Budi Santoso",
@@ -20,7 +20,7 @@ export default function TestimonySection() {
       name: "Rina Kartika",
       role: "Tax Specialist",
       avatar: "/assets/images/mentor-dummy.jpg",
-      text: "Sekolah Pajak memberikan pembelajaran yang komprehensif dan mudah dipahami. Sangat recommended untuk yang ingin mendalami ilmu perpajakan secara profesional."
+      text: "Level Up Accounting memberikan pembelajaran yang komprehensif dan mudah dipahami. Sangat recommended untuk yang ingin mendalami ilmu perpajakan secara profesional."
     },
     {
       name: "Ahmad Rizky",
@@ -32,7 +32,7 @@ export default function TestimonySection() {
       name: "Maya Sari",
       role: "Accounting Manager",
       avatar: "/assets/images/mentor-dummy.jpg",
-      text: "Instruktur yang profesional dan materi yang up to date dengan regulasi terbaru. Sangat puas dengan hasil pembelajaran yang didapat dari Sekolah Pajak."
+      text: "Instruktur yang profesional dan materi yang up to date dengan regulasi terbaru. Sangat puas dengan hasil pembelajaran yang didapat dari Level Up Accounting."
     },
   ];
 

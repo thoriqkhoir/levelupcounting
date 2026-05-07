@@ -39,7 +39,7 @@ export default function CtaSection() {
                     <div className="hidden flex-shrink-0 self-end -mb-12 sm:-mb-8 md:block">
                         <img
                             src="/assets/images/phone.svg"
-                            alt="Level Up Counting Mobile App"
+                            alt="Level Up Accounting Mobile App"
                             className="h-[280px] w-auto object-contain lg:h-[320px] "
                             draggable={false}
                         />

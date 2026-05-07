@@ -191,7 +191,7 @@
             <tr>
                 <td class="company-info">
                     <div class="logo-container">
-                        <img src="{{ public_path('assets/images/logo-primary2.png') }}" alt="Sekolah Pajak Logo"
+                        <img src="{{ public_path('assets/images/logo-primary2.png') }}" alt="Level Up Accounting Logo"
                             class="logo">
                     </div>
                     <div class="company-details">

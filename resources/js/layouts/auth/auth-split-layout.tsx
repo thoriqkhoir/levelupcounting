@@ -21,10 +21,10 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
                 <Link href={route('home')} className="mb-4 md:mb-6 flex flex-col items-center justify-center ">
                     <img 
                         src="/assets/images/logo-primary2.png" 
-                        alt="Sekolah Pajak" 
+                        alt="Level Up Accounting" 
                         className="h-16 w-auto dark:hidden" 
                     />
-                    <span className="text-3xl font-bold text-center text-gray-900 dark:text-white">Sekolah Pajak</span>
+                    <span className="text-3xl font-bold text-center text-gray-900 dark:text-white">Level Up Accounting</span>
                 </Link>
 
                 {/* Card */}
@@ -41,7 +41,7 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
 
                 {/* Footer */}
                 <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-                    © 2024 Sekolah Pajak. All rights reserved.
+                    © 2024 Level Up Accounting. All rights reserved.
                 </p>
             </div>
         </div>

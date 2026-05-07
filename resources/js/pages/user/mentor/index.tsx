@@ -184,7 +184,7 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                                                         {mentor.name}
                                                     </h3>
                                                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                        {mentor.bio || 'Mentor Profesional di Sekolah Pajak'}
+                                                        {mentor.bio || 'Mentor Profesional di Level Up Accounting'}
                                                     </p>
                                                 </div>
 

@@ -38,7 +38,7 @@ export default function Register() {
     };
 
     return (
-        <AuthLayout title="Buat Akun Sekolah Pajak" description="Silahkan isi form untuk mendaftar.">
+        <AuthLayout title="Buat Akun Level Up Accounting" description="Silahkan isi form untuk mendaftar.">
             <Head title="Daftar" />
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
