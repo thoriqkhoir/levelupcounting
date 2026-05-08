@@ -52,6 +52,7 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
+    photo_url?: string;
     email_verified_at: string | null;
     commission: number;
     affiliate_code: string;

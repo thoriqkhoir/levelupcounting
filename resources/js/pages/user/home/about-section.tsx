@@ -95,7 +95,7 @@ export default function AboutSection() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.4 }}
-                        className="flex items-center gap-6 pt-2"
+                        className="flex flex-wrap items-center gap-4 sm:gap-6 pt-2"
                     >
                         {/* Success Rate */}
                         <div>
@@ -129,11 +129,11 @@ export default function AboutSection() {
                     className="relative w-full flex-1 lg:min-h-[420px]"
                 >
                     {/* Gambar utama (kanan atas) */}
-                    <div className="ml-auto w-[85%] overflow-hidden rounded-2xl shadow-xl">
+                    <div className="ml-auto w-[90%] md:w-[85%] overflow-hidden rounded-2xl shadow-xl">
                         <img
                             src="/assets/images/about-main.jpg"
                             alt="Professional meeting"
-                            className="h-[320px] w-full object-cover"
+                            className="h-[260px] md:h-[320px] lg:h-[380px] w-full object-cover"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&fit=crop';
                             }}
@@ -141,11 +141,11 @@ export default function AboutSection() {
                     </div>
 
                     {/* Gambar kecil (kiri bawah, overlapping) */}
-                    <div className="absolute bottom-0 left-0 w-[52%] overflow-hidden rounded-2xl border-4 border-background shadow-xl">
+                    <div className="absolute bottom-0 left-0 w-[60%] md:w-[52%] overflow-hidden rounded-2xl border-4 border-background shadow-xl">
                         <img
                             src="/assets/images/about-secondary.jpg"
                             alt="Team collaboration"
-                            className="h-[200px] w-full object-cover"
+                            className="h-[160px] md:h-[200px] lg:h-[240px] w-full object-cover"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop';
                             }}

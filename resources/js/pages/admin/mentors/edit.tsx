@@ -25,14 +25,16 @@ export default function EditMentor({ mentor, setOpen }: EditMentorProps) {
     const phoneInput = useRef<HTMLInputElement>(null);
     const commissionInput = useRef<HTMLInputElement>(null);
 
-    const { data, setData, put, processing, reset, errors, clearErrors } = useForm<
-        Required<{ name: string; bio: string; email: string; phone_number: string; commission: number }>
+    const { data, setData, post, processing, reset, errors, clearErrors } = useForm<
+        Required<{ name: string; bio: string; email: string; phone_number: string; commission: number; photo_url: File | null; _method: string }>
     >({
         name: mentor.name,
         bio: mentor.bio ?? '',
         email: mentor.email,
         phone_number: mentor.phone_number,
         commission: mentor.commission,
+        photo_url: null,
+        _method: 'put',
     });
 
     useEffect(() => {
@@ -42,6 +44,8 @@ export default function EditMentor({ mentor, setOpen }: EditMentorProps) {
             email: mentor.email,
             phone_number: mentor.phone_number,
             commission: mentor.commission,
+            photo_url: null,
+            _method: 'put',
         });
         clearErrors();
     }, [mentor, setData, clearErrors]);
@@ -49,7 +53,8 @@ export default function EditMentor({ mentor, setOpen }: EditMentorProps) {
     const updateMentor: FormEventHandler = (e) => {
         e.preventDefault();
 
-        put(route('mentors.update', mentor.id), {
+        post(route('mentors.update', mentor.id), {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 setOpen(false);
@@ -146,6 +151,24 @@ export default function EditMentor({ mentor, setOpen }: EditMentorProps) {
                         autoComplete="off"
                     />
                     <InputError message={errors.commission} />
+
+                    <Label htmlFor="photo_url" className="text-xs text-gray-500">
+                        Foto Profil
+                    </Label>
+                    <Input
+                        id="photo_url"
+                        type="file"
+                        name="photo_url"
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                                setData('photo_url', e.target.files[0]);
+                            } else {
+                                setData('photo_url', null);
+                            }
+                        }}
+                        accept="image/*"
+                    />
+                    <InputError message={errors.photo_url} />
                 </div>
                 <DialogFooter className="gap-2">
                     <DialogClose asChild>

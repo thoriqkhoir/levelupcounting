@@ -35,6 +35,7 @@ class User extends Authenticatable
         'affiliate_status',
         'commission',
         'avatar',
+        'photo_url',
         'email_verified_at',
     ];
 

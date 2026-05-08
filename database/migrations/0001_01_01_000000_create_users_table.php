@@ -27,6 +27,7 @@ return new class extends Migration
             $table->enum('affiliate_status', ['Active', 'Not Active'])->default('Not Active');
             $table->tinyInteger('commission')->default(0);
             $table->string('avatar')->nullable();
+            $table->string('photo_url')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

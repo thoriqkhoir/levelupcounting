@@ -22,7 +22,7 @@ interface AboutProps {
 
 export default function About({ mentors }: AboutProps) {
     return (
-        <div className="relative min-h-screen bg-gradient-to-br from-primary/10 via-white to-secondary/10">
+        <div className="relative min-h-screen bg-background">
             {/* Global Decorative Background */}
             <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
             <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
@@ -35,7 +35,7 @@ export default function About({ mentors }: AboutProps) {
 
             <div className="min-h-screen">
                 <HeroSection />
-                <VisionMissionSection />
+                {/* <VisionMissionSection /> */}
                 <TeamSection mentors={mentors} />
             </div>
         </UserLayout>

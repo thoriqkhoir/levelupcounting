@@ -94,6 +94,7 @@ interface Mentor {
     name: string;
     bio?: string;
     avatar?: string;
+    photo_url?: string;
     email: string;
     phone_number?: string;
 }
@@ -198,7 +199,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                             className="relative mx-auto md:mx-0"
                                         >
                                             <Avatar className="h-32 w-32 border-4 border-white shadow-xl ring-4 ring-primary/20 md:h-40 md:w-40 dark:border-gray-800">
-                                                <AvatarImage src={mentor.avatar} alt={mentor.name} />
+                                                <AvatarImage src={mentor.photo_url ? (mentor.photo_url.startsWith('http') ? mentor.photo_url : `/storage/${mentor.photo_url}`) : (mentor.avatar || undefined)} alt={mentor.name} className="object-cover" />
                                                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-4xl font-bold text-white md:text-5xl">
                                                     {getInitials(mentor.name)}
                                                 </AvatarFallback>
@@ -444,6 +445,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
 
                                             return (
                                                 <motion.div key={bootcamp.id} variants={cardVariants}>
+                                                    {/* @ts-ignore - LinkOrDiv dynamic mapping type issue */}
                                                     <LinkOrDiv {...linkProps} className={`group block h-full ${isDisabled ? 'cursor-not-allowed' : ''}`}>
                                                         <div
                                                             className={`h-full overflow-hidden rounded-xl border border-gray-200 bg-white transition-all dark:border-gray-700 dark:bg-gray-800 ${

@@ -36,11 +36,11 @@ export default function CtaSection() {
                     </div>
 
                     {/* Center column - Phone Image */}
-                    <div className="hidden flex-shrink-0 self-end -mb-12 sm:-mb-8 md:block">
+                    <div className="flex-shrink-0 self-center md:self-end -mb-4 sm:-mb-8 md:-mb-12">
                         <img
                             src="/assets/images/phone.svg"
                             alt="Level Up Accounting Mobile App"
-                            className="h-[280px] w-auto object-contain lg:h-[320px] "
+                            className="h-[200px] sm:h-[240px] md:h-[280px] w-auto object-contain lg:h-[320px]"
                             draggable={false}
                         />
                     </div>
@@ -59,7 +59,7 @@ export default function CtaSection() {
                         </div>
                         <div>
                             <h3 className="mb-3 text-xl font-bold text-white">Contact Info</h3>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col items-center gap-2 md:items-start">
                                 <a
                                     href="tel:089789897777"
                                     className="inline-flex items-center gap-3 text-base text-white/80 transition-colors hover:text-white"

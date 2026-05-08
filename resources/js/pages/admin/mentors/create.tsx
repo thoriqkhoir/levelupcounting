@@ -25,19 +25,21 @@ export default function CreateMentor({ setOpen }: CreateMentorProps) {
         reset,
         errors,
         clearErrors,
-    } = useForm<Required<{ name: string; bio: string; email: string; phone_number: string; password: string; commission: number }>>({
+    } = useForm<Required<{ name: string; bio: string; email: string; phone_number: string; password: string; commission: number; photo_url: File | null }>>({
         name: '',
         bio: '',
         email: '',
         phone_number: '',
         password: '',
         commission: 0,
+        photo_url: null,
     });
 
     const createMentor: FormEventHandler = (e) => {
         e.preventDefault();
 
         create('post', route('mentors.store'), {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 setOpen(false);
@@ -152,6 +154,24 @@ export default function CreateMentor({ setOpen }: CreateMentorProps) {
                         autoComplete="off"
                     />
                     <InputError message={errors.commission} />
+
+                    <Label htmlFor="photo_url" className="text-xs text-gray-500">
+                        Foto Profil
+                    </Label>
+                    <Input
+                        id="photo_url"
+                        type="file"
+                        name="photo_url"
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                                setData('photo_url', e.target.files[0]);
+                            } else {
+                                setData('photo_url', null);
+                            }
+                        }}
+                        accept="image/*"
+                    />
+                    <InputError message={errors.photo_url} />
                 </div>
                 <DialogFooter className="gap-2">
                     <DialogClose asChild>

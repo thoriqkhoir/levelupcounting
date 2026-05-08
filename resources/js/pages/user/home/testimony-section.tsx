@@ -74,12 +74,68 @@ export default function TestimonySection() {
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-16">
-      <div className="mx-auto text-center mb-4">
-        <div className='flex justify-center'>
-        <h3 className="text-lg md:text-xl bg-muted-foreground font-av-estiana mb-6 border w-32 rounded-full py-1 items-center text-white dark:text-white">Testimoni</h3>
+      <div className="mx-auto text-center mb-10">
+        {/* Gallery Collage */}
+        <div className="mb-12 flex w-full flex-nowrap items-center justify-center gap-3 overflow-hidden px-2 sm:gap-4 md:gap-5 lg:gap-6">
+          {/* Col 1 */}
+          <div className="hidden lg:flex flex-col gap-3 sm:gap-4 -translate-y-4">
+            <div className="relative h-24 w-20 overflow-hidden rounded-2xl bg-yellow-400 sm:h-32 sm:w-28 md:h-40 md:w-32 shadow-lg">
+              <img src="https://i.pravatar.cc/150?img=32" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-90 grayscale" />
+            </div>
+            <img src="https://i.pravatar.cc/150?img=11" alt="Testimonial" className="h-20 w-20 rounded-xl object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 shadow-md" />
+          </div>
+
+          {/* Col 2 */}
+          <div className="hidden md:flex flex-col gap-3 sm:gap-4 translate-y-6">
+            <img src="https://i.pravatar.cc/150?img=12" alt="Testimonial" className="h-28 w-20 rounded-2xl object-cover sm:h-36 sm:w-28 md:h-44 md:w-32 shadow-md" />
+            <img src="https://i.pravatar.cc/150?img=33" alt="Testimonial" className="h-24 w-20 rounded-2xl object-cover sm:h-32 sm:w-28 md:h-40 md:w-32 shadow-md" />
+          </div>
+
+          {/* Col 3 */}
+          <div className="flex flex-col gap-3 sm:gap-4 -translate-y-2">
+            <div className="relative h-24 w-20 overflow-hidden rounded-2xl bg-blue-500 sm:h-32 sm:w-32 md:h-40 md:w-40 shadow-lg">
+              <img src="https://i.pravatar.cc/150?img=5" alt="Testimonial" className="h-full w-full object-cover mix-blend-screen opacity-90 grayscale" />
+            </div>
+          </div>
+
+          {/* Col 4 */}
+          <div className="flex flex-col gap-3 sm:gap-4 translate-y-[-1rem]">
+            <img src="https://i.pravatar.cc/150?img=34" alt="Testimonial" className="h-24 w-20 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 shadow-md" />
+          </div>
+
+          {/* Col 5 */}
+          <div className="flex flex-col gap-3 sm:gap-4 translate-y-4">
+            <div className="relative h-32 w-20 overflow-hidden rounded-2xl bg-pink-300 sm:h-40 sm:w-32 md:h-48 md:w-36 shadow-lg">
+              <img src="https://i.pravatar.cc/150?img=9" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-80 grayscale" />
+            </div>
+          </div>
+
+          {/* Col 6... */}
+          <div className="hidden md:flex flex-col gap-3 sm:gap-4 translate-y-6">
+            <img src="https://i.pravatar.cc/150?img=10" alt="Testimonial" className="h-24 w-24 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 shadow-md" />
+            <img src="https://i.pravatar.cc/150?img=33" alt="Testimonial" className="h-24 w-24 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-40 md:w-36 shadow-md" />
+          </div>
+
+          <div className="hidden lg:flex flex-col gap-3 sm:gap-4 -translate-y-4">
+            <div className="relative h-24 w-20 overflow-hidden rounded-2xl bg-yellow-400 sm:h-32 sm:w-28 md:h-40 md:w-32 shadow-lg">
+              <img src="https://i.pravatar.cc/150?img=41" alt="Testimonial" className="h-28 w-24 rounded-2xl object-cover sm:h-36 sm:w-32 md:h-44 md:w-36 shadow-md" />
+            </div>
+            <img src="https://i.pravatar.cc/150?img=11" alt="Testimonial" className="h-20 w-20 rounded-xl object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 shadow-md" />
+          </div>
+
         </div>
-        <h2 className="text-2xl md:text-3xl font-semibold font-av-estiana dark:text-white">Trusted by leaders </h2>
-        <h2 className="text-2xl md:text-3xl font-semibold font-av-estiana text-muted-foreground dark:text-white">From Various Industries </h2>
+
+        {/* Text Headers */}
+        <div className='flex justify-center'>
+          <h3 className="text-sm md:text-base bg-muted-foreground font-semibold mb-6 border px-5 py-1.5 rounded-full items-center text-white dark:text-white shadow-sm">
+            Testimonials
+          </h3>
+        </div>
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold dark:text-white leading-tight">Trusted by leaders</h2>
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-muted-foreground dark:text-white/70 leading-tight">from various industries</h2>
+        <p className="mt-4 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Learn why professionals trust our solutions to complete their customer journeys.
+        </p>
       </div>
       
       <Carousel index={index} onIndexChange={handleIndexChange} disableDrag className="relative">

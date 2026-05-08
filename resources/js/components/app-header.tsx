@@ -119,7 +119,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="size-9 rounded-full p-1">
                                     <Avatar className="size-7 overflow-hidden rounded-full">
-                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                        <AvatarImage src={auth.user.photo_url ? (auth.user.photo_url.startsWith('http') ? auth.user.photo_url : `/storage/${auth.user.photo_url}`) : (auth.user.avatar || undefined)} alt={auth.user.name} className="object-cover" />
                                         <AvatarFallback className="bg-primary/10 text-primary rounded-full text-xs">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>
@@ -142,7 +142,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
             <div className="fixed top-0 right-0 left-0 z-40 hidden lg:flex">
 
                 <div className="absolute inset-0 flex">
-                    <div className="bg-background" style={{ flex: '0 0 calc(50% - 100px)' }} />
+                    <div className="bg-background" style={{ flex: '0 0 calc(50% - 10px)' }} />
                     <div className="bg-primary flex-1" />
                 </div>
 
@@ -292,7 +292,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" className="size-10 rounded-full p-1">
                                             <Avatar className="size-8 overflow-hidden rounded-full">
-                                                <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                                <AvatarImage src={auth.user.photo_url ? (auth.user.photo_url.startsWith('http') ? auth.user.photo_url : `/storage/${auth.user.photo_url}`) : (auth.user.avatar || undefined)} alt={auth.user.name} className="object-cover" />
                                                 <AvatarFallback className="bg-background text-primary rounded-lg dark:bg-neutral-700 dark:text-white">
                                                     {getInitials(auth.user.name)}
                                                 </AvatarFallback>

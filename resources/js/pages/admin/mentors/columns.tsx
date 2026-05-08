@@ -61,6 +61,8 @@ export type Mentor = {
     name: string;
     bio?: string;
     email: string;
+    photo_url?: string;
+    avatar?: string;
     phone_number: string;
     commission: number;
     created_at: string;

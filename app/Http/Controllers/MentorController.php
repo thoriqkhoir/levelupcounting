@@ -81,6 +81,7 @@ class MentorController extends Controller
             'phone_number' => 'required|string|max:255',
             'password' => 'required|string|min:8',
             'commission' => 'required|numeric|min:0',
+            'photo_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
         ]);
 
         $lastMentor = User::role('mentor')
@@ -98,7 +99,7 @@ class MentorController extends Controller
 
         $mentorCode = 'MTR' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
-        $user = User::create([
+        $userData = [
             'name' => $request->name,
             'bio' => $request->bio,
             'email' => $request->email,
@@ -108,7 +109,13 @@ class MentorController extends Controller
             'affiliate_code' => $mentorCode,
             'affiliate_status' => 'Active',
             'email_verified_at' => now(),
-        ]);
+        ];
+
+        if ($request->hasFile('photo_url')) {
+            $userData['photo_url'] = $request->file('photo_url')->store('profiles', 'public');
+        }
+
+        $user = User::create($userData);
 
         $user->assignRole('mentor');
 
@@ -252,10 +259,21 @@ class MentorController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class . ',email,' . $id,
             'phone_number' => 'required|string|max:255',
             'commission' => 'required|numeric|min:0',
+            'photo_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
         ]);
 
         $mentor = User::findOrFail($id);
-        $mentor->update($request->all());
+        
+        $data = $request->except(['photo_url', '_method']);
+
+        if ($request->hasFile('photo_url')) {
+            if ($mentor->photo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($mentor->photo_url)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($mentor->photo_url);
+            }
+            $data['photo_url'] = $request->file('photo_url')->store('profiles', 'public');
+        }
+
+        $mentor->update($data);
 
         return redirect()->route('mentors.show', $mentor->id)->with('success', 'Mentor berhasil diperbarui.');
     }

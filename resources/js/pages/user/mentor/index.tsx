@@ -12,6 +12,7 @@ interface Mentor {
     name: string;
     bio?: string;
     avatar?: string;
+    photo_url?: string;
     total_courses: number;
     total_articles: number;
     total_webinars: number;
@@ -171,7 +172,7 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                                                 <div className="mb-6 text-center">
                                                     <div className="relative mx-auto mb-4 inline-block">
                                                         <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-4 ring-primary/20 transition-all group-hover:ring-primary/40 dark:border-gray-800">
-                                                            <AvatarImage src={mentor.avatar} alt={mentor.name} />
+                                                            <AvatarImage src={mentor.photo_url ? (mentor.photo_url.startsWith('http') ? mentor.photo_url : `/storage/${mentor.photo_url}`) : (mentor.avatar || undefined)} alt={mentor.name} className="object-cover" />
                                                             <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-2xl font-bold text-white">
                                                                 {getInitials(mentor.name)}
                                                             </AvatarFallback>
