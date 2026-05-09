@@ -334,7 +334,7 @@ export default function AffiliateDashboard({ user, stats, filters }: AffiliateSt
                         <div className="space-y-4">
                             {stats.recent_referrals.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center gap-4 py-12">
-                                    <img src="/assets/images/not-found.webp" alt="Referral Tidak Tersedia" className="w-48" />
+                                    <img src="/assets/images/not-found.svg" alt="Referral Tidak Tersedia" className="w-48" />
                                     <div className="text-center text-gray-500">Belum ada referral baru saat ini.</div>
                                 </div>
                             ) : (

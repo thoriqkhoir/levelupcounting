@@ -133,7 +133,7 @@ export default function PartnershipProductSection({ categories, partnershipProdu
             <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {visibleProducts.length === 0 ? (
                     <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
-                        <img src="/assets/images/not-found.webp" alt="Program Belum Tersedia" className="w-48" />
+                        <img src="/assets/images/not-found.svg" alt="Program Belum Tersedia" className="w-48" />
                         <div className="text-center text-gray-500">Belum ada program sertifikasi yang tersedia saat ini.</div>
                     </div>
                 ) : (

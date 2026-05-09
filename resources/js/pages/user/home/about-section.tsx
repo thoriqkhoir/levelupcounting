@@ -121,36 +121,18 @@ export default function AboutSection() {
                     </motion.div>
                 </div>
 
-                {/* Kolom Kanan — Dua Gambar Overlapping */}
+                {/* Kolom Kanan — Gambar Header */}
                 <motion.div
                     initial={{ opacity: 0, x: 40 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.7, delay: 0.2 }}
-                    className="relative w-full flex-1 lg:min-h-[420px]"
+                    className="flex w-full flex-1 justify-center lg:justify-end items-center"
                 >
-                    {/* Gambar utama (kanan atas) */}
-                    <div className="ml-auto w-[90%] md:w-[85%] overflow-hidden rounded-2xl shadow-xl">
-                        <img
-                            src="/assets/images/about-main.jpg"
-                            alt="Professional meeting"
-                            className="h-[260px] md:h-[320px] lg:h-[380px] w-full object-cover"
-                            onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&fit=crop';
-                            }}
-                        />
-                    </div>
-
-                    {/* Gambar kecil (kiri bawah, overlapping) */}
-                    <div className="absolute bottom-0 left-0 w-[60%] md:w-[52%] overflow-hidden rounded-2xl border-4 border-background shadow-xl">
-                        <img
-                            src="/assets/images/about-secondary.jpg"
-                            alt="Team collaboration"
-                            className="h-[160px] md:h-[200px] lg:h-[240px] w-full object-cover"
-                            onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop';
-                            }}
-                        />
-                    </div>
+                    <img
+                        src="/assets/images/header-home.svg"
+                        alt="Level Up Counting Header"
+                        className="w-full max-w-lg object-contain lg:max-w-xl xl:max-w-2xl"
+                    />
                 </motion.div>
 
             </div>

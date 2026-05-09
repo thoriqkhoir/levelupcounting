@@ -131,8 +131,8 @@ export default function TestimonySection() {
             Testimonials
           </h3>
         </div>
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold dark:text-white leading-tight">Trusted by leaders</h2>
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-muted-foreground dark:text-white/70 leading-tight">from various industries</h2>
+        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold font-av-estiana dark:text-white leading-tight">Trusted by leaders</h2>
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-av-estiana text-muted-foreground dark:text-white/70 leading-tight">from various industries</h2>
         <p className="mt-4 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
           Learn why professionals trust our solutions to complete their customer journeys.
         </p>

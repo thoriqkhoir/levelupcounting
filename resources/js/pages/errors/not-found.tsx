@@ -7,7 +7,7 @@ export default function PageNotFound() {
         <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900">
             <Head title="Page Not Found" />
             <div className="container flex flex-col items-center justify-center py-12 text-center">
-                <img src="/assets/images/404.png" alt="Page not found" className="mb-8 block max-w-[300px] dark:hidden" />
+                <img src="/assets/images/404.svg" alt="Page not found" className="mb-8 block max-w-[200px] dark:hidden" />
                 <img src="/assets/images/404-dark.webp" alt="Page not found" className="mb-8 hidden max-w-[300px] dark:block" />
 
                 <p className="mb-8 max-w-md text-base text-gray-600 dark:text-gray-400">Maaf, halaman yang Anda cari tidak ditemukan.</p>

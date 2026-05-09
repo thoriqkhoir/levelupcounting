@@ -39,7 +39,7 @@ export default function WebinarRatingComponent({ ratings, averageRating = 0 }: W
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center gap-4 py-12">
-                    <img src="/assets/images/not-found.webp" alt="Rating dan Ulasan Tidak Tersedia" className="w-48" />
+                    <img src="/assets/images/not-found.svg" alt="Rating dan Ulasan Tidak Tersedia" className="w-48" />
                     <div className="text-center">
                         <p className="text-muted-foreground text-sm">Belum ada rating dan ulasan untuk webinar ini.</p>
                         <p className="mt-1 text-xs text-gray-400">

@@ -14,7 +14,7 @@ export default function CourseTransaction({ transactions, courseId }: CourseTran
                 <DataTable columns={columns} data={transactions} courseId={courseId} />
             ) : (
                 <div className="flex flex-col items-center justify-center gap-4 py-12">
-                    <img src="/assets/images/not-found.webp" alt="Transaksi Tidak Tersedia" className="w-48" />
+                    <img src="/assets/images/not-found.svg" alt="Transaksi Tidak Tersedia" className="w-48" />
                     <p className="text-muted-foreground text-center text-sm">Belum ada transaksi untuk kelas ini.</p>
                 </div>
             )}
