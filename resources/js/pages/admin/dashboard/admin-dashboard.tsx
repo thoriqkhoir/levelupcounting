@@ -427,7 +427,7 @@ export default function AdminDashboard({ stats, filters }: StatsProps) {
                 <div className="space-y-6">
                     <div className="border-border bg-card text-card-foreground rounded-xl border p-6 shadow-sm">
                         <h3 className="text-lg font-semibold">Total Pendaftar Produk</h3>
-                        <div className="mb-2 text-2xl font-bold text-green-500">{stats.total_participants.toLocaleString('id-ID')}</div>
+                        <div className="mb-2 text-2xl font-bold text-primary">{stats.total_participants.toLocaleString('id-ID')}</div>
                         <div className="text-muted-foreground mb-4 flex items-center gap-2">
                             <p className="text-sm">{stats.participants_this_month.toLocaleString('id-ID')} Pendaftar Bulan ini</p>
                             <TrendingUp size="20" />
