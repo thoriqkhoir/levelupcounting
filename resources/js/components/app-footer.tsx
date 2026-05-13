@@ -28,7 +28,7 @@ const productItems: ProductItem[] = [
 const serviceItems: ServiceItem[] = [
     {
         title: 'Pusat Bantuan',
-        href: 'https://wa.me/+6281252683108',
+        href: 'https://wa.me/+6287754764475',
     },
 ];
 
@@ -147,7 +147,7 @@ export default function AppFooter() {
                                 </h4>
                                 <div className="flex items-center gap-3">
                                     <a 
-                                        href="#" 
+                                        href="mailto:levelupacc4@gmail.com" 
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         
@@ -156,7 +156,7 @@ export default function AppFooter() {
                                         <Mail className="h-5 w-5" />
                                     </a>
                                     <a 
-                                        href="#" 
+                                        href="https://wa.me/+6287754764475" 
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         
@@ -167,7 +167,7 @@ export default function AppFooter() {
                                         </svg>
                                     </a>
                                     <a 
-                                        href="#" 
+                                        href="https://www.tiktok.com/@levelup.accounting?" 
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         
@@ -178,7 +178,7 @@ export default function AppFooter() {
                                         </svg>
                                     </a>
                                     <a 
-                                        href="#" 
+                                        href="https://www.instagram.com/levelup.accounting/" 
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         

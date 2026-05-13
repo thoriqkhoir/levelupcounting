@@ -70,7 +70,7 @@ export default function AboutSection() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="max-w-md text-base text-muted-foreground"
+                        className="max-w-md text-base md:text-md text-muted-foreground"
                     >
                         Kami menghadirkan pelatihan Akuntansi dan Pajak berbasis praktik, sertifikasi, dan kelas online untuk membantumu siap bersaing di dunia kerja.
                     </motion.p>

@@ -82,7 +82,7 @@ export default function BundlingSection({ bundles }: BundlingSectionProps) {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {visibleBundles.length === 0 ? (
                     <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
-                        <img src="/assets/images/character-3.png" alt="Paket Bundling Belum Tersedia" className="w-48" />
+                        <img src="/assets/images/not-found.svg" alt="Paket Bundling Belum Tersedia" className="w-48" />
                         <div className="text-center text-gray-500">
                             {search ? 'Tidak ada paket bundling yang sesuai dengan pencarian.' : 'Belum ada paket bundling yang tersedia saat ini.'}
                         </div>

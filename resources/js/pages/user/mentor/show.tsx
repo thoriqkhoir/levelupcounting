@@ -166,14 +166,26 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
 
     const totalContent = stats.total_courses + stats.total_articles + stats.total_webinars + stats.total_bootcamps;
 
+    const GRID_PATTERN = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
+
     return (
+        <div className="relative min-h-screen bg-background">
+            {/* Global Decorative Background — Blobs */}
+            <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            <div className="pointer-events-none absolute top-1/2 left-1/4 z-0 h-[400px] w-[400px] rounded-full bg-violet-300/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            {/* Global Decorative Background — Grid Pattern */}
+            <div className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]" style={{ backgroundImage: GRID_PATTERN }} />
+
         <UserLayout>
             <Head title={`Mentor - ${mentor.name}`} />
 
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+            <div className="relative z-10 min-h-screen">
                 {/* Hero Section */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
-                    <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
+                <div className="relative overflow-hidden py-12">
+                    <div className="" />
                     <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16">
                         <motion.div
                             initial="hidden"
@@ -184,7 +196,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                             {/* Profile Section */}
                             <motion.div
                                 variants={itemVariants}
-                                className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                className="mb-8 overflow-hidden rounded-2xl border border-gray-100 bg-white/80 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/5"
                             >
                                 {/* Background Pattern */}
                                 <div className="absolute right-0 top-0 h-64 w-64 -translate-y-16 translate-x-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-3xl" />
@@ -227,7 +239,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                 {mentor.email && (
                                                     <a
                                                         href={`mailto:${mentor.email}`}
-                                                        className="flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-2 text-sm transition-colors hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                                        className="flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2 text-sm transition-colors hover:bg-primary/10 ring-1 ring-primary/10"
                                                     >
                                                         <Mail className="h-4 w-4 text-primary" />
                                                         <span>{mentor.email}</span>
@@ -236,7 +248,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                 {mentor.phone_number && (
                                                     <a
                                                         href={`tel:${mentor.phone_number}`}
-                                                        className="flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-2 text-sm transition-colors hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                                        className="flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2 text-sm transition-colors hover:bg-primary/10 ring-1 ring-primary/10"
                                                     >
                                                         <Phone className="h-4 w-4 text-primary" />
                                                         <span>{mentor.phone_number}</span>
@@ -325,7 +337,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                         transition={{ duration: 0.5, delay: 0.3 }}
                     >
                         <Tabs defaultValue="courses" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3 bg-white dark:bg-gray-800">
+                            <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm dark:bg-white/5 border border-gray-100 dark:border-white/10">
                                 <TabsTrigger value="courses" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                                     <BookText className="mr-2 h-4 w-4" />
                                     <span className="hidden sm:inline">Kelas</span> ({courses.length})
@@ -356,7 +368,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                         {courses.map((course) => (
                                             <motion.div key={course.id} variants={cardVariants}>
                                                 <Link href={`/course/${course.slug}`} className="group block h-full">
-                                                    <div className="h-full overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                                                    <div className="h-full overflow-hidden rounded-xl border border-gray-100 bg-white/80 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:border-primary/30 dark:border-white/10 dark:bg-white/5">
                                                         <div className="relative aspect-video overflow-hidden">
                                                             <img
                                                                 src={course.thumbnail ? `/storage/${course.thumbnail}` : '/assets/images/placeholder.png'}
@@ -448,8 +460,8 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                     {/* @ts-ignore - LinkOrDiv dynamic mapping type issue */}
                                                     <LinkOrDiv {...linkProps} className={`group block h-full ${isDisabled ? 'cursor-not-allowed' : ''}`}>
                                                         <div
-                                                            className={`h-full overflow-hidden rounded-xl border border-gray-200 bg-white transition-all dark:border-gray-700 dark:bg-gray-800 ${
-                                                                isDisabled ? 'opacity-60' : 'hover:-translate-y-1 hover:shadow-xl'
+                                                            className={`h-full overflow-hidden rounded-xl border border-gray-100 bg-white/80 backdrop-blur-sm transition-all dark:border-white/10 dark:bg-white/5 ${
+                                                                isDisabled ? 'opacity-60' : 'hover:-translate-y-1 hover:shadow-xl hover:border-primary/30'
                                                             }`}
                                                         >
                                                             <div className="relative aspect-video overflow-hidden">
@@ -646,7 +658,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                         {articles.map((article) => (
                                             <motion.div key={article.id} variants={cardVariants}>
                                                 <Link href={`/article/${article.slug}`} className="group block h-full">
-                                                    <div className="h-full overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                                                    <div className="h-full overflow-hidden rounded-xl border border-gray-100 bg-white/80 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:border-primary/30 dark:border-white/10 dark:bg-white/5">
                                                         <div className="relative aspect-video overflow-hidden">
                                                             <img
                                                                 src={article.thumbnail ? `/storage/${article.thumbnail}` : '/assets/images/placeholder.png'}
@@ -706,5 +718,6 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                 </div>
             </div>
         </UserLayout>
+        </div>
     );
 }

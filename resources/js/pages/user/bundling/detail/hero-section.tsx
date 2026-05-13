@@ -99,7 +99,7 @@ export default function HeroSection({ bundle, discountPercentage }: HeroSectionP
                                 Daftar Sekarang
                             </Button>
                         </a>
-                        <a href="https://wa.me/+6281252683108" target="_blank" rel="noopener noreferrer">
+                        <a href="https://wa.me/+6287754764475" target="_blank" rel="noopener noreferrer">
                             <Button size="lg" variant="outline">
                                 Hubungi Kami
                             </Button>

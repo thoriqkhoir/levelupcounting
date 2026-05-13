@@ -18,7 +18,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Album, BookText, BriefcaseBusiness, FileText, Home, MonitorPlay, Presentation, Search, User, Info } from 'lucide-react';
+import { Album, Award, BookText, BriefcaseBusiness, FileText, Home, MonitorPlay, Presentation, Search, User, Info, Sparkles, BadgeCheck, Users, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SearchCommand } from './search-command';
 
@@ -54,11 +54,19 @@ function ListItem({
     children,
     href,
     icon: IconComponent,
+    iconBg,
+    iconColor,
+    badge,
+    inverted,
 }: {
     title: string;
     children: string;
     href: string;
     icon?: React.ComponentType<{ className?: string }>;
+    iconBg?: string;
+    iconColor?: string;
+    badge?: string;
+    inverted?: boolean;
 }) {
     const page = usePage<SharedData>();
     const isActive = page.url.startsWith(href);
@@ -69,15 +77,51 @@ function ListItem({
                 <Link
                     href={href}
                     className={cn(
-                        'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block space-y-1 rounded-md p-3 leading-none no-underline outline-hidden transition-colors select-none',
-                        isActive && 'bg-primary/10 text-primary',
+                        'group flex items-start gap-4 rounded-xl p-3.5 no-underline outline-hidden transition-all duration-200 select-none hover:shadow-sm',
+                        inverted
+                            ? isActive
+                                ? 'bg-white/20'
+                                : 'hover:bg-white/10'
+                            : isActive
+                              ? 'bg-primary/8 ring-1 ring-primary/20'
+                              : 'hover:bg-gray-50 dark:hover:bg-white/5',
                     )}
                 >
-                    <div className="flex items-center gap-2">
-                        {IconComponent && <Icon iconNode={IconComponent} className="h-4 w-4" />}
-                        <div className="text-sm leading-none font-medium">{title}</div>
+                    {IconComponent && (
+                        <div className={cn(
+                            'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-110',
+                            iconBg || 'bg-primary/10',
+                        )}>
+                            <IconComponent className={cn('h-5 w-5', iconColor || 'text-primary')} />
+                        </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                            <div className={cn(
+                                'text-sm font-semibold leading-none transition-colors',
+                                inverted
+                                    ? 'text-white'
+                                    : isActive ? 'text-primary' : 'text-foreground group-hover:text-primary'
+                            )}>{title}</div>
+                            {badge && (
+                                <span className={cn(
+                                    'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
+                                    inverted ? 'bg-white/20 text-white' : 'bg-secondary/15 text-secondary'
+                                )}>{badge}</span>
+                            )}
+                        </div>
+                        <p className={cn(
+                            'mt-1.5 text-xs leading-snug line-clamp-2',
+                            inverted ? 'text-white/70' : 'text-muted-foreground'
+                        )}>{children}</p>
                     </div>
-                    <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">{children}</p>
+                    <div className={cn(
+                        'flex-shrink-0 self-center opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5',
+                    )}>
+                        <svg className={cn('h-4 w-4', inverted ? 'text-white/80' : 'text-primary')} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
                 </Link>
             </NavigationMenuLink>
         </li>
@@ -214,43 +258,79 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         Program
                                     </NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <ul className="grid w-[600px] gap-3 p-4 md:grid-cols-[.75fr_1fr]">
-                                            <li className="row-span-3">
-                                                <ListItem href="/course" title="Kelas Online" icon={BookText}>
-                                                    Belajar dengan video pembelajaran terstruktur dan materi lengkap
-                                                </ListItem>
-                                                <ListItem href="/bootcamp" title="Bootcamp" icon={Presentation}>
-                                                    Program intensif dengan mentor profesional dan project-based learning
-                                                </ListItem>
-                                                <ListItem href="/webinar" title="Webinar" icon={MonitorPlay}>
-                                                    Seminar online dengan topik terkini dan expert speaker
-                                                </ListItem>
-                                            </li>
-                                            <li className="row-span-3 relative overflow-hidden">
-                                                <img
-                                                    src="/assets/images/circle_cta.png"
-                                                    alt=""
-                                                    className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 object-contain select-none"
-                                                    draggable={false}
-                                                    style={{ zIndex: 1 }}
-                                                />
-                                                <NavigationMenuLink asChild>
-                                                    <Link
-                                                        href="/bundle"
-                                                        className={cn(
-                                                            'from-primary-foreground to-primary flex h-full w-full flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-hidden transition-all duration-200 select-none hover:shadow-md',
-                                                            page.url.startsWith('/bundle') && 'ring-primary ring-2',
-                                                        )}
-                                                    >
-                                                        <Icon iconNode={Album} className="text-white mb-2 h-8 w-8" />
-                                                        <div className="mb-2 text-lg text-white font-medium">Paket Bundling</div>
-                                                        <p className="text-white text-sm leading-tight">
+                                        {/* Premium Mega Menu — 3-column layout */}
+                                        <div className="w-[720px] overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl dark:border-white/10 dark:bg-zinc-950">
+                                            {/* Top accent strip */}
+                                            <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-violet-500" />
+
+                                            <div className="grid grid-cols-[1fr_1fr_220px] gap-0">
+                                                {/* ── Col 1: Program List ── */}
+                                                <div className="border-r border-gray-100 p-5 dark:border-white/10">
+                                                    <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                        <Sparkles className="h-3 w-3 text-primary" />
+                                                        Program Edukasi
+                                                    </p>
+                                                    <ul className="space-y-1">
+                                                        <ListItem href="/course" title="Kelas Online" icon={BookText} iconBg="bg-blue-50 dark:bg-blue-900/30" iconColor="text-blue-600">
+                                                            Belajar dengan video pembelajaran terstruktur dan materi lengkap
+                                                        </ListItem>
+                                                        <ListItem href="/bootcamp" title="Bootcamp" icon={Presentation} iconBg="bg-emerald-50 dark:bg-emerald-900/30" iconColor="text-emerald-600" badge="Intensif">
+                                                            Program intensif dengan mentor profesional dan project-based learning
+                                                        </ListItem>
+                                                        <ListItem href="/webinar" title="Webinar" icon={MonitorPlay} iconBg="bg-violet-50 dark:bg-violet-900/30" iconColor="text-violet-600">
+                                                            Seminar online dengan topik terkini dan expert speaker
+                                                        </ListItem>
+                                                    </ul>
+                                                </div>
+
+                                                {/* ── Col 2: Penawaran Spesial ── */}
+                                                <div className="border-r border-gray-100 p-5 dark:border-white/10">
+                                                    <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                        <Award className="h-3 w-3 text-secondary" />
+                                                        Penawaran Spesial
+                                                    </p>
+                                                    <ul className="space-y-1 overflow-hidden rounded-xl bg-gradient-to-br from-primary to-blue-700">
+                                                        <ListItem href="/bundle" title="Paket Bundling" icon={Album} iconBg="bg-white/20" iconColor="text-white" badge="Hemat" inverted>
                                                             Hemat lebih banyak dengan paket bundling berbagai produk edukasi kami
-                                                        </p>
-                                                    </Link>
-                                                </NavigationMenuLink>
-                                            </li>
-                                        </ul>
+                                                        </ListItem>
+                                                    </ul>
+                                                </div>
+
+                                                {/* ── Col 3: Why Level Up ── */}
+                                                <div className="border-l border-gray-100 bg-gray-50/70 p-5 dark:border-white/10 dark:bg-white/[0.03]">
+                                                    <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                        <TrendingUp className="h-3 w-3 text-emerald-600" />
+                                                        Mengapa Kami
+                                                    </p>
+                                                    <ul className="space-y-3">
+                                                        {[
+                                                            { icon: BadgeCheck, label: 'Mentor Bersertifikat', color: 'text-primary', bg: 'bg-primary/10' },
+                                                            { icon: Users, label: '5.000+ Alumni', color: 'text-secondary', bg: 'bg-secondary/10' },
+                                                            { icon: TrendingUp, label: 'Kurikulum Update', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
+                                                            { icon: Award, label: 'Sertifikat Diakui', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30' },
+                                                        ].map((f) => (
+                                                            <li key={f.label} className="flex items-center gap-2.5">
+                                                                <div className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg ${f.bg}`}>
+                                                                    <f.icon className={`h-3.5 w-3.5 ${f.color}`} />
+                                                                </div>
+                                                                <span className="text-xs font-medium text-foreground">{f.label}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                    <div className="mt-4 border-t border-gray-200 pt-4 dark:border-white/10">
+                                                        <Link
+                                                            href="/about"
+                                                            className="flex items-center gap-1 text-xs font-semibold text-primary transition-all hover:gap-2"
+                                                        >
+                                                            Pelajari Lebih Lanjut
+                                                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                                            </svg>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
 

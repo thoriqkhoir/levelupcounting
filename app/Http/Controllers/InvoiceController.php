@@ -1556,8 +1556,8 @@ class InvoiceController extends Controller
             'company' => [
                 'name' => 'Level Up Accounting',
                 'address' => 'Perumahan Permata Permadani, Blok B1. Kel. Pendem Kec. Junrejo Kota Batu Prov. Jawa Timur, 65324',
-                'phone' => '+6281252683108',
-                'email' => 'levelupaccounting.id@gmail.com',
+                'phone' => '+6287754764475',
+                'email' => 'levelupacc4@gmail.com',
                 'website' => 'www.levelupaccounting.id'
             ]
         ];

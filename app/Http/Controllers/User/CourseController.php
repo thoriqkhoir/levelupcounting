@@ -14,7 +14,7 @@ use Inertia\Inertia;
 
 class CourseController extends Controller
 {
-    private const ADMIN_WHATSAPP_URL = 'https://wa.me/+6281252683108';
+    private const ADMIN_WHATSAPP_URL = 'https://wa.me/+6287754764475';
 
     protected $tripayService;
     protected $midtransService;

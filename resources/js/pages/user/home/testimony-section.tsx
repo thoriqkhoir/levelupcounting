@@ -126,14 +126,19 @@ export default function TestimonySection() {
         </div>
 
         {/* Text Headers */}
-        <div className='flex justify-center'>
-          <h3 className="text-sm md:text-base bg-muted-foreground font-semibold mb-6 border px-5 py-1.5 rounded-full items-center text-white dark:text-white shadow-sm">
-            Testimonials
-          </h3>
+        <div className="mb-4 flex justify-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
+            ⭐ Testimonials
+          </span>
         </div>
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold font-av-estiana dark:text-white leading-tight">Trusted by leaders</h2>
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-av-estiana text-muted-foreground dark:text-white/70 leading-tight">from various industries</h2>
-        <p className="mt-4 text-sm md:text-base lg:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+        <h2 className="font-av-estiana text-2xl font-extrabold dark:text-white md:text-3xl leading-tight">
+          Trusted by leaders{' '}
+          <span className="relative inline-block">
+            <span className="relative z-10">from various industries</span>
+            <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
+          </span>
+        </h2>
+        <p className="mt-4 mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-400 md:text-base">
           Learn why professionals trust our solutions to complete their customer journeys.
         </p>
       </div>

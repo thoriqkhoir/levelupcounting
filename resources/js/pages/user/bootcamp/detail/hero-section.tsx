@@ -218,7 +218,7 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                     Daftar Sekarang
                                 </Button>
                             </a>
-                            <a href="https://wa.me/+6281252683108" target="_blank" rel="noopener noreferrer">
+                            <a href="https://wa.me/+6287754764475" target="_blank" rel="noopener noreferrer">
                                 <Button size="default" variant="outline" className="px-6 text-sm font-bold md:px-8 md:text-base">
                                     Hubungi Kami
                                 </Button>

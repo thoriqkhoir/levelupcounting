@@ -26,7 +26,7 @@ export default function CtaSection() {
                             className="rounded-full border-2 bg-primary hover:bg-secondary hover:text-white"
                         >
                             <Link
-                                href="https://wa.me/+6281252683108?text=Halo%20Admin%20Sekolah%20Pajak,%20saya%20ingin%20bertanya%20tentang%20Bootcamp%20online."
+                                href="https://wa.me/+6287754764475?text=Halo%20Admin%20Level%20Up%20Accounting,%20saya%20ingin%20bertanya%20tentang%20Bootcamp%20online."
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -61,18 +61,18 @@ export default function CtaSection() {
                             <h3 className="mb-3 text-xl font-bold text-white">Contact Info</h3>
                             <div className="flex flex-col items-center gap-2 md:items-start">
                                 <a
-                                    href="tel:089789897777"
+                                    href="tel:087754764475"
                                     className="inline-flex items-center gap-3 text-base text-white/80 transition-colors hover:text-white"
                                 >
                                     <Phone className="h-5 w-5 flex-shrink-0 text-white" />
-                                    089-789-897-777
+                                    087-754-764-475
                                 </a>
                                 <a
-                                    href="mailto:zizigaming@gmail.com"
+                                    href="mailto:levelupacc4@gmail.com"
                                     className="inline-flex items-center gap-3 text-base text-white/80 transition-colors hover:text-white"
                                 >
                                     <Mail className="h-5 w-5 flex-shrink-0 text-white" />
-                                    zizigaming@gmail.com
+                                    levelupacc4@gmail.com
                                 </a>
                             </div>
                         </div>

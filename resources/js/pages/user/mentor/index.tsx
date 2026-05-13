@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useInitials } from '@/hooks/use-initials';
 import UserLayout from '@/layouts/user-layout';
 import { Head, Link } from '@inertiajs/react';
-import { BookOpen, BookText, FileText, Video, Users, Award, Star } from 'lucide-react';
+import { BookOpen, BookText, FileText, Users, Award, Star, Sparkles, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Mentor {
@@ -23,136 +23,137 @@ interface MentorIndexProps {
     mentors: Mentor[];
 }
 
+const GRID_PATTERN = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
+
 const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1,
-        },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.5,
-            ease: "easeOut" as const,
-        },
-    },
-};
-
 const cardVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.6,
-            ease: "easeOut" as const,
-        },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
 export default function MentorIndex({ mentors }: MentorIndexProps) {
     const getInitials = useInitials();
 
-    const getTotalContent = (mentor: Mentor) => {
-        return mentor.total_courses + mentor.total_articles + mentor.total_webinars + mentor.total_bootcamps;
-    };
+    const getTotalContent = (mentor: Mentor) =>
+        mentor.total_courses + mentor.total_articles + mentor.total_webinars + mentor.total_bootcamps;
+
+    const globalStats = [
+        { icon: Users, value: mentors.length, label: 'Mentor Aktif', color: 'text-primary', bg: 'bg-primary/10' },
+        { icon: BookText, value: mentors.reduce((s, m) => s + m.total_courses, 0), label: 'Total Kelas', color: 'text-blue-600', bg: 'bg-blue-500/10' },
+        { icon: BookOpen, value: mentors.reduce((s, m) => s + m.total_bootcamps, 0), label: 'Total Bootcamp', color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+        { icon: FileText, value: mentors.reduce((s, m) => s + m.total_articles, 0), label: 'Total Artikel', color: 'text-violet-600', bg: 'bg-violet-500/10' },
+    ];
 
     return (
-        <UserLayout>
-            <Head title="Mentor Kami" />
+        <div className="relative min-h-screen bg-background">
+            {/* Global Decorative Background — Blobs */}
+            <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            <div className="pointer-events-none absolute top-1/2 left-1/4 z-0 h-[400px] w-[400px] rounded-full bg-violet-300/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            {/* Global Decorative Background — Grid Pattern */}
+            <div className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]" style={{ backgroundImage: GRID_PATTERN }} />
 
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-                {/* Hero Section */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
-                    <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
-                    <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
+            <UserLayout>
+                <Head title="Mentor Kami" />
+
+                {/* ── Hero Section ── */}
+                <section className="relative z-10 overflow-hidden py-20">
+                    <div className="mx-auto max-w-7xl px-4">
+                        {/* Badge */}
                         <motion.div
-                            className="relative text-center"
-                            initial="hidden"
-                            animate="visible"
-                            variants={containerVariants}
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="mb-6 flex justify-center"
                         >
-                            <motion.div
-                                variants={itemVariants}
-                                className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
-                            >
+                            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
                                 <Award className="h-4 w-4" />
-                                <span>Mentor Profesional</span>
-                            </motion.div>
-                            
-                            <motion.h1 variants={itemVariants} className="mb-4 text-4xl font-bold md:text-5xl lg:text-6xl">
-                                Belajar dari
-                                <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> Expert </span>
-                                Terbaik
-                            </motion.h1>
-                            
-                            <motion.p
-                                variants={itemVariants}
-                                className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400"
-                            >
-                                Raih kesuksesan bersama mentor berpengalaman yang siap membimbing perjalanan belajar Anda di bidang perpajakan dan akuntansi
-                            </motion.p>
+                                Mentor Profesional
+                            </span>
+                        </motion.div>
 
-                            {/* Stats */}
-                            <motion.div
-                                variants={containerVariants}
-                                className="mt-12 grid grid-cols-2 gap-6 md:grid-cols-4"
-                            >
+                        {/* Headline */}
+                        <motion.h1
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.7, delay: 0.25 }}
+                            className="font-av-estiana mx-auto mb-6 max-w-4xl text-center text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+                        >
+                            Belajar dari{' '}
+                            <span className="relative inline-block">
+                                <span className="relative z-10 text-primary">Expert</span>
+                                <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
+                            </span>{' '}
+                            Terbaik
+                        </motion.h1>
+
+                        {/* Subtext */}
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.4 }}
+                            className="mx-auto mb-10 max-w-2xl text-center text-base text-muted-foreground md:text-lg"
+                        >
+                            Raih kesuksesan bersama mentor berpengalaman yang siap membimbing perjalanan belajar Anda di bidang perpajakan dan akuntansi.
+                        </motion.p>
+
+                        {/* Floating badges */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.5 }}
+                            className="mb-14 flex flex-wrap justify-center gap-3"
+                        >
+                            {[
+                                { icon: Star, label: '100% Tersertifikasi', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.55 },
+                                { icon: TrendingUp, label: 'Berpengalaman Industri', color: 'text-primary', bg: 'bg-primary/5', delay: 0.7 },
+                                { icon: Sparkles, label: 'Kurikulum Praktis', color: 'text-secondary', bg: 'bg-secondary/10', delay: 0.85 },
+                            ].map((b) => (
                                 <motion.div
-                                    variants={itemVariants}
-                                    className="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800"
+                                    key={b.label}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.4, delay: b.delay }}
+                                    className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm ring-1 ring-black/5 ${b.bg} ${b.color}`}
                                 >
-                                    <Users className="mx-auto mb-2 h-8 w-8 text-primary" />
-                                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{mentors.length}</p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Mentor Aktif</p>
+                                    <b.icon className="h-4 w-4" />
+                                    {b.label}
                                 </motion.div>
-                                
-                                <motion.div
-                                    variants={itemVariants}
-                                    className="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800"
+                            ))}
+                        </motion.div>
+
+                        {/* Stat Cards */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.7, delay: 0.65 }}
+                            className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4"
+                        >
+                            {globalStats.map((stat) => (
+                                <div
+                                    key={stat.label}
+                                    className="group flex flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white/70 px-4 py-5 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md dark:border-white/10 dark:bg-white/5"
                                 >
-                                    <BookText className="mx-auto mb-2 h-8 w-8 text-blue-600" />
-                                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                                        {mentors.reduce((sum, m) => sum + m.total_courses, 0)}
-                                    </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Kelas</p>
-                                </motion.div>
-                                
-                                <motion.div
-                                    variants={itemVariants}
-                                    className="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800"
-                                >
-                                    <Video className="mx-auto mb-2 h-8 w-8 text-green-600" />
-                                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                                        {mentors.reduce((sum, m) => sum + m.total_bootcamps, 0)}
-                                    </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Bootcamp</p>
-                                </motion.div>
-                                
-                                <motion.div
-                                    variants={itemVariants}
-                                    className="rounded-xl bg-white p-6 shadow-sm dark:bg-gray-800"
-                                >
-                                    <FileText className="mx-auto mb-2 h-8 w-8 text-purple-600" />
-                                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                                        {mentors.reduce((sum, m) => sum + m.total_articles, 0)}
-                                    </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Artikel</p>
-                                </motion.div>
-                            </motion.div>
+                                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.bg}`}>
+                                        <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                                    </div>
+                                    <div className="text-center">
+                                        <p className={`text-2xl font-extrabold ${stat.color}`}>{stat.value}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </motion.div>
                     </div>
-                </div>
+                </section>
 
-                {/* Mentors Grid */}
-                <div className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+                {/* ── Mentors Grid ── */}
+                <div className="relative z-10 mx-auto max-w-7xl px-4 pb-20">
                     {mentors.length > 0 ? (
                         <motion.div
                             initial="hidden"
@@ -162,95 +163,66 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                         >
                             {mentors.map((mentor) => (
                                 <motion.div key={mentor.id} variants={cardVariants}>
-                                    <Link href={`/mentor/${mentor.id}`}>
-                                        <div className="group relative h-full overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 dark:border-gray-700 dark:bg-gray-800">
-                                            {/* Background Pattern */}
-                                            <div className="absolute right-0 top-0 h-32 w-32 -translate-y-8 translate-x-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-2xl transition-transform group-hover:scale-150" />
+                                    <Link href={`/mentor/${mentor.id}`} className="group block h-full">
+                                        <div className="relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white/80 shadow-sm backdrop-blur-sm transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 dark:border-white/10 dark:bg-white/5">
+                                            {/* Banner gradient */}
+                                            <div className="relative h-28 w-full overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-secondary transition-all duration-500 group-hover:scale-[1.02]">
+                                                <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/20 blur-xl" />
+                                                <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-black/10 blur-xl" />
+                                            </div>
 
-                                            <div className="relative p-6">
-                                                {/* Avatar & Name */}
-                                                <div className="mb-6 text-center">
-                                                    <div className="relative mx-auto mb-4 inline-block">
-                                                        <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-4 ring-primary/20 transition-all group-hover:ring-primary/40 dark:border-gray-800">
-                                                            <AvatarImage src={mentor.photo_url ? (mentor.photo_url.startsWith('http') ? mentor.photo_url : `/storage/${mentor.photo_url}`) : (mentor.avatar || undefined)} alt={mentor.name} className="object-cover" />
-                                                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-2xl font-bold text-white">
-                                                                {getInitials(mentor.name)}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="absolute -bottom-2 -right-2 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-2 shadow-lg">
-                                                            <Star className="h-4 w-4 fill-white text-white" />
-                                                        </div>
+                                            <div className="relative px-6 pb-6 pt-0">
+                                                {/* Avatar overlapping banner */}
+                                                <div className="relative mx-auto -mt-14 mb-4 inline-block">
+                                                    <Avatar className="h-24 w-24 border-4 border-white shadow-lg ring-2 ring-primary/20 transition-all group-hover:ring-primary/50 dark:border-zinc-900">
+                                                        <AvatarImage
+                                                            src={mentor.photo_url ? (mentor.photo_url.startsWith('http') ? mentor.photo_url : `/storage/${mentor.photo_url}`) : (mentor.avatar || undefined)}
+                                                            alt={mentor.name}
+                                                            className="object-cover"
+                                                        />
+                                                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-2xl font-bold text-white">
+                                                            {getInitials(mentor.name)}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="absolute -bottom-2 -right-2 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-2 shadow-lg">
+                                                        <Star className="h-3.5 w-3.5 fill-white text-white" />
                                                     </div>
-                                                    <h3 className="mb-2 text-xl font-bold text-gray-900 transition-colors group-hover:text-primary dark:text-white">
-                                                        {mentor.name}
-                                                    </h3>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                </div>
+
+                                                {/* Name & Bio */}
+                                                <div className="mb-4 text-center">
+                                                    <h3 className="mb-1 text-xl font-bold text-foreground transition-colors group-hover:text-primary">{mentor.name}</h3>
+                                                    <p className="line-clamp-2 text-sm text-muted-foreground">
                                                         {mentor.bio || 'Mentor Profesional di Level Up Accounting'}
                                                     </p>
                                                 </div>
 
-                                                {/* Divider */}
-                                                <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent dark:via-gray-700" />
-
-                                                {/* Stats Grid */}
-                                                <div className="mb-6 grid grid-cols-2 gap-3">
-                                                    <div className="group/stat rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 p-4 transition-all hover:shadow-md dark:from-blue-900/20 dark:to-blue-800/10">
-                                                        <div className="mb-2 flex items-center justify-between">
-                                                            <BookText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                                            <Badge variant="secondary" className="bg-blue-600 text-xs text-white">
-                                                                {mentor.total_courses}
-                                                            </Badge>
+                                                {/* Stats mini grid */}
+                                                <div className="mb-4 grid grid-cols-3 gap-2">
+                                                    {[
+                                                        { icon: BookText, value: mentor.total_courses, label: 'Kelas', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                                                        { icon: BookOpen, value: mentor.total_bootcamps, label: 'Bootcamp', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+                                                        { icon: FileText, value: mentor.total_articles, label: 'Artikel', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+                                                    ].map((s) => (
+                                                        <div key={s.label} className={`flex flex-col items-center gap-1 rounded-xl px-2 py-3 ${s.bg}`}>
+                                                            <s.icon className={`h-4 w-4 ${s.color}`} />
+                                                            <span className={`text-lg font-extrabold ${s.color}`}>{s.value}</span>
+                                                            <span className={`text-[10px] font-medium ${s.color}`}>{s.label}</span>
                                                         </div>
-                                                        <p className="text-xs font-medium text-blue-700 dark:text-blue-300">Kelas Online</p>
-                                                    </div>
-
-                                                    {/* <div className="group/stat rounded-xl bg-gradient-to-br from-green-50 to-green-100/50 p-4 transition-all hover:shadow-md dark:from-green-900/20 dark:to-green-800/10">
-                                                        <div className="mb-2 flex items-center justify-between">
-                                                            <Video className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                                            <Badge variant="secondary" className="bg-green-600 text-xs text-white">
-                                                                {mentor.total_webinars}
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-xs font-medium text-green-700 dark:text-green-300">Webinar</p>
-                                                    </div> */}
-
-                                                    <div className="group/stat rounded-xl bg-gradient-to-br from-orange-50 to-orange-100/50 p-4 transition-all hover:shadow-md dark:from-orange-900/20 dark:to-orange-800/10">
-                                                        <div className="mb-2 flex items-center justify-between">
-                                                            <BookOpen className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                                                            <Badge variant="secondary" className="bg-orange-600 text-xs text-white">
-                                                                {mentor.total_bootcamps}
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-xs font-medium text-orange-700 dark:text-orange-300">Bootcamp</p>
-                                                    </div>
-
-                                                    <div className="group/stat rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 p-4 transition-all hover:shadow-md dark:from-purple-900/20 dark:to-purple-800/10">
-                                                        <div className="mb-2 flex items-center justify-between">
-                                                            <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                                                            <Badge variant="secondary" className="bg-purple-600 text-xs text-white">
-                                                                {mentor.total_articles}
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-xs font-medium text-purple-700 dark:text-purple-300">Artikel</p>
-                                                    </div>
+                                                    ))}
                                                 </div>
 
-                                                {/* Total Content Badge */}
-                                                <div className="mb-4 rounded-lg bg-gray-50 p-3 text-center dark:bg-gray-700/50">
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Konten</p>
-                                                    <p className="text-2xl font-bold text-primary">{getTotalContent(mentor)}</p>
+                                                {/* Total & CTA */}
+                                                <div className="mb-4 flex items-center justify-center gap-2 rounded-xl bg-primary/5 px-4 py-2.5">
+                                                    <TrendingUp className="h-4 w-4 text-primary" />
+                                                    <span className="text-sm text-muted-foreground">Total Konten</span>
+                                                    <span className="text-lg font-extrabold text-primary">{getTotalContent(mentor)}</span>
                                                 </div>
 
-                                                {/* CTA Button */}
-                                                <Button className="group/btn relative w-full overflow-hidden bg-gradient-to-r from-primary to-primary/80 transition-all hover:shadow-lg hover:shadow-primary/30">
-                                                    <span className="relative z-10 flex items-center justify-center gap-2">
+                                                <Button className="w-full rounded-xl bg-primary/10 text-primary transition-all hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/30 dark:bg-primary/20">
+                                                    <span className="flex items-center gap-2">
                                                         Lihat Profil
-                                                        <svg
-                                                            className="h-4 w-4 transition-transform group-hover/btn:translate-x-1"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
+                                                        <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                                         </svg>
                                                     </span>
@@ -266,11 +238,11 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5 }}
-                            className="flex min-h-[500px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800/50"
+                            className="flex min-h-[500px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-gray-200 bg-white/50 backdrop-blur-sm dark:border-white/10 dark:bg-white/5"
                         >
                             <div className="mb-6 text-8xl">👨‍🏫</div>
-                            <h3 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">Belum Ada Mentor</h3>
-                            <p className="mb-8 max-w-md text-center text-gray-600 dark:text-gray-400">
+                            <h3 className="mb-2 text-2xl font-bold">Belum Ada Mentor</h3>
+                            <p className="mb-8 max-w-md text-center text-muted-foreground">
                                 Mentor profesional kami akan segera hadir untuk membimbing perjalanan belajar Anda
                             </p>
                             <Button variant="outline" size="lg" asChild>
@@ -279,7 +251,7 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                         </motion.div>
                     )}
                 </div>
-            </div>
-        </UserLayout>
+            </UserLayout>
+        </div>
     );
-}   
+}

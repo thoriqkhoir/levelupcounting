@@ -161,7 +161,7 @@ export default function ScholarshipApplicationForm({ partnershipProduct }: { par
                                 <a href="#form">
                                     <Button>Isi Formulir</Button>
                                 </a>
-                                <a href="https://wa.me/+6281252683108" target="_blank" rel="noopener noreferrer">
+                                <a href="https://wa.me/+6287754764475" target="_blank" rel="noopener noreferrer">
                                     <Button variant="outline">Hubungi Kami</Button>
                                 </a>
                             </motion.div>
@@ -258,7 +258,7 @@ export default function ScholarshipApplicationForm({ partnershipProduct }: { par
                             <p className="mb-3 text-xs font-semibold md:text-sm">📞 Untuk informasi lebih lanjut, silakan hubungi:</p>
                             <div className="space-y-1">
                                 <p className="text-sm">
-                                    📧 <span className="font-medium">levelupaccounting@gmail.com</span>
+                                    📧 <span className="font-medium">levelupacc4@gmail.com</span>
                                 </p>
                                 <p className="text-sm">
                                     💬 <span className="font-medium">+62 812-XXXX-XXXX</span>

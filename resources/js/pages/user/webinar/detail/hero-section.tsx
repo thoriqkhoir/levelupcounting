@@ -157,7 +157,7 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                                     Daftar Sekarang
                                 </Button>
                             </a>
-                            <a href="https://wa.me/+6281252683108" target="_blank" rel="noopener noreferrer">
+                            <a href="https://wa.me/+6287754764475" target="_blank" rel="noopener noreferrer">
                                 <Button size="default" variant="outline" className="px-6 md:px-8 text-sm md:text-base font-bold">
                                     Hubungi Kami
                                 </Button>

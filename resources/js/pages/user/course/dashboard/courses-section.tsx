@@ -13,7 +13,7 @@ import { Magnetic } from '@/components/ui/magnetic';
 import { Spotlight } from '@/components/ui/spotlight';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link } from '@inertiajs/react';
-import { GalleryVerticalEnd, Star } from 'lucide-react';
+import { GalleryVerticalEnd, LayoutGrid, Sparkles, Star } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 type Category = {
@@ -88,14 +88,27 @@ export default function CoursesSection({ categories, courses, myCourseIds }: Cou
 
     return (
         <section className="mx-auto w-full max-w-7xl px-4 pb-20" id="course">
-            <h2 className="dark:text-primary-foreground mx-auto mb-4 max-w-3xl text-center text-3xl font-extrabold text-gray-900 md:text-4xl">
-                Ratusan Skill Impian Kini Dalam Genggamanmu
+            {/* Badge label */}
+            <div className="mb-4 flex justify-center">
+                <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
+                    <LayoutGrid className="h-4 w-4" />
+                    Eksplorasi Kelas
+                </span>
+            </div>
+
+            {/* Heading dengan underline highlight */}
+            <h2 className="font-av-estiana mx-auto mb-4 max-w-3xl text-center text-2xl font-extrabold text-gray-900 dark:text-primary-foreground md:text-3xl">
+                Ratusan Skill Impian{' '}
+                <span className="relative inline-block">
+                    <span className="relative z-10">Kini Dalam Genggamanmu</span>
+                    <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
+                </span>
             </h2>
-            <p className="mx-auto mb-8 text-center text-gray-600 dark:text-gray-400">
+            <p className="mx-auto mb-8 text-center text-base text-gray-600 dark:text-gray-400 md:text-base">
                 Eksplorasi materi-materi unggulan dari rancangan experts yang akan selalu update setiap bulan.
             </p>
             {/* Filter Level */}
-            
+
             {/* Kategori */}
             <div
                 className="mb-8 overflow-x-auto scrollbar-hide"

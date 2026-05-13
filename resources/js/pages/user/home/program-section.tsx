@@ -16,7 +16,7 @@ function ProgramCard({ title, description, icon, imageSrc, imageAlt, href, rever
             className={`relative z-2 flex flex-col md:items-center gap-5 md:gap-8 p-4 md:min-h-[280px] ${reverse ? 'md:flex-row-reverse' : 'md:flex-row'}`}
         >
             <div className="shrink-0 w-full h-[220px] md:w-[340px] md:h-[260px] rounded-[20px] overflow-hidden">
-                <img src={imageSrc} alt={imageAlt} className="h-full w-full object-cover" />
+                <img src={imageSrc} alt={imageAlt} className="h-full w-full object-contain" />
             </div>
             <div
                 className={`flex flex-1 flex-col gap-3 w-full items-center text-center ${reverse ? 'md:items-end md:text-right' : 'md:items-start md:text-left'}`}
@@ -47,16 +47,25 @@ export default function ProgramSection() {
     return (
         <section id="program-kami" className="w-full px-6 py-15">
             <div className="mb-12 text-center">
-                <h2 className="mb-3 text-3xl font-black font-av-estiana">
-                    LevelUp Accounting&apos;s Programs
+                <div className="mb-4 flex justify-center">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
+                        🎯 Program Unggulan
+                    </span>
+                </div>
+                <h2 className="font-av-estiana mb-3 text-2xl font-extrabold md:text-3xl">
+                    LevelUp Accounting&apos;s{' '}
+                    <span className="relative inline-block">
+                        <span className="relative z-10">Programs</span>
+                        <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
+                    </span>
                 </h2>
-                <p className="mx-auto max-w-[440px] text-sm leading-relaxed text-[#888]">
+                <p className="mx-auto max-w-[460px] text-sm leading-relaxed text-gray-500 md:text-base">
                     Pilih program yang sesuai dengan kebutuhanmu dan tingkatkan kemampuan akuntansimu bersama para ahli.
                 </p>
             </div>
             <div className="relative mx-auto max-w-6xl">
                 {/* Cards */}
-                <div className="relative flex flex-col gap-12 md:gap-[80px]">
+                <div className=" relative flex flex-col gap-2 md:gap-4">
                     {programs.map((p) => (
                         <div key={p.title}><ProgramCard {...p} /></div>
                     ))}

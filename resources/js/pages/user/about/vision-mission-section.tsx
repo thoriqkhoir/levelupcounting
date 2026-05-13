@@ -7,15 +7,18 @@ export function VisionMissionSection() {
             <div className="mx-auto max-w-7xl px-4">
                 {/* Title */}
                 <div className="py-4 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.5 }}
-                        className="p-2 text-2xl font-semibold dark:border-gray-700 dark:bg-gray-800 md:p-4 md:text-3xl lg:text-4xl"
-                    >
-                        Visi & Misi Kami
-                    </motion.div>
+                    <div className="mb-4 flex justify-center">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
+                            🎯 Visi &amp; Misi
+                        </span>
+                    </div>
+                    <h2 className="font-av-estiana text-2xl font-extrabold md:text-3xl">
+                        Visi &amp;{' '}
+                        <span className="relative inline-block">
+                            <span className="relative z-10">Misi Kami</span>
+                            <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
+                        </span>
+                    </h2>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2 md:gap-8">

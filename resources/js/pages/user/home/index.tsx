@@ -109,81 +109,53 @@ export default function Home({ tools, latestProducts, myProductIds, allProducts,
     }, [referralInfo]);
 
     return (
-        <div className="from-primary/10 to-secondary/10 relative min-h-screen bg-background via-white">
+        <div className="relative min-h-screen bg-background">
+            {/* Global Decorative Background — Blobs */}
+            <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            <div className="pointer-events-none absolute top-1/3 left-1/4 z-0 h-[400px] w-[400px] rounded-full bg-pink-300/10 blur-3xl" />
+            <div className="pointer-events-none absolute top-2/3 -right-20 z-0 h-[400px] w-[400px] rounded-full bg-violet-400/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            {/* Global Decorative Background — Grid Pattern */}
+            <div
+                className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+            />
 
             <UserLayout>
                 <Head title="Beranda" />
 
                 {activePromotion && <PromotionPopup promotion={activePromotion} suppressDuration={3} />}
 
-                {/* AboutSection with decorative blobs */}
-                <div className="relative">
-                    <div className="pointer-events-none absolute -top-16 -right-24 z-0 h-[400px] w-[400px] rounded-full bg-primary/10 blur-3xl" />
-                    <div className="pointer-events-none absolute top-1/2 -left-20 z-0 h-[350px] w-[350px] rounded-full bg-secondary/10 blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-20 right-1/3 z-0 h-[300px] w-[300px] rounded-full bg-rose-300/10 blur-3xl" />
-                    <div className="relative z-10">
-                        <AboutSection />
-                    </div>
+                <div className="relative z-10">
+                    <AboutSection />
                 </div>
-                <CarouselSection />
-
-                {/* ProgramSection with decorative blobs */}
-                <div className="relative">
-                    <div className="pointer-events-none absolute -top-20 -left-32 z-0 h-[400px] w-[400px] rounded-full bg-primary/15 blur-3xl" />
-                    <div className="pointer-events-none absolute top-1/2 -right-20 z-0 h-[300px] w-[300px] rounded-full bg-pink-400/10 blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-16 left-1/3 z-0 h-[350px] w-[350px] rounded-full bg-amber-300/10 blur-3xl" />
-                    <div className="relative z-10">
-                        <ProgramSection />
-                    </div>
+                <div className="relative z-10">
+                    <CarouselSection />
                 </div>
-
-                {/* LatestProductsSection with decorative blobs */}
-                <div className="relative">
-                    <div className="pointer-events-none absolute -top-10 right-1/4 z-0 h-[350px] w-[350px] rounded-full bg-cyan-400/10 blur-3xl" />
-                    <div className="pointer-events-none absolute top-1/3 -left-24 z-0 h-[300px] w-[300px] rounded-full bg-secondary/15 blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-24 right-10 z-0 h-[400px] w-[400px] rounded-full bg-violet-400/10 blur-3xl" />
-                    <div className="relative z-10">
-                        <LatestProductsSection latestProducts={latestProducts} myProductIds={myProductIds} />
-                    </div>
+                <div className="relative z-10">
+                    <ProgramSection />
                 </div>
-
-                {/* <ToolsSection tools={tools} /> */}
-
-                {/* TestimonySection with decorative blobs */}
-                <div className="relative">
-                    <div className="pointer-events-none absolute -top-16 left-10 z-0 h-[350px] w-[350px] rounded-full bg-emerald-400/10 blur-3xl" />
-                    <div className="pointer-events-none absolute bottom-1/4 -right-16 z-0 h-[300px] w-[300px] rounded-full bg-primary/10 blur-3xl" />
-                    <div className="relative z-10">
-                        <TestimonySection />
-                    </div>
+                <div className="relative z-10">
+                    <LatestProductsSection latestProducts={latestProducts} myProductIds={myProductIds} />
                 </div>
-
-                {/* <GalerySection /> */}
-
-                {/* FaqSection with decorative blobs */}
-                <div className="relative">
-                    <div className="pointer-events-none absolute top-10 -right-20 z-0 h-[400px] w-[400px] rounded-full bg-rose-400/10 blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-20 left-1/4 z-0 h-[350px] w-[350px] rounded-full bg-amber-400/10 blur-3xl" />
-                    <div className="pointer-events-none absolute top-1/2 left-0 z-0 h-[250px] w-[250px] rounded-full bg-cyan-300/10 blur-3xl" />
-                    <div className="relative z-10">
-                        <FaqSection />
-                    </div>
+                <div className="relative z-10">
+                    <TestimonySection />
                 </div>
-
-                {/* CtaSection with decorative blobs */}
-                <div className="relative">
-                    <div className="pointer-events-none absolute -top-24 left-1/3 z-0 h-[400px] w-[400px] rounded-full bg-violet-400/10 blur-3xl" />
-                    <div className="pointer-events-none absolute top-1/3 -right-10 z-0 h-[300px] w-[300px] rounded-full bg-primary/15 blur-3xl" />
-                    <div className="pointer-events-none absolute -bottom-10 -left-16 z-0 h-[350px] w-[350px] rounded-full bg-pink-300/10 blur-3xl" />
-                    <div className="relative z-10">
-                        <CtaSection />
-                    </div>
+                <div className="relative z-10">
+                    <FaqSection />
+                </div>
+                <div className="relative z-10">
+                    <CtaSection />
                 </div>
 
                 {typeof window !== 'undefined' && window.innerWidth >= 1024 && <FakeNotifications products={allProducts} />}
 
                 <a
-                    href="https://wa.me/+6281252683108?text=Halo%20Admin%20Sekolah%20Pajak,%20saya%20ingin%20bertanya%20tentang%20kelas%20online."
+                    href="https://wa.me/+6287754764475?text=Halo%20Admin%20Level%20Up%20Accounting,%20saya%20ingin%20bertanya%20tentang%20kelas%20online."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="sha fixed right-4 bottom-18 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg transition duration-1000 hover:bg-green-200 md:right-10 md:h-16 md:w-16 lg:bottom-6"

@@ -170,7 +170,7 @@ export default function ScholarshipApplicationSuccess({ partnershipProduct }: Su
                     <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4 text-center dark:border-blue-900 dark:bg-blue-950/30">
                         <p className="text-sm text-gray-700 dark:text-gray-300">
                             Ada pertanyaan atau butuh bantuan?{' '}
-                            <a href="mailto:levelupaccounting@gmail.com" className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                            <a href="mailto:levelupacc4@gmail.com" className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
                                 Hubungi kami
                             </a>
                         </p>

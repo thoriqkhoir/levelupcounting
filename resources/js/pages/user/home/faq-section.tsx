@@ -7,9 +7,21 @@ export default function FaqSection() {
 
     return (
         <section className="mx-auto w-full max-w-7xl px-4 py-8 flex flex-col items-start gap-8 lg:flex-row lg:items-center">
-            <div className="w-full text-start lg:w-1/2">
-                <h2 className="dark:text-primary-foreground mb-2 max-w-2xl text-2xl md:text-3xl font-av-estiana font-semibold">Explore the Frequently Asked Questions</h2>
-                <h3 className="dark:text-primary-foreground mb-8 max-w-3xl text-sm md:text-base">Here's a Frequently Asked Questions (FAQ) section for your AP! Selling Website, API key, and start integrating</h3>
+        <div className="w-full text-start lg:w-1/2">
+                <div className="mb-4 flex justify-start">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
+                        ❓ FAQ
+                    </span>
+                </div>
+                <h2 className="font-av-estiana dark:text-primary-foreground mb-2 max-w-2xl text-2xl font-extrabold md:text-3xl">
+                    Explore the{' '}
+                    <span className="relative inline-block">
+                        <span className="relative z-10">Frequently Asked</span>
+                        <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
+                    </span>{' '}
+                    Questions
+                </h2>
+                <p className="dark:text-primary-foreground mb-8 max-w-3xl text-sm md:text-base text-gray-500">Here's a Frequently Asked Questions (FAQ) section for your AP! Selling Website, API key, and start integrating</p>
             </div>
             <Accordion
                 className="w-full lg:w-1/2 flex flex-col gap-2 divide-y divide-zinc-200 dark:divide-zinc-700"
@@ -66,8 +78,8 @@ export default function FaqSection() {
                     <AccordionContent>
                         <p className="text-sm text-zinc-500 md:text-base dark:text-zinc-400">
                             Untuk informasi lebih lengkap, Anda dapat menghubungi admin Level Up Accounting melalui WhatsApp di{' '}
-                            <a href="https://wa.me/+6281252683108" className="text-primary hover:underline">
-                                +6281252683108
+                            <a href="https://wa.me/+6287754764475" className="text-primary hover:underline">
+                                +6287754764475
                             </a>
                              . Kami juga aktif di media sosial seperti Instagram, TikTok, dan LinkedIn untuk berbagi update program serta tips belajar terbaru.
 

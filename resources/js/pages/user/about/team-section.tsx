@@ -94,8 +94,19 @@ export function TeamSection({ mentors }: TeamSectionProps) {
                     transition={{ duration: 0.5 }}
                     className="mb-8 text-center md:mb-12"
                 >
-                    <h2 className="mb-3 text-2xl font-bold md:mb-4 md:text-3xl lg:text-4xl">Profesional Mentor dan Tim Kami</h2>
-                    <p className="mx-auto max-w-2xl text-base text-gray-600 dark:text-gray-400 md:text-lg">
+                    <div className="mb-4 flex justify-center">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
+                            👥 Tim &amp; Mentor
+                        </span>
+                    </div>
+                    <h2 className="font-av-estiana mb-3 text-2xl font-extrabold md:text-3xl">
+                        Profesional Mentor{' '}
+                        <span className="relative inline-block">
+                            <span className="relative z-10">dan Tim Kami</span>
+                            <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
+                        </span>
+                    </h2>
+                    <p className="mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-400 md:text-base">
                         Bertemu dengan para profesional yang berdedikasi membimbing perjalanan belajar Anda
                     </p>
                 </motion.div>
