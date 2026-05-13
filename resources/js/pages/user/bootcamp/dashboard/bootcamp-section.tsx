@@ -1,9 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Magnetic } from '@/components/ui/magnetic';
-import { Spotlight } from '@/components/ui/spotlight';
 import { Link } from '@inertiajs/react';
-import { Calendar, GalleryVerticalEnd } from 'lucide-react';
+import { ArrowRight, Calendar, GalleryVerticalEnd, Percent } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 type Category = {
@@ -50,30 +49,28 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
         startX.current = e.pageX - (categoryRef.current?.offsetLeft ?? 0);
         scrollLeft.current = categoryRef.current?.scrollLeft ?? 0;
     };
-
-    const handleMouseLeave = () => {
-        isDragging.current = false;
-    };
-
-    const handleMouseUp = () => {
-        isDragging.current = false;
-    };
-
+    const handleMouseLeave = () => { isDragging.current = false; };
+    const handleMouseUp = () => { isDragging.current = false; };
     const handleMouseMove = (e: React.MouseEvent) => {
         if (!isDragging.current || !categoryRef.current) return;
         e.preventDefault();
         const x = e.pageX - categoryRef.current.offsetLeft;
-        const walk = (x - startX.current) * 1.5; // scroll speed
+        const walk = (x - startX.current) * 1.5;
         categoryRef.current.scrollLeft = scrollLeft.current - walk;
     };
 
-    const filteredBootcamp = bootcamps.filter((bootcamp) => {
-        const matchSearch = bootcamp.title.toLowerCase().includes(search.toLowerCase());
-        const matchCategory = selectedCategory === null ? true : bootcamp.category.id === selectedCategory;
+    const filteredBootcamp = bootcamps.filter((b) => {
+        const matchSearch = b.title.toLowerCase().includes(search.toLowerCase());
+        const matchCategory = selectedCategory === null ? true : b.category.id === selectedCategory;
         return matchSearch && matchCategory;
     });
 
     const visibleBootcamps = filteredBootcamp.slice(0, visibleCount);
+
+    const calcDiscount = (original: number, price: number) => {
+        if (original <= 0 || original <= price) return 0;
+        return Math.round(((original - price) / original) * 100);
+    };
 
     return (
         <section className="mx-auto w-full max-w-7xl px-4 pb-20" id="bootcamp">
@@ -83,6 +80,7 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
             <p className="mx-auto mb-8 text-center text-gray-600 dark:text-gray-400">
                 Upgrade diri dengan mengikuti bootcamp intensif dalam beberapa pertemuan.
             </p>
+
             {/* Kategori */}
             <div
                 className="mb-8 overflow-x-auto scrollbar-hide"
@@ -94,171 +92,123 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
                 style={{ cursor: isDragging.current ? 'grabbing' : 'grab' }}
             >
                 <div className="flex w-max flex-nowrap gap-3 select-none">
-                <button
-                    type="button"
-                    onClick={() => setSelectedCategory(null)}
-                    className={`rounded-full border-2 px-6 py-2 text-sm font-semibold transition-all duration-200
-                    ${selectedCategory === null
-                        ? 'border-primary bg-primary/10 text-primary shadow'
-                        : 'border-gray-300 bg-white text-gray-800 hover:border-primary/40 hover:bg-primary/5 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'}
-                    `}
-                >
-                    Semua Kategori
-                </button>
-                {categories.map((category) => (
-                    <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`rounded-full border-2 px-6 py-2 text-sm font-semibold transition-all duration-200
-                        ${selectedCategory === category.id
-                        ? 'border-primary bg-primary/10 text-primary shadow'
-                        : 'border-gray-300 bg-white text-gray-800 hover:border-primary/40 hover:bg-primary/5 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'}
-                    `}
-                    >
-                    {category.name}
+                    <button type="button" onClick={() => setSelectedCategory(null)} className={`rounded-full border-2 px-6 py-2 text-sm font-semibold transition-all duration-200 ${selectedCategory === null ? 'border-primary bg-primary/10 text-primary shadow' : 'border-gray-300 bg-white text-gray-800 hover:border-primary/40 hover:bg-primary/5 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'}`}>
+                        Semua Kategori
                     </button>
-                ))}
+                    {categories.map((category) => (
+                        <button key={category.id} type="button" onClick={() => setSelectedCategory(category.id)} className={`rounded-full border-2 px-6 py-2 text-sm font-semibold transition-all duration-200 ${selectedCategory === category.id ? 'border-primary bg-primary/10 text-primary shadow' : 'border-gray-300 bg-white text-gray-800 hover:border-primary/40 hover:bg-primary/5 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'}`}>
+                            {category.name}
+                        </button>
+                    ))}
                 </div>
             </div>
+
             {/* Search */}
             <div className="mb-8 flex justify-center">
-                <Input
-                type="search"
-                placeholder="Cari bootcamp..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="max-w-md rounded-full border-2 border-primary/30 px-6 py-2 shadow-sm focus:border-primary"
-                />
+                <Input type="search" placeholder="Cari bootcamp..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md rounded-full border-2 border-primary/30 px-6 py-2 shadow-sm focus:border-primary" />
             </div>
-            {/* Card Bootcamp */}
-            <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+            {/* Cards */}
+            <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {visibleBootcamps.length === 0 ? (
-                <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
-                    <img src="/assets/images/not-found.svg" alt="Bootcamp Belum Tersedia" className="w-48" />
-                    <div className="text-center text-gray-500">Belum ada bootcamp yang tersedia saat ini.</div>
-                </div>
+                    <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
+                        <img src="/assets/images/not-found.svg" alt="Bootcamp Belum Tersedia" className="w-48" />
+                        <div className="text-center text-gray-500">Belum ada bootcamp yang tersedia saat ini.</div>
+                    </div>
                 ) : (
-                visibleBootcamps.map((bootcamp) => {
-                    const hasAccess = myBootcampIds.includes(bootcamp.id);
+                    visibleBootcamps.map((bootcamp) => {
+                        const hasAccess = myBootcampIds.includes(bootcamp.id);
+                        const discount = calcDiscount(bootcamp.strikethrough_price, bootcamp.price);
 
-                    return (
-                    <Link
-                        key={bootcamp.id}
-                        href={hasAccess ? `profile/my-bootcamps/${bootcamp.slug}` : `/bootcamp/${bootcamp.slug}`}
-                        className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-transparent bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-primary/40 dark:bg-zinc-800/80"
-                    >
-                        {/* Badge akses/gratis */}
-                        {hasAccess && (
-                        <span className="absolute top-3 right-3 z-10 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white shadow">
-                            Sudah Akses
-                        </span>
-                        )}
-                        {!hasAccess && bootcamp.price === 0 && (
-                        <span className="absolute top-3 right-3 z-10 rounded-full bg-green-500 px-3 py-1 text-xs font-bold text-white shadow">
-                            Gratis
-                        </span>
-                        )}
-                        {/* Thumbnail */}
-                        <div className="relative w-full overflow-hidden rounded-t-2xl">
-                        <img
-                            src={bootcamp.thumbnail ? `/storage/${bootcamp.thumbnail}` : '/assets/images/placeholder.png'}
-                            alt={bootcamp.title}
-                            className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                        {/* Date display */}
-                        <div className="absolute bottom-3 right-3 flex items-center gap-2 text-xs rounded-lg bg-white/30 backdrop-blur-md px-2 py-1 text-black shadow font-semibold">
-                            <Calendar size={12} />
-                            <span>
-                            {new Date(bootcamp.start_date).toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric',
-                            })}{' '}
-                            -{' '}
-                            {new Date(bootcamp.end_date).toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric',
-                            })}
-                            </span>
-                        </div>
-                        </div>
-                        {/* Konten */}
-                        <div className="flex flex-1 flex-col justify-between px-4 ">
-                        <h2 className="mb-2  mt-2 line-clamp-2 text-left text-lg font-semibold text-gray-900 dark:text-white">{bootcamp.title}</h2>
-                        <p className="mb-4 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{bootcamp.description}</p>
-                        <div className="flex items-center justify-between mt-auto">
-                            {!hasAccess && bootcamp.price > 0 && (
-                            <div className="flex flex-col items-start">
-                                {bootcamp.strikethrough_price > 0 && (
-                                <span className="text-xs text-red-500 line-through">
-                                    Rp {bootcamp.strikethrough_price.toLocaleString('id-ID')}
-                                </span>
-                                )}
-                                <span className="text-base font-bold text-primary">
-                                Rp {bootcamp.price.toLocaleString('id-ID')}
-                                </span>
-                            </div>
-                            )}
-                            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                            {bootcamp.category.name}
-                            </span>
+                        return (
+                            <Link key={bootcamp.id} href={hasAccess ? `profile/my-bootcamps/${bootcamp.slug}` : `/bootcamp/${bootcamp.slug}`} className="group h-full">
+                                <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border-2 border-gray-100 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:border-primary group-hover:ring-2 group-hover:ring-primary dark:border-zinc-700 dark:bg-zinc-800">
+                                    {/* Image */}
+                                    <div className="relative w-full overflow-hidden">
+                                        <img
+                                            src={bootcamp.thumbnail ? `/storage/${bootcamp.thumbnail}` : '/assets/images/placeholder.png'}
+                                            alt={bootcamp.title}
+                                            className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                        />
+                                        {/* Type Badge - Top Left */}
+                                        <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
+                                            Bootcamp
+                                        </span>
+                                        {/* Discount / Access Badge - Top Right */}
+                                        {hasAccess ? (
+                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white shadow">Sudah Akses</span>
+                                        ) : discount > 0 ? (
+                                            <div className="absolute top-2 right-2 z-20 inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-lg">
+                                                <Percent size={10} />Hemat {discount}%
+                                            </div>
+                                        ) : null}
+                                        {/* Category - Bottom Left */}
+                                        <div className="absolute bottom-2 left-2 z-20">
+                                            <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-semibold">{bootcamp.category.name}</span>
+                                        </div>
+                                        {/* Date - Bottom Right */}
+                                        <div className="absolute right-2 bottom-2 z-20 rounded-lg border border-white/40 bg-white/30 px-2 py-1 shadow backdrop-blur-md dark:bg-gray-800/30">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar size={12} />
+                                                <p className="text-xs font-semibold text-black dark:text-gray-400">
+                                                    {new Date(bootcamp.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {' - '}
+                                                    {new Date(bootcamp.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                                
-                        </div>
-                            <div className="px-4 mt-2 h-0.5 w-full rounded-full bg-primary/50" />
-                        </div>
-
-                        <div className="mx-4 my-4 flex items-center gap-3">
-                            {bootcamp.user?.avatar ? (
-                                                        <img
-                                                        src={`/storage/${bootcamp.user.avatar}`}
-                                                        alt={bootcamp.user.name}
-                                                        className="h-10 w-10 rounded-full object-cover shadow-lg"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-600 font-bold flex-shrink-0">
-                                                        {bootcamp.user?.name
-                                                            ? bootcamp.user.name
-                                                                .split(' ')
-                                                                .map((n) => n[0])
-                                                                .join('')
-                                                                .substring(0, 2)
-                                                                .toUpperCase()
-                                                            : '-'}
-                                                        </div>
-                                                    )}
-                                                    <div>
-                                                        <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">
-                                                        {bootcamp.user?.name ?? '-'}
-                                                        </div>
-                                                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                        {bootcamp.user?.bio ?? 'Tidak ada bio'}
-                                                        </div>
-                                                    </div>
+                                    {/* Content */}
+                                    <div className="flex flex-1 flex-col gap-3 p-5">
+                                        <h2 className="line-clamp-2 text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100">{bootcamp.title}</h2>
+                                        <div>
+                                            {bootcamp.strikethrough_price > 0 && bootcamp.strikethrough_price > bootcamp.price && (
+                                                <p className="text-base text-red-500 line-through">Rp. {bootcamp.strikethrough_price.toLocaleString('id-ID')}</p>
+                                            )}
+                                            {hasAccess ? (
+                                                <p className="text-2xl font-bold text-primary">Sudah Terdaftar</p>
+                                            ) : bootcamp.price === 0 ? (
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Gratis</p>
+                                            ) : (
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Rp. {bootcamp.price.toLocaleString('id-ID')}</p>
+                                            )}
+                                        </div>
+                                        {/* Presenter */}
+                                        <div className="flex items-center gap-3">
+                                            {bootcamp.user?.avatar ? (
+                                                <img src={`/storage/${bootcamp.user.avatar}`} alt={bootcamp.user.name} className="h-10 w-10 rounded-full object-cover shadow" />
+                                            ) : (
+                                                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-600 shadow">
+                                                    {bootcamp.user?.name ? bootcamp.user.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase() : '-'}
                                                 </div>
-                                                    
-                    </Link>
-                    );
-                })
+                                            )}
+                                            <span className="text-base font-medium text-gray-700 dark:text-gray-300">{bootcamp.user?.name ?? '-'}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* CTA Bar */}
+                                    <div className="mt-auto flex items-center justify-between px-5 py-3 mx-4 mb-4 rounded-xl border border-gray-200 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:bg-primary group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
+                                        <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">{hasAccess ? 'Lihat Materi' : 'Daftar Sekarang'}</span>
+                                        <ArrowRight className="h-6 w-6 text-gray-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white dark:text-gray-400" />
+                                    </div>
+                                </div>
+                            </Link>
+                        );
+                    })
                 )}
             </div>
-            {/* Tombol Lihat Lebih Banyak */}
+
+            {/* Load More */}
             {visibleCount < filteredBootcamp.length && (
                 <div className="mb-8 flex justify-center">
-                <Magnetic>
-                    <Button
-                    type="button"
-                    size="lg"
-                    className="rounded-full px-8 py-3 text-base font-bold shadow-lg"
-                    onClick={() => setVisibleCount((prev) => prev + 6)}
-                    >
-                    Lihat Lebih Banyak <GalleryVerticalEnd className="ml-2" />
-                    </Button>
-                </Magnetic>
+                    <Magnetic>
+                        <Button type="button" size="lg" className="rounded-full px-8 py-3 text-base font-bold shadow-lg" onClick={() => setVisibleCount((prev) => prev + 6)}>
+                            Lihat Lebih Banyak <GalleryVerticalEnd className="ml-2" />
+                        </Button>
+                    </Magnetic>
                 </div>
             )}
-            </section>
+        </section>
     );
 }

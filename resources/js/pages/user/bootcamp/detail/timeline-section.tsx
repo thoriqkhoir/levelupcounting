@@ -16,69 +16,78 @@ export default function TimelineSection({ bootcamp }: { bootcamp: Bootcamp }) {
     const curriculumList = parseCurriculum(bootcamp.curriculum);
 
     return (
-        <section className="relative mx-auto w-full max-w-7xl px-4 pt-6 py-12">
-            {/* Background Decoration */}
-            <div className="pointer-events-none absolute inset-0">
-                <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-                <div className="absolute bottom-20 right-10 h-64 w-64 rounded-full bg-secondary/10 blur-3xl" />
+        <section className="relative mx-auto w-full max-w-7xl px-4 py-12" id="curriculum">
+            {/* BG decoration */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                <div className="absolute top-0 left-1/4 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+                <div className="absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-secondary/10 blur-3xl" />
             </div>
 
             <div className="relative z-10">
-                {/* Header */}
+                {/* Section header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                     className="mb-12 text-center"
                 >
-                    <div className="mb-4 flex items-center justify-center gap-2">
-                        <Sparkles className="h-6 w-6 text-primary" />
-                        <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                            Kurikulum Bootcamp
+                    <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
+                        <Sparkles className="h-4 w-4" />
+                        Kurikulum Bootcamp
+                    </span>
+                    <h2 className="mt-3 text-3xl font-extrabold text-gray-900 dark:text-white md:text-4xl">
+                        Materi yang Akan{' '}
+                        <span className="relative inline-block">
+                            <span className="relative z-10 text-primary">Kamu Pelajari</span>
+                            <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                         </span>
-                    </div>
-                    <h2 className="mb-4 text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white">
-                        Materi yang Akan Kamu Pelajari
                     </h2>
-                    <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-                        Kurikulum terstruktur yang dirancang untuk membawamu dari pemula hingga mahir
+                    <p className="mx-auto mt-4 max-w-xl text-base text-gray-500 dark:text-gray-400">
+                        Kurikulum terstruktur yang dirancang membawamu dari pemula hingga mahir dalam waktu singkat
                     </p>
+
+                    {curriculumList.length > 0 && (
+                        <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
+                            <BookOpen className="h-4 w-4" />
+                            {curriculumList.length} Modul Pembelajaran
+                        </div>
+                    )}
                 </motion.div>
 
-                {/* Curriculum Grid */}
+                {/* Curriculum grid */}
                 {curriculumList.length > 0 ? (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {curriculumList.map((curriculum, idx) => (
+                        {curriculumList.map((item, idx) => (
                             <motion.div
                                 key={idx}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: idx * 0.05 }}
-                                className="group relative overflow-hidden rounded-xl border-2 bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/40 dark:bg-zinc-900 dark:border-zinc-700"
+                                transition={{ duration: 0.45, delay: idx * 0.04 }}
+                                className="group relative overflow-hidden rounded-2xl border-2 border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
                             >
-                                {/* Number Badge */}
-                                <div className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                                    {idx + 1}
-                                </div>
+                                {/* Hover gradient fill */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100 rounded-2xl" />
 
-                                {/* Icon */}
-                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary shadow-lg">
-                                    <BookOpen className="h-6 w-6 text-white" />
+                                {/* Number badge */}
+                                <div className="relative z-10 mb-4 flex items-start justify-between gap-2">
+                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary shadow-md shadow-primary/30">
+                                        <BookOpen className="h-5 w-5 text-white" />
+                                    </div>
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                                        {idx + 1}
+                                    </span>
                                 </div>
 
                                 {/* Content */}
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-white leading-tight">
-                                    {curriculum}
+                                <h3 className="relative z-10 mb-3 text-sm font-semibold leading-snug text-gray-800 dark:text-gray-100">
+                                    {item}
                                 </h3>
 
-                                {/* Check Icon */}
-                                <div className="mt-4 flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-                                    <CheckCircle className="h-4 w-4" />
-                                    <span className="font-medium">Included</span>
+                                {/* Included badge */}
+                                <div className="relative z-10 flex items-center gap-1.5">
+                                    <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                                    <span className="text-[11px] font-medium text-green-600 dark:text-green-400">Included</span>
                                 </div>
-
-                                {/* Decorative gradient */}
-                                <div className="absolute -bottom-10 -right-10 h-32 w-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-2xl opacity-0 transition-opacity group-hover:opacity-100" />
                             </motion.div>
                         ))}
                     </div>
@@ -86,17 +95,14 @@ export default function TimelineSection({ bootcamp }: { bootcamp: Bootcamp }) {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 0.6 }}
-                        className="flex flex-col items-center justify-center gap-4 py-12 rounded-2xl border-2 border-dashed border-gray-300 dark:border-zinc-700"
+                        className="flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-gray-200 py-16 dark:border-zinc-700"
                     >
-                        <BookOpen className="h-16 w-16 text-gray-400" />
-                        <p className="text-center text-gray-500 dark:text-gray-400">
-                            Kurikulum akan segera ditambahkan
-                        </p>
+                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800">
+                            <BookOpen className="h-10 w-10 text-gray-400" />
+                        </div>
+                        <p className="text-center text-gray-500 dark:text-gray-400">Kurikulum akan segera ditambahkan</p>
                     </motion.div>
                 )}
-
-                
             </div>
         </section>
     );

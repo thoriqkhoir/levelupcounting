@@ -81,7 +81,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
     };
 
     return (
-        <div className="relative min-h-screen bg-background">
+        <div className="relative min-h-screen bg-background overflow-x-hidden">
             {/* Global Decorative Background — Blobs */}
             <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
             <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />

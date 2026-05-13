@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
 import { BookOpen, ListChecks, Users, Wrench } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import HeroSection from './hero-section';
 import MentorSection from './mentor-section';
 import RegisterSection from './register-section';
@@ -54,10 +54,7 @@ interface RelatedBootcamp {
     strikethrough_price: number;
     start_date: string;
     end_date: string;
-    category?: {
-        id: string;
-        name: string;
-    };
+    category?: { id: string; name: string };
     mentors?: Mentor[];
 }
 
@@ -65,6 +62,13 @@ interface ReferralInfo {
     code?: string;
     hasActive: boolean;
 }
+
+const TABS = [
+    { value: 'curriculum', label: 'Kurikulum', shortLabel: 'Materi', icon: BookOpen },
+    { value: 'requirements', label: 'Persyaratan', shortLabel: 'Syarat', icon: ListChecks },
+    { value: 'tools', label: 'Tools', shortLabel: 'Tools', icon: Wrench },
+    { value: 'mentor', label: 'Mentor', shortLabel: 'Mentor', icon: Users },
+];
 
 export default function Bootcamp({
     bootcamp,
@@ -78,17 +82,29 @@ export default function Bootcamp({
     referralInfo: ReferralInfo;
 }) {
     const [activeTab, setActiveTab] = useState('curriculum');
+    const tabsRef = useRef<HTMLDivElement>(null);
+    const [isSticky, setIsSticky] = useState(false);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const refFromUrl = urlParams.get('ref');
-
         if (refFromUrl) {
             sessionStorage.setItem('referral_code', refFromUrl);
         } else if (referralInfo.code) {
             sessionStorage.setItem('referral_code', referralInfo.code);
         }
     }, [referralInfo]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (tabsRef.current) {
+                const rect = tabsRef.current.getBoundingClientRect();
+                setIsSticky(rect.top <= 64);
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
         <div className="from-primary/10 to-secondary/10 relative min-h-screen bg-gradient-to-br via-white dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
@@ -104,54 +120,39 @@ export default function Bootcamp({
                 <HeroSection bootcamp={bootcamp} />
 
                 {/* Tabs Section */}
-                <div className="relative z-10 mx-auto mt-6 mb-6 w-full max-w-7xl px-3 sm:px-4 md:mt-8 md:mb-8">
+                <div ref={tabsRef} className="relative z-10 mx-auto mt-6 mb-6 w-full max-w-7xl px-3 sm:px-4 md:mt-8 md:mb-8">
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-xl border-2 border-gray-200 bg-white p-1.5 shadow-lg sm:grid-cols-4 sm:rounded-2xl sm:p-1 dark:border-zinc-700 dark:bg-zinc-900">
-                            <TabsTrigger
-                                value="curriculum"
-                                className="data-[state=active]:bg-primary flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:text-white sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 sm:text-sm"
-                            >
-                                <BookOpen className="h-3.5 w-3.5 flex-shrink-0 sm:h-4 sm:w-4" />
-                                <span className="hidden sm:inline">Kurikulum</span>
-                                <span className="sm:hidden">Materi</span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="requirements"
-                                className="data-[state=active]:bg-primary flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:text-white sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 sm:text-sm"
-                            >
-                                <ListChecks className="h-3.5 w-3.5 flex-shrink-0 sm:h-4 sm:w-4" />
-                                <span className="hidden sm:inline">Persyaratan</span>
-                                <span className="sm:hidden">Syarat</span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="tools"
-                                className="data-[state=active]:bg-primary flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:text-white sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 sm:text-sm"
-                            >
-                                <Wrench className="h-3.5 w-3.5 flex-shrink-0 sm:h-4 sm:w-4" />
-                                <span>Tools</span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="mentor"
-                                className="data-[state=active]:bg-primary flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:text-white sm:gap-2 sm:rounded-xl sm:px-3 sm:py-3 sm:text-sm"
-                            >
-                                <Users className="h-3.5 w-3.5 flex-shrink-0 sm:h-4 sm:w-4" />
-                                <span>Mentor</span>
-                            </TabsTrigger>
-                        </TabsList>
+                        {/* Premium Glassmorphism Tab Bar */}
+                        <div className={`sticky top-16 z-30 transition-all duration-300 ${isSticky ? 'py-3' : 'py-0 mb-6'}`}>
+                            <TabsList className={`grid h-auto w-full grid-cols-4 gap-2 rounded-2xl p-1.5 transition-all duration-300 sm:gap-2 sm:p-2 ${isSticky ? 'bg-white/80 shadow-xl backdrop-blur-lg border border-white/40 dark:bg-zinc-900/80 dark:border-zinc-700/60' : 'border-2 border-gray-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900'}`}>
+                                {TABS.map(({ value, label, shortLabel, icon: Icon }) => (
+                                    <TabsTrigger
+                                        key={value}
+                                        value={value}
+                                        className="group relative flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md sm:gap-2 sm:px-3 sm:py-3 sm:text-sm"
+                                    >
+                                        <Icon className="h-3.5 w-3.5 flex-shrink-0 sm:h-4 sm:w-4" />
+                                        <span className="hidden sm:inline">{label}</span>
+                                        <span className="sm:hidden">{shortLabel}</span>
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </div>
 
-                        <TabsContent value="curriculum" className="mt-4 sm:mt-6 md:mt-8">
+                        {/* Tab Contents */}
+                        <TabsContent value="curriculum" className="mt-2 focus-visible:outline-none focus-visible:ring-0">
                             <TimelineSection bootcamp={bootcamp} />
                         </TabsContent>
 
-                        <TabsContent value="requirements" className="mt-4 sm:mt-6 md:mt-8">
+                        <TabsContent value="requirements" className="mt-2 focus-visible:outline-none focus-visible:ring-0">
                             <RequirementSection bootcamp={bootcamp} />
                         </TabsContent>
 
-                        <TabsContent value="tools" className="mt-4 sm:mt-6 md:mt-8">
+                        <TabsContent value="tools" className="mt-2 focus-visible:outline-none focus-visible:ring-0">
                             <ToolsSection bootcamp={bootcamp} />
                         </TabsContent>
 
-                        <TabsContent value="mentor" className="mt-4 sm:mt-6 md:mt-8">
+                        <TabsContent value="mentor" className="mt-2 focus-visible:outline-none focus-visible:ring-0">
                             <MentorSection bootcamp={bootcamp} />
                         </TabsContent>
                     </Tabs>
