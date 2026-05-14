@@ -806,15 +806,31 @@ export default function RegisterBootcamp({
 
     if (isLoggedIn && !isProfileComplete) {
         return (
+        <div className="relative min-h-screen bg-background">
+            {/* Global Decorative Background — Blobs */}
+            <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            {/* Global Decorative Background — Grid Pattern */}
+            <div
+                className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+            />
+
             <UserLayout>
                 <Head title="Lengkapi Profil" />
 
-                <section className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-700 to-red-700 px-4 py-16">
-                    <div className="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]" />
-                    <div className="absolute top-0 left-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-400/30 blur-3xl" />
-                    <div className="absolute right-0 bottom-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-red-400/30 blur-3xl" />
+                <section className="relative mx-auto mt-12 w-full max-w-4xl px-4">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-gradient-to-br from-orange-600/90 via-orange-700/90 to-red-700/90 p-12 text-center shadow-2xl backdrop-blur-xl">
+                        <div className="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]" />
+                        <div className="absolute top-0 left-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-400/30 blur-3xl" />
+                        <div className="absolute right-0 bottom-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-red-400/30 blur-3xl" />
 
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-4xl text-center">
+                        <div className="relative z-10">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-4xl text-center">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -843,11 +859,13 @@ export default function RegisterBootcamp({
                             Lengkapi profil Anda terlebih dahulu untuk melanjutkan
                         </motion.p>
                     </motion.div>
+                        </div>
+                    </motion.div>
                 </section>
 
                 <section className="mx-auto my-8 w-full max-w-2xl px-4">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                        <Card className="overflow-hidden border-2">
+                        <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                             <div className="bg-gradient-to-br from-orange-50 to-red-50 p-8 dark:from-orange-950/20 dark:to-red-950/20">
                                 <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-red-600 shadow-lg">
                                     <User className="h-10 w-10 text-white" />
@@ -873,70 +891,89 @@ export default function RegisterBootcamp({
                     </motion.div>
                 </section>
             </UserLayout>
+        </div>
         );
     }
 
     return (
-        <UserLayout>
+        <div className="relative min-h-screen bg-background">
+            {/* Global Decorative Background — Blobs */}
+            <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            {/* Global Decorative Background — Grid Pattern */}
+            <div
+                className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+            />
+
+            <UserLayout>
             <Head title={`Checkout - ${bootcamp.title}`} />
 
             {/* Hero Section */}
-            <section className="from-primary to-primary-foreground relative overflow-hidden bg-gradient-to-br px-4 py-12">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-7xl">
-                    <div className="mb-6 flex flex-wrap items-center gap-3">
-                        {isFree && (
+            <section className="relative mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 p-8 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60 sm:p-12">
+                    <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+                    <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-secondary/20 blur-3xl" />
+                    <div className="relative z-10">
+                        <div className="mb-6 flex flex-wrap items-center gap-3">
+                            {isFree && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-sm font-medium text-green-700 dark:text-green-400 backdrop-blur-sm"
+                                >
+                                    <Gift className="h-3.5 w-3.5" />
+                                    Gratis
+                                </motion.div>
+                            )}
+
+                            {bootcamp.strikethrough_price > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-400 backdrop-blur-sm"
+                                >
+                                    <Tag className="h-3.5 w-3.5" />
+                                    Diskon {Math.round(((bootcamp.strikethrough_price - bootcamp.price) / bootcamp.strikethrough_price) * 100)}%
+                                </motion.div>
+                            )}
+
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-green-500/20 bg-white px-3 py-1.5 text-sm font-medium text-green-600 backdrop-blur-sm"
+                                transition={{ delay: 0.3 }}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary shadow-sm backdrop-blur-md dark:text-primary"
                             >
-                                <Gift className="h-3.5 w-3.5" />
-                                Gratis
+                                <Calendar className="h-3.5 w-3.5" />
+                                {new Date(bootcamp.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })} -{' '}
+                                {new Date(bootcamp.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </motion.div>
-                        )}
+                        </div>
 
-                        {bootcamp.strikethrough_price > 0 && (
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-red-700 bg-red-200 px-3 py-1.5 text-sm font-medium text-red-600 backdrop-blur-sm"
-                            >
-                                <Tag className="h-3.5 w-3.5" />
-                                Diskon {Math.round(((bootcamp.strikethrough_price - bootcamp.price) / bootcamp.strikethrough_price) * 100)}%
-                            </motion.div>
-                        )}
-
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/20 px-3 py-1.5 text-sm font-medium text-white shadow-lg backdrop-blur-md"
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="mb-4 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl lg:text-5xl"
                         >
-                            <Calendar className="h-3.5 w-3.5" />
-                            {new Date(bootcamp.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })} -{' '}
-                            {new Date(bootcamp.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </motion.div>
+                            {bootcamp.title}
+                        </motion.h1>
+
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="mb-2 max-w-3xl text-justify text-lg leading-relaxed text-zinc-700 dark:text-zinc-300"
+                        >
+                            {bootcamp.description}
+                        </motion.p>
                     </div>
-
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="mb-4 text-3xl font-bold text-black sm:text-4xl lg:text-5xl"
-                    >
-                        {bootcamp.title}
-                    </motion.h1>
-
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="mb-6 max-w-3xl text-justify text-lg text-black"
-                    >
-                        {bootcamp.description}
-                    </motion.p>
                 </motion.div>
             </section>
 
@@ -946,21 +983,23 @@ export default function RegisterBootcamp({
                     {/* Left Column - Bootcamp Details */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-2">
                         <Tabs defaultValue="detail" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="detail" className="gap-2">
-                                    <BadgeCheck className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Detail Bootcamp</span>
-                                    <span className="sm:hidden">Detail</span>
-                                </TabsTrigger>
-                                <TabsTrigger value="curriculum" className="gap-2">
-                                    <Star className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Kurikulum</span>
-                                    <span className="sm:hidden">Materi</span>
-                                </TabsTrigger>
-                            </TabsList>
+                            <div className="mb-6 rounded-2xl border-2 border-gray-200 bg-white/60 p-1.5 shadow-lg backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                <TabsList className="grid h-auto w-full grid-cols-2 bg-transparent gap-2">
+                                    <TabsTrigger value="detail" className="gap-2 rounded-xl py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all">
+                                        <BadgeCheck className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Detail Bootcamp</span>
+                                        <span className="sm:hidden">Detail</span>
+                                    </TabsTrigger>
+                                    <TabsTrigger value="curriculum" className="gap-2 rounded-xl py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all">
+                                        <Star className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Kurikulum</span>
+                                        <span className="sm:hidden">Materi</span>
+                                    </TabsTrigger>
+                                </TabsList>
+                            </div>
 
-                            <TabsContent value="detail" className="mt-4">
-                                <Card className="p-6">
+                            <TabsContent value="detail" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                                <Card className="border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                                     <div className="mb-6">
                                         <h2 className="mb-2 text-2xl font-bold">Yang Akan Kamu Dapatkan</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1002,8 +1041,8 @@ export default function RegisterBootcamp({
                                 </Card>
                             </TabsContent>
 
-                            <TabsContent value="curriculum" className="mt-4">
-                                <Card className="p-6">
+                            <TabsContent value="curriculum" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                                <Card className="border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                                     <div className="mb-6">
                                         <h2 className="mb-2 text-2xl font-bold">Kurikulum Pembelajaran</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">Daftar materi yang akan dipelajari selama bootcamp</p>
@@ -1091,8 +1130,8 @@ export default function RegisterBootcamp({
                             </motion.div>
                         )} */}
                         {!isLoggedIn && (
-                            <Card className="mt-6">
-                                <form className="flex flex-col gap-6 p-6 pt-0" onSubmit={submit}>
+                            <Card className="mt-6 border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                <form className="flex flex-col gap-6 p-6" onSubmit={submit}>
                                     <h1 className="text-xl font-bold">Masukkan Data Diri Anda</h1>
                                     <div className="grid gap-2">
                                         <Label htmlFor="email">Email</Label>
@@ -1223,7 +1262,7 @@ export default function RegisterBootcamp({
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-1">
                         <div className="sticky top-4">
                             {hasAccess ? (
-                                <Card className="overflow-hidden border-2 border-green-500/20">
+                                <Card className="overflow-hidden border border-green-500/20 bg-white/60 shadow-xl backdrop-blur-xl dark:border-green-500/10 dark:bg-zinc-900/60">
                                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 text-center dark:from-green-950/20 dark:to-emerald-950/20">
                                         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
                                             <BadgeCheck className="h-10 w-10 text-white" />
@@ -1246,7 +1285,7 @@ export default function RegisterBootcamp({
                                     </div>
                                 </Card>
                             ) : pendingInvoice ? (
-                                <Card className="overflow-hidden border-2">
+                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                                     <div
                                         className="border-b p-4"
                                         style={{
@@ -1419,8 +1458,8 @@ export default function RegisterBootcamp({
                                     </div>
                                 </Card>
                             ) : !showFreeForm ? (
-                                <Card className="overflow-hidden border-2">
-                                    <div className="bg-primary border-b p-4">
+                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                    <div className="bg-primary/90 border-b border-primary/20 p-4 backdrop-blur-md">
                                         <h2 className="text-center text-lg font-bold text-white">
                                             {isFree ? 'Pendaftaran Gratis' : 'Detail Pembayaran'}
                                         </h2>
@@ -1655,8 +1694,8 @@ export default function RegisterBootcamp({
                                     </form>
                                 </Card>
                             ) : (
-                                <Card className="overflow-hidden border-2">
-                                    <div className="border-b bg-gradient-to-r from-green-600 to-emerald-600 p-4">
+                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                    <div className="border-b border-green-500/20 bg-gradient-to-r from-green-600/90 to-emerald-600/90 p-4 backdrop-blur-md">
                                         <h2 className="text-center text-lg font-bold text-white">Upload Bukti Follow & Tag</h2>
                                     </div>
 
@@ -1732,5 +1771,6 @@ export default function RegisterBootcamp({
             </section>
             <Toaster position="top-center" richColors />
         </UserLayout>
+        </div>
     );
 }

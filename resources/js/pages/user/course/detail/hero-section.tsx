@@ -1,5 +1,4 @@
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Check, X, Award, UserCheck, BarChart3, Clock, BookOpen, Star, Users, TrendingUp } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Clock, Sparkles, Star, TrendingUp, Users } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface Course {
@@ -9,159 +8,216 @@ interface Course {
     level: 'beginner' | 'intermediate' | 'advanced';
     created_at: string;
     updated_at: string;
+    modules?: { lessons?: { type: string }[] }[];
 }
 
 export default function HeroSection({ course }: { course: Course }) {
-    const courseCertificate = 'yes' as 'yes' | 'no';
-    const courseConsultation = 'yes' as 'yes' | 'no';
-
-    // Level label & color
     const levelMap = {
-        beginner: { 
-            label: 'Beginner', 
-            color: 'from-green-500 to-emerald-600', 
-            textColor: 'text-green-600', 
-            bgColor: 'bg-green-50 dark:bg-green-900/20', 
-            borderColor: 'border-green-200 dark:border-green-800' 
-        },
-        intermediate: { 
-            label: 'Intermediate', 
-            color: 'from-yellow-500 to-orange-600', 
-            textColor: 'text-yellow-600', 
-            bgColor: 'bg-yellow-50 dark:bg-yellow-900/20', 
-            borderColor: 'border-yellow-200 dark:border-yellow-800' 
-        },
-        advanced: { 
-            label: 'Advanced', 
-            color: 'from-red-500 to-rose-600', 
-            textColor: 'text-red-600', 
-            bgColor: 'bg-red-50 dark:bg-red-900/20', 
-            borderColor: 'border-red-200 dark:border-red-800' 
-        },
+        beginner: { label: 'Beginner', color: 'from-green-500 to-emerald-600', badge: 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300' },
+        intermediate: { label: 'Intermediate', color: 'from-yellow-500 to-orange-500', badge: 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300' },
+        advanced: { label: 'Advanced', color: 'from-red-500 to-rose-600', badge: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-300' },
     };
+    const lv = levelMap[course.level];
+
+    const totalLessons = course.modules?.reduce((t, m) => t + (m.lessons?.length ?? 0), 0) ?? 0;
+    const totalVideos = course.modules?.reduce((t, m) => t + (m.lessons?.filter(l => l.type === 'video').length ?? 0), 0) ?? 0;
+
+    const stats = [
+        { icon: Clock, label: 'Update', value: new Date(course.updated_at).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }), color: 'text-primary', bg: 'bg-primary/10' },
+        { icon: BookOpen, label: 'Materi', value: `${totalLessons}`, color: 'text-secondary', bg: 'bg-secondary/10' },
+        { icon: Star, label: 'Rating', value: '4.8', color: 'text-yellow-500', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
+        { icon: Users, label: 'Siswa', value: '1.2K+', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
+    ];
 
     return (
-        <section className="relative overflow-hidden px-4 py-8 md:py-12 lg:py-16 xl:py-20 text-gray-900 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 dark:text-white">
-            {/* Animated Background Elements */}
-            <div className="pointer-events-none absolute inset-0">
-                <div className="absolute top-10 md:top-20 left-5 md:left-10 h-48 w-48 md:h-72 md:w-72 rounded-full bg-primary/10 blur-3xl animate-pulse" />
-                <div className="absolute bottom-10 md:bottom-20 right-5 md:right-10 h-48 w-48 md:h-72 md:w-72 rounded-full bg-secondary/10 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-            </div>
-            
-            <div className="relative z-10 mx-auto max-w-7xl">
-                <div className="flex flex-col lg:grid lg:gap-8 xl:gap-10 lg:grid-cols-5">
-                    {/* Thumbnail - Show first on mobile */}
+        <section className="relative mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 p-8 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60 sm:p-12">
+                {/* Animated background blobs */}
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.2 }}
-                        className="lg:col-span-2 lg:order-last mb-6 lg:mb-0"
+                        animate={{ scale: [1, 1.12, 1], opacity: [0.25, 0.45, 0.25] }}
+                        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                        className="absolute -top-20 -left-20 h-96 w-96 rounded-full bg-primary/20 blur-3xl"
+                    />
+                    <motion.div
+                        animate={{ scale: [1, 1.18, 1], opacity: [0.2, 0.35, 0.2] }}
+                        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }}
+                        className="absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-secondary/20 blur-3xl"
+                    />
+                </div>
+
+                <div className="relative z-10">
+                    <div className="grid items-start gap-10 lg:grid-cols-5 lg:gap-14">
+
+                    {/* RIGHT: Thumbnail — first on mobile */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.7, delay: 0.15 }}
+                        className="lg:col-span-2 lg:order-last"
                     >
-                        <div className="relative lg:sticky lg:top-24 overflow-hidden rounded-xl md:rounded-2xl border-2 shadow-xl md:shadow-2xl dark:border-zinc-700">
+                        <div className="relative overflow-hidden rounded-3xl border-2 border-white/60 shadow-2xl dark:border-zinc-700">
                             <img
                                 src={course.thumbnail ? `/storage/${course.thumbnail}` : '/assets/images/placeholder.png'}
                                 alt={course.title}
                                 className="aspect-video w-full object-cover"
                             />
-                            
-                            {/* Info Overlay at Bottom */}
-                            {/* Info Overlay at Bottom */}
-<div className="bg-gradient-to-t from-black/80 to-transparent absolute bottom-0 left-0 right-0 p-3 md:p-4 lg:p-6">
-    <div className="flex items-center justify-between gap-2 text-white">
-        <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
-            <TrendingUp className="h-3 w-3 md:h-4 md:w-4 lg:h-5 lg:w-5 flex-shrink-0" />
-            <span className="text-[10px] md:text-xs lg:text-sm font-medium truncate">
-                Rilis: {new Date(course.created_at).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}
-            </span>
-        </div>
-        <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
-            <BarChart3 className="h-3 w-3 md:h-4 md:w-4 lg:h-5 lg:w-5 flex-shrink-0" />
-            <span className="text-[10px] md:text-xs lg:text-sm font-medium truncate">
-                Level: {levelMap[course.level].label}
-            </span>
-        </div>
-    </div>
-</div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+
+                            {/* Level badge - top left */}
+                            <div className="absolute top-3 left-3">
+                                <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold shadow backdrop-blur-sm ${lv.badge}`}>
+                                    <BarChart3 className="h-3 w-3" />
+                                    {lv.label}
+                                </span>
+                            </div>
+
+                            {/* Video count badge - top right */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.5, delay: 0.6 }}
+                                className="absolute top-3 right-3"
+                            >
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-primary shadow-lg backdrop-blur-sm">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                                    </span>
+                                    {totalVideos} Video Preview
+                                </span>
+                            </motion.div>
+
+                            {/* Bottom info */}
+                            <div className="absolute bottom-0 left-0 right-0 p-4">
+                                <div className="flex items-center justify-between text-white">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp className="h-4 w-4" />
+                                        <span className="text-xs font-semibold">
+                                            Rilis {new Date(course.created_at).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                                        </span>
+                                    </div>
+                                    <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-sm border border-white/30">
+                                        Kelas Online
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Stats strip below image */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.5 }}
+                            className="mt-4 grid grid-cols-4 overflow-hidden rounded-2xl border-2 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                        >
+                            {stats.map(({ icon: Icon, label, value, color, bg }, i) => (
+                                <div key={label} className={`flex flex-col items-center gap-1 py-4 px-2 ${i < 3 ? 'border-r border-gray-100 dark:border-zinc-700' : ''}`}>
+                                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${bg}`}>
+                                        <Icon className={`h-4 w-4 ${color}`} />
+                                    </div>
+                                    <p className={`text-sm font-extrabold leading-none ${color}`}>{value}</p>
+                                    <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">{label}</p>
+                                </div>
+                            ))}
+                        </motion.div>
                     </motion.div>
 
-                    {/* Main Info - Show second on mobile */}
-                    <div className="lg:col-span-3 lg:order-first">
-                        {/* Meta Badges */}
+                    {/* LEFT: Content */}
+                    <div className="lg:col-span-3 lg:order-first space-y-6">
+                        {/* Badges row */}
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.1 }}
-                            className="mb-3 md:mb-4 lg:mb-6 flex flex-wrap gap-2 md:gap-3"
+                            transition={{ duration: 0.55, delay: 0.1 }}
+                            className="flex flex-wrap gap-2"
                         >
-                            <div className="flex items-center gap-1.5 md:gap-2 rounded-full border-2 bg-white px-2.5 md:px-3 lg:px-4 py-1 md:py-1.5 lg:py-2 text-[10px] md:text-xs lg:text-sm font-semibold shadow-sm dark:bg-zinc-900 dark:border-zinc-700">
-                                <BookOpen className="h-3 w-3 md:h-3.5 md:w-3.5 lg:h-4 lg:w-4 text-primary" />
-                                <span>Kelas Online</span>
-                            </div>
+                            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-primary/30 bg-white px-3 py-1.5 text-xs font-semibold shadow dark:bg-zinc-900">
+                                <BookOpen className="h-3.5 w-3.5 text-primary" />
+                                <span className="text-gray-900 dark:text-white">Kelas Online</span>
+                            </span>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold ${lv.badge}`}>
+                                <Award className="h-3.5 w-3.5" />
+                                {lv.label}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary ring-1 ring-primary/20">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                Tersertifikasi
+                            </span>
                         </motion.div>
 
-                        {/* Title with Gradient */}
+                        {/* Title */}
                         <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 18 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.7, delay: 0.2 }}
-                            className="mb-3 md:mb-4 lg:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight tracking-tight"
+                            transition={{ duration: 0.65, delay: 0.2 }}
+                            className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl"
                         >
-                            <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient">
+                            <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
                                 {course.title}
                             </span>
                         </motion.h1>
 
                         {/* Description */}
                         <motion.p
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
-                            className="mb-4 md:mb-6 lg:mb-8 text-sm md:text-base lg:text-lg leading-relaxed text-gray-600 dark:text-gray-300"
+                            className="text-base leading-relaxed text-gray-600 dark:text-gray-300 md:text-lg"
                         >
-                            {course.short_description}
+                            {course.short_description || 'Tingkatkan kemampuan Anda dengan kelas online berkualitas tinggi yang dirancang oleh para ahli industri.'}
                         </motion.p>
 
-                        {/* Stats Cards */}
+                        {/* Rating row */}
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 14 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.4 }}
-                            className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4"
+                            transition={{ duration: 0.5, delay: 0.38 }}
+                            className="flex flex-wrap items-center gap-4"
                         >
-                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 rounded-lg sm:rounded-xl border-2 bg-white p-2 sm:p-3 md:p-4 shadow-sm dark:bg-zinc-900 dark:border-zinc-700">
-                                <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-                                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary" />
-                                </div>
-                                <div className="min-w-0 text-center sm:text-left">
-                                    <p className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">Update Terakhir</p>
-                                    <p className="font-bold text-xs sm:text-sm md:text-base text-gray-900 dark:text-white truncate">
-                                        {new Date(course.updated_at).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}
-                                    </p>
-                                </div>
+                            <div className="flex items-center gap-1.5">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                                ))}
+                                <span className="ml-1 text-sm font-bold text-gray-800 dark:text-white">4.8</span>
+                                <span className="text-sm text-gray-500">(1,200+ siswa)</span>
                             </div>
-                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 rounded-lg sm:rounded-xl border-2 bg-white p-2 sm:p-3 md:p-4 shadow-sm dark:bg-zinc-900 dark:border-zinc-700">
-                                <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 items-center justify-center rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex-shrink-0">
-                                    <Star className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-yellow-600" />
-                                </div>
-                                <div className="min-w-0 text-center sm:text-left">
-                                    <p className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">Rating</p>
-                                    <p className="font-bold text-xs sm:text-sm md:text-base text-gray-900 dark:text-white">4.8/5.0</p>
-                                </div>
-                            </div>
-                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 rounded-lg sm:rounded-xl border-2 bg-white p-2 sm:p-3 md:p-4 shadow-sm dark:bg-zinc-900 dark:border-zinc-700">
-                                <div className="flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30 flex-shrink-0">
-                                    <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" />
-                                </div>
-                                <div className="min-w-0 text-center sm:text-left">
-                                    <p className="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">Siswa</p>
-                                    <p className="font-bold text-xs sm:text-sm md:text-base text-gray-900 dark:text-white">1,200+</p>
-                                </div>
+                            <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                                <BookOpen className="h-4 w-4 text-primary" />
+                                <span>{totalLessons} materi · {totalVideos} video</span>
                             </div>
                         </motion.div>
+
+                        {/* Quick feature tags */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 14 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.44 }}
+                            className="flex flex-wrap gap-2"
+                        >
+                            {['Sertifikat', 'Akses Selamanya', 'Live Konsultasi', 'Project Based'].map((tag) => (
+                                <span key={tag} className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                    {tag}
+                                </span>
+                            ))}
+                        </motion.div>
+
+                        {/* CTA */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 14 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.5 }}
+                        >
+                            <a href="#register" className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-bold text-white shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/40">
+                                <Sparkles className="h-5 w-5" />
+                                Daftar Sekarang
+                            </a>
+                        </motion.div>
+                    </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </section>
     );
 }

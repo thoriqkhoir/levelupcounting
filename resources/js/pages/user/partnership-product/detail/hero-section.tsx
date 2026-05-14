@@ -16,9 +16,13 @@ export default function HeroSection({ partnershipProduct }: { partnershipProduct
     const deadlineDate = new Date(partnershipProduct.registration_deadline);
 
     return (
-        <section className="dark:via-background dark:to-background relative bg-gradient-to-b py-20 text-gray-900 dark:text-white">
-            <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 lg:grid-cols-3">
-                {/* Left Column - Content */}
+        <section className="relative mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 p-8 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60 sm:p-12">
+                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-secondary/20 blur-3xl" />
+                <div className="relative z-10">
+                    <div className="grid gap-8 lg:gap-12 lg:grid-cols-2 items-center">
+                        {/* Left Column - Content */}
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -101,7 +105,9 @@ export default function HeroSection({ partnershipProduct }: { partnershipProduct
                         className="rounded-xl shadow-lg"
                     />
                 </motion.div>
-            </div>
+                    </div>
+                </div>
+            </motion.div>
         </section>
     );
 }

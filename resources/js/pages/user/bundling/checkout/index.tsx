@@ -699,13 +699,30 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
     }
 
     return (
+        <div className="relative min-h-screen bg-background">
+            {/* Global Decorative Background — Blobs */}
+            <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
+            {/* Global Decorative Background — Grid Pattern */}
+            <div
+                className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+            />
+
         <UserLayout>
             <Head title={`Checkout - ${bundle.title}`} />
 
             {/* Hero Section */}
-            <section className="from-primary to-primary-foreground relative overflow-hidden bg-gradient-to-br px-4 py-12">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-7xl">
-                    <div className="mb-6 flex flex-wrap items-center gap-3">
+            <section className="relative mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 p-8 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60 sm:p-12">
+                    <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+                    <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-secondary/20 blur-3xl" />
+                    <div className="relative z-10">
+                        <div className="mb-6 flex flex-wrap items-center gap-3">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -784,7 +801,8 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                 <p className="font-semibold">{rupiahFormatter.format(bundleDiscount)}</p>
                             </div>
                         </div>
-                    </motion.div>
+                        </motion.div>
+                    </div>
                 </motion.div>
             </section>
 
@@ -794,21 +812,27 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                     {/* Left Column - Bundle Details */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-2">
                         <Tabs defaultValue="programs" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="programs" className="gap-2">
-                                    <Package className="h-4 w-4" />
+                            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-2xl p-1.5 transition-all duration-300 sm:p-2 border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                <TabsTrigger 
+                                    value="programs" 
+                                    className="group relative flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md sm:gap-2 sm:px-3 sm:py-3 sm:text-sm"
+                                >
+                                    <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                                     <span className="hidden sm:inline">Program Included</span>
                                     <span className="sm:hidden">Program</span>
                                 </TabsTrigger>
-                                <TabsTrigger value="benefits" className="gap-2">
-                                    <BadgeCheck className="h-4 w-4" />
+                                <TabsTrigger 
+                                    value="benefits" 
+                                    className="group relative flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md sm:gap-2 sm:px-3 sm:py-3 sm:text-sm"
+                                >
+                                    <BadgeCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                                     <span className="hidden sm:inline">Keuntungan</span>
                                     <span className="sm:hidden">Benefit</span>
                                 </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="programs" className="mt-4">
-                                <Card className="p-6">
+                                <Card className="border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                                     <div className="mb-6">
                                         <h2 className="mb-2 text-2xl font-bold">Program dalam Paket</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -852,7 +876,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             </TabsContent>
 
                             <TabsContent value="benefits" className="mt-4">
-                                <Card className="p-6">
+                                <Card className="border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                                     <div className="mb-6">
                                         <h2 className="mb-2 text-2xl font-bold">Keuntungan Paket Bundling</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -888,7 +912,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                         </Tabs>
 
                         {!isLoggedIn && (
-                            <form className="flex flex-col gap-6 p-6 mt-6 rounded-2xl border bg-white/95 shadow-xl backdrop-blur-sm dark:bg-gray-800/95" onSubmit={submit}>
+                            <form className="mt-6 flex flex-col gap-6 rounded-2xl border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60" onSubmit={submit}>
                                 <h1 className="text-xl font-bold">Masukkan Data Diri Anda</h1>
                                 <div className="grid gap-2">
                                     <Label htmlFor="email">Email</Label>
@@ -1095,8 +1119,8 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-1">
                         <div className="sticky top-4">
                             {hasAccess ? (
-                                <Card className="overflow-hidden border-2 border-green-500/20">
-                                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 text-center dark:from-green-950/20 dark:to-emerald-950/20">
+                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                    <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 p-8 text-center backdrop-blur-md dark:from-green-950/40 dark:to-emerald-950/40">
                                         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
                                             <BadgeCheck className="h-10 w-10 text-white" />
                                         </div>
@@ -1119,9 +1143,9 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                     </div>
                                 </Card>
                             ) : pendingInvoice ? (
-                                <Card className="overflow-hidden border-2">
+                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                                     <div
-                                        className="border-b p-4"
+                                        className="border-b border-primary/10 p-4 backdrop-blur-md"
                                         style={{
                                             backgroundColor: (() => {
                                                 const expiryInfo = formatExpiryTime(pendingInvoice.expires_at);
@@ -1292,8 +1316,8 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                     </div>
                                 </Card>
                             ) : (
-                                <Card className="overflow-hidden border-2">
-                                    <div className="bg-primary border-b p-4">
+                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                    <div className="border-b border-primary/20 bg-primary/90 p-4 backdrop-blur-md">
                                         <h2 className="text-center text-lg font-bold text-white">Detail Pembayaran</h2>
                                     </div>
 
@@ -1480,5 +1504,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
             </section>
             <Toaster position="top-center" richColors />
         </UserLayout>
+        </div>
     );
 }

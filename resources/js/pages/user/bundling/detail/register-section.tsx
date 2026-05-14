@@ -61,7 +61,7 @@ export default function RegisterSection({
     warningMessage = null;
 
     return (
-        <section className="relative mx-auto mt-16 w-full max-w-6xl overflow-hidden px-4 pb-16" id="register">
+        <section className="relative mx-auto mt-16 w-full max-w-7xl overflow-hidden px-4 pb-16" id="register">
             <div className="relative z-10">
                 {/* Header */}
                 <motion.div
@@ -76,7 +76,7 @@ export default function RegisterSection({
                             Penawaran Terbatas
                         </span>
                     </div>
-                    <h2 className="dark:text-primary-foreground mb-4 text-2xl font-extrabold text-gray-900 md:text-3xl">
+                    <h2 className="dark:text-primary-foreground mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl">
                         Mulai Perjalanan Belajarmu Sekarang!
                     </h2>
                     <p className="text-md text-gray-600 dark:text-gray-400">Investasi terbaik untuk masa depan karirmu</p>
@@ -116,7 +116,7 @@ export default function RegisterSection({
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="lg:sticky lg:top-24 lg:self-start"
                     >
-                        <div className="overflow-hidden rounded-2xl border-2 border-primary/30 bg-white shadow-lg dark:bg-zinc-900 dark:border-primary/50">
+                        <div className="overflow-hidden rounded-2xl border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                             {/* Discount Badge */}
                             {discountPercentage > 0 && (
                                 <div className="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-3 text-center">
@@ -154,20 +154,20 @@ export default function RegisterSection({
 
                                 {/* Quick Info */}
                                 <div className="mb-6 space-y-3">
-                                    <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
+                                    <div className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3 dark:bg-zinc-800/50 backdrop-blur-sm">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Total Program</span>
                                         <span className="font-bold text-gray-900 dark:text-white">
                                             {bundle.bundle_items_count} Program
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
+                                    <div className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3 dark:bg-zinc-800/50 backdrop-blur-sm">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Hemat</span>
                                         <span className="font-bold text-green-600">
                                             {rupiahFormatter.format(discountAmount)}
                                         </span>
                                     </div>
                                     {deadline && (
-                                        <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
+                                        <div className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3 dark:bg-zinc-800/50 backdrop-blur-sm">
                                             <span className="text-sm text-gray-600 dark:text-gray-400">Deadline</span>
                                             <span className="font-bold text-red-600">
                                                 {format(deadline, 'dd MMM yyyy', { locale: id })}
@@ -233,7 +233,7 @@ export default function RegisterSection({
                         className="space-y-6"
                     >
                         {/* Thumbnail Card */}
-                        <div className="overflow-hidden rounded-2xl border-2 shadow-xl dark:border-zinc-700">
+                        <div className="overflow-hidden rounded-2xl border border-white/40 shadow-xl dark:border-zinc-800/50">
                             <img
                                 src={bundle.thumbnail ? `/storage/${bundle.thumbnail}` : '/assets/images/placeholder.png'}
                                 alt={bundle.title}
@@ -242,7 +242,7 @@ export default function RegisterSection({
                         </div>
 
                         {/* Benefits List */}
-                        <div className="rounded-2xl border-2 p-6 shadow-lg dark:border-zinc-700">
+                        <div className="rounded-2xl border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                             <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
                                 <Check className="h-6 w-6 text-green-600" />
                                 Yang Akan Kamu Dapatkan
@@ -280,7 +280,7 @@ export default function RegisterSection({
                                         initial={{ opacity: 0, x: 10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
-                                        className="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm dark:bg-zinc-800"
+                                        className="flex items-center gap-3 rounded-lg bg-white/40 p-3 shadow-sm backdrop-blur-sm dark:bg-zinc-800/40"
                                     >
                                         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-zinc-700">
                                             <item.icon className={`h-5 w-5 ${item.color}`} />

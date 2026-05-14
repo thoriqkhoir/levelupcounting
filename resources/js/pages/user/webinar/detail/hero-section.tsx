@@ -12,10 +12,13 @@ interface Webinar {
 
 export default function HeroSection({ webinar }: { webinar: Webinar }) {
     return (
-        <section className="relative overflow-hidden dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 px-4 py-12 md:py-16 lg:py-20">
-            <div className="relative z-10 mx-auto px-4 max-w-7xl">
-                <div className="grid gap-8 lg:gap-12 lg:grid-cols-2 items-center">
-                    {/* Right Column - Image (order-first on mobile) */}
+        <section className="relative mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 p-8 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60 sm:p-12">
+                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-secondary/20 blur-3xl" />
+                <div className="relative z-10">
+                    <div className="grid gap-8 lg:gap-12 lg:grid-cols-2 items-center">
+                        {/* Right Column - Image (order-first on mobile) */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -164,8 +167,9 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                             </a>
                         </motion.div>
                     </motion.div>
+                    </div>
                 </div>
-            </div>
+            </motion.div>
         </section>
     );
 }
