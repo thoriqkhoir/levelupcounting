@@ -158,10 +158,10 @@ export default function Home({ tools, latestProducts, myProductIds, allProducts,
                     href="https://wa.me/+6287754764475?text=Halo%20Admin%20Level%20Up%20Accounting,%20saya%20ingin%20bertanya%20tentang%20kelas%20online."
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="sha fixed right-4 bottom-18 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg transition duration-1000 hover:bg-green-200 md:right-10 md:h-16 md:w-16 lg:bottom-6"
+                    className="fixed right-4 bottom-18 z-50 transition duration-300 hover:scale-110 md:right-10 lg:bottom-6"
                     aria-label="Chat WhatsApp"
                 >
-                    <img src="/assets/images/wa-icon.png" alt="WhatsApp" className="h-8 w-8 md:h-12 md:w-12" />
+                    <img src="/assets/images/wa.svg" alt="WhatsApp" className="h-16 w-16 drop-shadow-lg md:h-35 md:w-35" />
                 </a>
             </UserLayout>
         </div>

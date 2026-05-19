@@ -39,9 +39,9 @@ function ProgramCard({ title, description, icon, imageSrc, imageAlt, href, rever
 
 export default function ProgramSection() {
     const programs = [
-        { title: 'Bootcamp Intensif', description: 'Intensive Live Class bersama Experts. Praktikal & Mendalam. Kombinasi Case Study, Praktik di Tiap Sesi dari Basic to Advanced.', icon: '🖐', imageSrc: '/assets/images/illustration-bootcamp.webp', imageAlt: 'Bootcamp Intensif', href: '/bootcamp', reverse: false },
-        { title: 'Online Class', description: 'Pelajari berbagai skill sekali bayar, praktik, dan bersertifikat. Belajar fleksibel via Video Materi, Project dan Studi Kasus.', icon: '🏆', imageSrc: '/assets/images/illustration-course.webp', imageAlt: 'Online Class', href: '/course', reverse: true },
-        { title: 'Interactive Webinar', description: 'Pelajari berbagai topik terkini dari para ahli di bidangnya. Belajar insightful dengan pembicara yang expert di bidangnya.', icon: '🖐', imageSrc: '/assets/images/illustration-webinar.webp', imageAlt: 'Interactive Webinar', href: '/webinar', reverse: false },
+        { title: 'Bootcamp Intensif', description: 'Intensive Live Class bersama Experts. Praktikal & Mendalam. Kombinasi Case Study, Praktik di Tiap Sesi dari Basic to Advanced.', icon: '🖐', imageSrc: '/assets/images/bootcamp.svg', imageAlt: 'Bootcamp Intensif', href: '/bootcamp', reverse: false },
+        { title: 'Online Class', description: 'Pelajari berbagai skill sekali bayar, praktik, dan bersertifikat. Belajar fleksibel via Video Materi, Project dan Studi Kasus.', icon: '🏆', imageSrc: '/assets/images/class.svg', imageAlt: 'Online Class', href: '/course', reverse: true },
+        { title: 'Interactive Webinar', description: 'Pelajari berbagai topik terkini dari para ahli di bidangnya. Belajar insightful dengan pembicara yang expert di bidangnya.', icon: '🖐', imageSrc: '/assets/images/webinar.svg', imageAlt: 'Interactive Webinar', href: '/webinar', reverse: false },
     ];
 
     return (
