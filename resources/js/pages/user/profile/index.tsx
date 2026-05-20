@@ -20,6 +20,7 @@ import {
     Calendar,
     Clock,
     CheckCircle2,
+    BriefcaseBusiness,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -27,7 +28,9 @@ interface Product {
     id: string;
     title: string;
     slug: string;
-    type: 'course' | 'bootcamp' | 'webinar';
+    type: 'course' | 'bootcamp' | 'webinar' | 'certification-program';
+    routeParam?: string;
+    is_scholarship?: boolean;
     progress?: number;
     completed_at?: string;
     start_date?: string;
@@ -43,6 +46,7 @@ interface ProfileProps {
         courses: number;
         bootcamps: number;
         webinars: number;
+        certificationPrograms: number;
         total: number;
     };
     recentProducts: Product[];
@@ -57,6 +61,8 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                 return 'Bootcamp';
             case 'webinar':
                 return 'Webinar';
+            case 'certification-program':
+                return 'Sertifikasi Program';
             default:
                 return 'Produk';
         }
@@ -70,6 +76,8 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                 return <Presentation className="h-4 w-4" />;
             case 'webinar':
                 return <MonitorPlay className="h-4 w-4" />;
+            case 'certification-program':
+                return <BriefcaseBusiness className="h-4 w-4" />;
             default:
                 return <GraduationCap className="h-4 w-4" />;
         }
@@ -148,6 +156,14 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
             icon: MonitorPlay,
             gradient: 'from-orange-500 to-orange-600',
             bgGradient: 'from-orange-50 to-orange-100',
+        },
+        {
+            title: 'Sertifikasi Program',
+            value: stats.certificationPrograms,
+            description: 'Sertifikasi program yang Anda ikuti',
+            icon: BriefcaseBusiness,
+            gradient: 'from-teal-500 to-teal-600',
+            bgGradient: 'from-teal-50 to-teal-100',
         },
     ];
 
