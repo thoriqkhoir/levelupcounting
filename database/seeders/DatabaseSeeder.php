@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
 
         $adminAffiliate = User::factory()->create([
             'name' => 'Level Up Accounting Affiliate',
-            'email' => 'aaffiliatelevelupacc4@gmail.com',
+            'email' => 'affiliatelevelupacc4@gmail.com',
             'phone_number' => '087754764475',
             'bio' => "Level Up Accounting's Affiliate",
             'password' => bcrypt('levelup2025'),

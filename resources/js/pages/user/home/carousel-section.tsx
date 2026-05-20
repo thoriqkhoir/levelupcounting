@@ -28,7 +28,7 @@ export default function CarouselSection() {
                         </a>
                     </CarouselItem>
                     <CarouselItem className="px-4">
-                        <Link href={route('partnership-product.index')}>
+                        <Link href={route('certification-programs.index')}>
                             <img
                                 src="/assets/images/carousel-2.webp"
                                 alt="Slide 2"

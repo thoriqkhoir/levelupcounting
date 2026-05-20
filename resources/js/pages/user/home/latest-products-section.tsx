@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link } from '@inertiajs/react';
-import { ArrowRight, Calendar, Clock, Package, Percent } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Percent } from 'lucide-react';
 
 interface Category {
     id: string;
@@ -37,7 +37,7 @@ interface Product {
     user?: User;
     mentor?: Mentor | null;
     mentors?: Mentor[];
-    type: 'course' | 'bootcamp' | 'webinar' | 'bundle' | 'partnership';
+    type: 'course' | 'bootcamp' | 'webinar' | 'bundle' | 'certification-program';
     created_at: string;
 }
 
@@ -46,7 +46,7 @@ interface MyProductIds {
     bootcamps: string[];
     webinars: string[];
     bundles: string[];
-    partnerships: string[];
+    certificationPrograms: string[];
 }
 
 interface LatestProductsProps {
@@ -60,7 +60,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
         bootcamps: myProductIds?.bootcamps || [],
         webinars: myProductIds?.webinars || [],
         bundles: myProductIds?.bundles || [],
-        partnerships: myProductIds?.partnerships || [],
+        certificationPrograms: myProductIds?.certificationPrograms || [],
     };
 
     const getProductBadge = (type: string) => {
@@ -89,10 +89,10 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                         Bundle
                     </span>
                 );
-            case 'partnership':
+            case 'certification-program':
                 return (
-                    <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
-                        Partnership
+                    <span className="absolute top-2 left-2 rounded-full bg-cyan-100 px-2 py-1 text-xs font-medium text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300">
+                        Sertifikasi
                     </span>
                 );
             default:
@@ -116,8 +116,8 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                 return safeMyProductIds.webinars.includes(product.id);
             case 'bundle':
                 return safeMyProductIds.bundles.includes(product.id);
-            case 'partnership':
-                return safeMyProductIds.partnerships.includes(product.id);
+            case 'certification-program':
+                return safeMyProductIds.certificationPrograms.includes(product.id);
             default:
                 return false;
         }
@@ -134,8 +134,8 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                 return hasProductAccess ? `profile/my-webinars/${product.slug}` : `/webinar/${product.slug}`;
             case 'bundle':
                 return `/bundle/${product.slug}`;
-            case 'partnership':
-                return `/certification/${product.slug}`;
+            case 'certification-program':
+                return hasProductAccess ? `profile/my-certification-programs/${product.slug}` : `/certification-program/${product.slug}`;
             default:
                 return '#';
         }
@@ -189,13 +189,8 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                     </p>
                 </div>
             );
-        } else if (product.type === 'partnership' && product.duration_days) {
-            content = (
-                <div className="flex items-center gap-2">
-                    <Package size="18" />
-                    <p className="text-xs font-semibold text-black dark:text-gray-400">Durasi: {product.duration_days} Hari</p>
-                </div>
-            );
+
+            return null;
         }
 
         if (!content) return null;
@@ -268,12 +263,12 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
     };
 
     const safeLatestProducts = Array.isArray(latestProducts) ? latestProducts : [];
-    const availableProducts = safeLatestProducts.filter((product) => !hasAccess(product));
+    const availableProducts = safeLatestProducts.filter((product) => product.type === 'certification-program' || !hasAccess(product));
 
     return (
         <section id="latest-products" className="mx-auto w-full max-w-7xl px-4 py-8">
             <div className="mx-auto">
-                <h2 className="dark:text-primary-foreground font-av-estiana mx-auto text-center max-w-2xl pb-8 text-2xl font-semibold text-gray-900 md:text-3xl">
+                <h2 className="dark:text-primary-foreground font-av-estiana mx-auto max-w-2xl pb-8 text-center text-2xl font-semibold text-gray-900 md:text-3xl">
                     Unlock New Possibilities
                 </h2>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -305,7 +300,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
 
                             return (
                                 <Link key={product.id} href={productUrl} className="group h-full">
-                                    <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border-2 border-gray-100 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:border-primary group-hover:ring-2 group-hover:ring-primary dark:border-zinc-700 dark:bg-zinc-800">
+                                    <div className="group-hover:border-primary group-hover:ring-primary relative flex h-full flex-col overflow-hidden rounded-2xl border-2 border-gray-100 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:ring-2 dark:border-zinc-700 dark:bg-zinc-800">
                                         {/* Image Section */}
                                         <div className="relative w-full overflow-hidden">
                                             <img
@@ -316,6 +311,12 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
 
                                             {/* Type Badge - Top Left */}
                                             {getProductBadge(product.type)}
+                                            {product.type === 'certification-program' && product.registration_deadline && (
+                                                <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                                                    <Calendar className="h-3 w-3" />
+                                                    <span>Daftar s/d {new Date(product.registration_deadline).toLocaleDateString('id-ID')}</span>
+                                                </div>
+                                            )}
 
                                             {/* Discount Badge - Top Right */}
                                             {discount > 0 && (
@@ -361,9 +362,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
 
                                             {/* Category Badge - Bottom Left (non-course types) */}
                                             {product.type !== 'course' && getCategoryDisplay(product) && (
-                                                <div className="absolute bottom-2 left-2 z-20">
-                                                    {getCategoryDisplay(product)}
-                                                </div>
+                                                <div className="absolute bottom-2 left-2 z-20">{getCategoryDisplay(product)}</div>
                                             )}
 
                                             {/* Date Display - Bottom Right */}
@@ -373,7 +372,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                         {/* Content Section */}
                                         <div className="flex flex-1 flex-col gap-3 p-5 transition-all duration-300 group-hover:rounded-b-2xl">
                                             {/* Title */}
-                                            <h2 className="line-clamp-2 text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100">
+                                            <h2 className="line-clamp-2 text-lg font-bold text-gray-900 lg:text-xl dark:text-gray-100">
                                                 {product.title}
                                             </h2>
 
@@ -447,8 +446,10 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                         </div>
 
                                         {/* CTA Button - Outside content padding for flush edges on hover */}
-                                        <div className="mt-auto flex items-center justify-between px-5 py-3 mx-4 mb-4 rounded-xl border border-gray-200 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:bg-primary group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
-                                            <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">Daftar Sekarang</span>
+                                        <div className="group-hover:bg-primary mx-4 mt-auto mb-4 flex items-center justify-between rounded-xl border border-gray-200 px-5 py-3 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
+                                            <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">
+                                                Daftar Sekarang
+                                            </span>
                                             <ArrowRight className="h-6 w-6 text-gray-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white dark:text-gray-400" />
                                         </div>
                                     </div>
