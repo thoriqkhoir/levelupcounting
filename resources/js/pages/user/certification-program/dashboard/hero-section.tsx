@@ -75,7 +75,7 @@ export default function HeroSection() {
                             Lihat Program
                         </Button>
                     </a>
-                    <a href="https://wa.me/+6285142505794" target="_blank" rel="noopener noreferrer">
+                    <a href="https://wa.me/+6287754764475" target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" size="default" className="rounded-full px-8">
                             Konsultasi Gratis
                             <ArrowRight className="ml-2 h-4 w-4" />
