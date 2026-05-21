@@ -76,51 +76,51 @@ export default function TestimonySection() {
     <section className="mx-auto w-full max-w-7xl px-4 py-16">
       <div className="mx-auto text-center mb-10">
         {/* Gallery Collage */}
-        <div className="mb-12 flex w-full flex-nowrap items-center justify-center gap-3 overflow-hidden px-2 sm:gap-4 md:gap-5 lg:gap-6">
+        <div className="mb-12 flex w-full flex-nowrap items-center justify-center gap-3 overflow-hidden px-2 py-16 sm:gap-4 md:gap-5 lg:gap-6">
           {/* Col 1 */}
           <div className="hidden lg:flex flex-col gap-3 sm:gap-4 -translate-y-4">
             <div className="relative h-24 w-20 overflow-hidden rounded-2xl bg-yellow-400 sm:h-32 sm:w-28 md:h-40 md:w-32 shadow-lg">
-              <img src="https://i.pravatar.cc/150?img=32" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-90 grayscale" />
+              <img src="/assets/images/lead1.svg" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-90 grayscale" />
             </div>
-            <img src="https://i.pravatar.cc/150?img=11" alt="Testimonial" className="h-20 w-20 rounded-xl object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 shadow-md" />
+            <img src="/assets/images/lead2.svg" alt="Testimonial" className="h-20 w-20 rounded-xl object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 shadow-md" />
           </div>
 
           {/* Col 2 */}
           <div className="hidden md:flex flex-col gap-3 sm:gap-4 translate-y-6">
-            <img src="https://i.pravatar.cc/150?img=12" alt="Testimonial" className="h-28 w-20 rounded-2xl object-cover sm:h-36 sm:w-28 md:h-44 md:w-32 shadow-md" />
-            <img src="https://i.pravatar.cc/150?img=33" alt="Testimonial" className="h-24 w-20 rounded-2xl object-cover sm:h-32 sm:w-28 md:h-40 md:w-32 shadow-md" />
+            <img src="/assets/images/lead3.svg" alt="Testimonial" className="h-28 w-20 rounded-2xl object-cover sm:h-36 sm:w-28 md:h-44 md:w-32 shadow-md" />
+            <img src="/assets/images/lead4.svg" alt="Testimonial" className="h-24 w-20 rounded-2xl object-cover sm:h-32 sm:w-28 md:h-40 md:w-32 shadow-md" />
           </div>
 
           {/* Col 3 */}
           <div className="flex flex-col gap-3 sm:gap-4 -translate-y-2">
             <div className="relative h-24 w-20 overflow-hidden rounded-2xl bg-blue-500 sm:h-32 sm:w-32 md:h-40 md:w-40 shadow-lg">
-              <img src="https://i.pravatar.cc/150?img=5" alt="Testimonial" className="h-full w-full object-cover mix-blend-screen opacity-90 grayscale" />
+              <img src="/assets/images/lead5.svg" alt="Testimonial" className="h-full w-full object-cover mix-blend-screen opacity-90 grayscale" />
             </div>
           </div>
 
           {/* Col 4 */}
           <div className="flex flex-col gap-3 sm:gap-4 translate-y-[-1rem]">
-            <img src="https://i.pravatar.cc/150?img=34" alt="Testimonial" className="h-24 w-20 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 shadow-md" />
+            <img src="/assets/images/lead6.svg" alt="Testimonial" className="h-24 w-20 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 shadow-md" />
           </div>
 
           {/* Col 5 */}
           <div className="flex flex-col gap-3 sm:gap-4 translate-y-4">
             <div className="relative h-32 w-20 overflow-hidden rounded-2xl bg-pink-300 sm:h-40 sm:w-32 md:h-48 md:w-36 shadow-lg">
-              <img src="https://i.pravatar.cc/150?img=9" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-80 grayscale" />
+              <img src="/assets/images/lead7.svg" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-80 grayscale" />
             </div>
           </div>
 
           {/* Col 6... */}
           <div className="hidden md:flex flex-col gap-3 sm:gap-4 translate-y-6">
-            <img src="https://i.pravatar.cc/150?img=10" alt="Testimonial" className="h-24 w-24 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 shadow-md" />
-            <img src="https://i.pravatar.cc/150?img=33" alt="Testimonial" className="h-24 w-24 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-40 md:w-36 shadow-md" />
+            <img src="/assets/images/lead8.svg" alt="Testimonial" className="h-24 w-24 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 shadow-md" />
+            <img src="/assets/images/lead9.svg" alt="Testimonial" className="h-24 w-24 rounded-2xl object-cover sm:h-32 sm:w-32 md:h-40 md:w-36 shadow-md" />
           </div>
 
           <div className="hidden lg:flex flex-col gap-3 sm:gap-4 -translate-y-4">
             <div className="relative h-24 w-20 overflow-hidden rounded-2xl bg-yellow-400 sm:h-32 sm:w-28 md:h-40 md:w-32 shadow-lg">
-              <img src="https://i.pravatar.cc/150?img=41" alt="Testimonial" className="h-28 w-24 rounded-2xl object-cover sm:h-36 sm:w-32 md:h-44 md:w-36 shadow-md" />
+              <img src="/assets/images/lead10.svg" alt="Testimonial" className="h-28 w-24 rounded-2xl object-cover sm:h-36 sm:w-32 md:h-44 md:w-36 shadow-md" />
             </div>
-            <img src="https://i.pravatar.cc/150?img=11" alt="Testimonial" className="h-20 w-20 rounded-xl object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 shadow-md" />
+            <img src="/assets/images/lead11.svg" alt="Testimonial" className="h-20 w-20 rounded-xl object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 shadow-md" />
           </div>
 
         </div>
@@ -142,7 +142,7 @@ export default function TestimonySection() {
           Learn why professionals trust our solutions to complete their customer journeys.
         </p>
       </div>
-      
+
       <Carousel index={index} onIndexChange={handleIndexChange} disableDrag className="relative">
         <CarouselContent>
           {infiniteTestimonies.map((testimony, idx) => (
@@ -151,15 +151,15 @@ export default function TestimonySection() {
                 <div className="bg-card rounded-2xl p-8 w-full flex flex-col min-h-[350px] transition-all duration-300 group hover:-translate-y-2 hover:scale-105 hover:ring-2 hover:ring-primary/40">
                   {/* Quote Icon */}
                   <Quote className="h-10 w-10 text-primary mb-4" strokeWidth={3} />
-                  
+
                   {/* Testimony Text */}
                   <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mb-6 text-justify flex-grow line-clamp-6">
                     {testimony.text}
                   </p>
-                  
+
                   {/* Separator */}
                   <div className="w-full h-0.5 bg-primary/80 mb-6" />
-                  
+
                   {/* Profile */}
                   <div className="flex items-center gap-3">
                     <img
@@ -189,11 +189,10 @@ export default function TestimonySection() {
               <button
                 key={idx}
                 onClick={() => setIndex(TOTAL_ITEMS + idx)}
-                className={`h-2 rounded-full transition-all ${
-                  (index % TOTAL_ITEMS) === idx
+                className={`h-2 rounded-full transition-all ${(index % TOTAL_ITEMS) === idx
                     ? 'w-8 bg-primary'
                     : 'w-2 bg-primary/30 hover:bg-primary/50'
-                }`}
+                  }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}
