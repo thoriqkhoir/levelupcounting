@@ -37,6 +37,56 @@ export default function TestimonySection() {
   ];
 
   const [index, setIndex] = useState(0);
+
+  const [imagesState, setImagesState] = useState({
+    active: [
+      '/assets/images/lead1.png',
+      '/assets/images/lead2.png',
+      '/assets/images/lead3.png',
+      '/assets/images/lead4.png',
+      '/assets/images/lead5.png',
+      '/assets/images/lead6.png',
+      '/assets/images/lead7.png',
+      '/assets/images/lead8.png',
+      '/assets/images/lead9.png',
+      '/assets/images/lead10.png',
+      '/assets/images/lead11.png',
+    ],
+    unused: [
+      '/assets/images/lead12.png',
+      '/assets/images/lead13.png',
+      '/assets/images/lead14.png',
+      '/assets/images/lead15.png',
+      ...Array.from({ length: 11 }, (_, i) => `/assets/images/lead${i + 1}.svg`)
+    ]
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setImagesState(prev => {
+        const numToSwap = Math.floor(Math.random() * 2) + 2; // 2 to 3 photos
+        
+        // Shuffle and pick indices
+        const activeIndices = [...Array(11).keys()].sort(() => 0.5 - Math.random()).slice(0, numToSwap);
+        const unusedIndices = [...Array(prev.unused.length).keys()].sort(() => 0.5 - Math.random()).slice(0, numToSwap);
+        
+        const newActive = [...prev.active];
+        const newUnused = [...prev.unused];
+        
+        for (let i = 0; i < numToSwap; i++) {
+          const activeIdx = activeIndices[i];
+          const unusedIdx = unusedIndices[i];
+          const temp = newActive[activeIdx];
+          newActive[activeIdx] = newUnused[unusedIdx];
+          newUnused[unusedIdx] = temp;
+        }
+        
+        return { active: newActive, unused: newUnused };
+      });
+    }, 4000); // 4 seconds
+    return () => clearInterval(interval);
+  }, []);
+
   const TOTAL_ITEMS = testimonies.length;
 
   // Create infinite loop by duplicating testimonies array
@@ -75,53 +125,62 @@ export default function TestimonySection() {
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-16">
       <div className="mx-auto text-center mb-10">
+        <style>{`
+          @keyframes imageFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+          }
+          .animate-image-fade {
+            animation: imageFadeIn 0.8s ease-out forwards;
+          }
+        `}</style>
         {/* Gallery Collage */}
         <div className="mb-12 flex w-full flex-nowrap items-center justify-center gap-2 overflow-hidden px-2 py-8 sm:gap-4 md:gap-5 lg:gap-6 sm:py-16">
           {/* Col 1 */}
           <div className="flex flex-col gap-2 sm:gap-4 -translate-y-2 sm:-translate-y-4">
             <div className="relative h-14 w-12 overflow-hidden rounded-lg bg-yellow-400 sm:h-32 sm:w-28 md:h-40 md:w-32 sm:rounded-2xl shadow-lg">
-              <img src="/assets/images/lead1.svg" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-90 grayscale" />
+              <img key={imagesState.active[0]} src={imagesState.active[0]} alt="Testimonial" className="h-full w-full object-cover animate-image-fade" />
             </div>
-            <img src="/assets/images/lead2.svg" alt="Testimonial" className="h-12 w-12 rounded-lg object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 sm:rounded-xl shadow-md" />
+            <img key={imagesState.active[1]} src={imagesState.active[1]} alt="Testimonial" className="h-12 w-12 rounded-lg object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 sm:rounded-xl shadow-md animate-image-fade" />
           </div>
 
           {/* Col 2 */}
           <div className="flex flex-col gap-2 sm:gap-4 translate-y-3 sm:translate-y-6">
-            <img src="/assets/images/lead3.svg" alt="Testimonial" className="h-16 w-12 rounded-lg object-cover sm:h-36 sm:w-28 md:h-44 md:w-32 sm:rounded-2xl shadow-md" />
-            <img src="/assets/images/lead4.svg" alt="Testimonial" className="h-14 w-12 rounded-lg object-cover sm:h-32 sm:w-28 md:h-40 md:w-32 sm:rounded-2xl shadow-md" />
+            <img key={imagesState.active[2]} src={imagesState.active[2]} alt="Testimonial" className="h-16 w-12 rounded-lg object-cover sm:h-36 sm:w-28 md:h-44 md:w-32 sm:rounded-2xl shadow-md animate-image-fade" />
+            <img key={imagesState.active[3]} src={imagesState.active[3]} alt="Testimonial" className="h-14 w-12 rounded-lg object-cover sm:h-32 sm:w-28 md:h-40 md:w-32 sm:rounded-2xl shadow-md animate-image-fade" />
           </div>
 
           {/* Col 3 */}
           <div className="flex flex-col gap-2 sm:gap-4 -translate-y-1 sm:-translate-y-2">
             <div className="relative h-14 w-12 overflow-hidden rounded-lg bg-blue-500 sm:h-32 sm:w-32 md:h-40 md:w-40 sm:rounded-2xl shadow-lg">
-              <img src="/assets/images/lead5.svg" alt="Testimonial" className="h-full w-full object-cover mix-blend-screen opacity-90 grayscale" />
+              <img key={imagesState.active[4]} src={imagesState.active[4]} alt="Testimonial" className="h-full w-full object-cover animate-image-fade" />
             </div>
           </div>
 
           {/* Col 4 */}
           <div className="flex flex-col gap-2 sm:gap-4 translate-y-[-0.5rem] sm:translate-y-[-1rem]">
-            <img src="/assets/images/lead6.svg" alt="Testimonial" className="h-14 w-12 rounded-lg object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 sm:rounded-2xl shadow-md" />
+            <img key={imagesState.active[5]} src={imagesState.active[5]} alt="Testimonial" className="h-14 w-12 rounded-lg object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 sm:rounded-2xl shadow-md animate-image-fade" />
           </div>
 
           {/* Col 5 */}
           <div className="flex flex-col gap-2 sm:gap-4 translate-y-2 sm:translate-y-4">
             <div className="relative h-20 w-12 overflow-hidden rounded-lg bg-pink-300 sm:h-40 sm:w-32 md:h-48 md:w-36 sm:rounded-2xl shadow-lg">
-              <img src="/assets/images/lead7.svg" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-80 grayscale" />
+              <img key={imagesState.active[6]} src={imagesState.active[6]} alt="Testimonial" className="h-full w-full object-cover animate-image-fade" />
             </div>
           </div>
 
           {/* Col 6 */}
           <div className="flex flex-col gap-2 sm:gap-4 translate-y-3 sm:translate-y-6">
-            <img src="/assets/images/lead8.svg" alt="Testimonial" className="h-14 w-14 rounded-lg object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 sm:rounded-2xl shadow-md" />
-            <img src="/assets/images/lead9.svg" alt="Testimonial" className="h-14 w-14 rounded-lg object-cover sm:h-32 sm:w-32 md:h-40 md:w-36 sm:rounded-2xl shadow-md" />
+            <img key={imagesState.active[7]} src={imagesState.active[7]} alt="Testimonial" className="h-14 w-14 rounded-lg object-cover sm:h-32 sm:w-32 md:h-36 md:w-36 sm:rounded-2xl shadow-md animate-image-fade" />
+            <img key={imagesState.active[8]} src={imagesState.active[8]} alt="Testimonial" className="h-14 w-14 rounded-lg object-cover sm:h-32 sm:w-32 md:h-40 md:w-36 sm:rounded-2xl shadow-md animate-image-fade" />
           </div>
 
           {/* Col 7 */}
           <div className="flex flex-col gap-2 sm:gap-4 -translate-y-2 sm:-translate-y-4">
             <div className="relative h-14 w-12 overflow-hidden rounded-lg bg-yellow-400 sm:h-32 sm:w-28 md:h-40 md:w-32 sm:rounded-2xl shadow-lg">
-              <img src="/assets/images/lead10.svg" alt="Testimonial" className="h-full w-full object-cover mix-blend-multiply opacity-90 grayscale" />
+              <img key={imagesState.active[9]} src={imagesState.active[9]} alt="Testimonial" className="h-full w-full object-cover animate-image-fade" />
             </div>
-            <img src="/assets/images/lead11.svg" alt="Testimonial" className="h-12 w-12 rounded-lg object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 sm:rounded-xl shadow-md" />
+            <img key={imagesState.active[10]} src={imagesState.active[10]} alt="Testimonial" className="h-12 w-12 rounded-lg object-cover sm:h-28 sm:w-28 md:h-32 md:w-32 sm:rounded-xl shadow-md animate-image-fade" />
           </div>
         </div>
 
