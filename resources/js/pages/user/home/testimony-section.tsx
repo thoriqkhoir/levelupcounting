@@ -57,6 +57,21 @@ export default function TestimonySection() {
       '/assets/images/lead13.png',
       '/assets/images/lead14.png',
       '/assets/images/lead15.png',
+      '/assets/images/lead16.png',
+      '/assets/images/lead17.png',
+      '/assets/images/lead18.png',
+      '/assets/images/lead19.png',
+      '/assets/images/lead20.png',
+      '/assets/images/lead21.png',
+      '/assets/images/lead22.png',
+      '/assets/images/lead23.png',
+      '/assets/images/lead24.png',
+      '/assets/images/lead25.png',
+      '/assets/images/lead26.png',
+      '/assets/images/lead27.png',
+      '/assets/images/lead28.png',
+      '/assets/images/lead29.png',
+      '/assets/images/lead30.png',
       ...Array.from({ length: 11 }, (_, i) => `/assets/images/lead${i + 1}.svg`)
     ]
   });
