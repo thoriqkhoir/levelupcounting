@@ -152,7 +152,7 @@ export default function Home({ latestProducts, myProductIds, allProducts, active
                 {typeof window !== 'undefined' && window.innerWidth >= 1024 && <FakeNotifications products={allProducts} />}
 
                 <a
-                    href="https://wa.me/+6287754764475?text=Halo%20Admin%20Level%20Up%20Accounting,%20saya%20ingin%20bertanya%20tentang%20kelas%20online."
+                    href="https://wa.me/+6287775764475?text=Halo%20Admin%20Level%20Up%20Accounting,%20saya%20ingin%20bertanya%20tentang%20kelas%20online."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="fixed right-4 bottom-18 z-50 transition duration-300 hover:scale-110 md:right-10 lg:bottom-6"

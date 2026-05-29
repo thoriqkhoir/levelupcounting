@@ -78,8 +78,8 @@ export default function FaqSection() {
                     <AccordionContent>
                         <p className="text-sm text-zinc-500 md:text-base dark:text-zinc-400">
                             Untuk informasi lebih lengkap, Anda dapat menghubungi admin Level Up Accounting melalui WhatsApp di{' '}
-                            <a href="https://wa.me/+6287754764475" className="text-primary hover:underline">
-                                +6287754764475
+                            <a href="https://wa.me/+6287775764475" className="text-primary hover:underline">
+                                +6287775764475
                             </a>
                              . Kami juga aktif di media sosial seperti Instagram, TikTok, dan LinkedIn untuk berbagi update program serta tips belajar terbaru.
 

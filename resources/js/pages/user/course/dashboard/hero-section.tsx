@@ -69,7 +69,7 @@ export default function HeroSection() {
                             Lihat Kelas Online
                         </Button>
                     </a>
-                    <a href="https://wa.me/+6287754764475" target="_blank" rel="noopener noreferrer">
+                    <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" size="lg" className="px-8 text-base rounded-full">
                             Konsultasi Gratis
                         </Button>
