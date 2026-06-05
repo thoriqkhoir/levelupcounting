@@ -61,6 +61,27 @@ class BootcampController extends Controller
             })
             ->sum('nett_amount');
 
+        $bootcampsWithRecording = 0;
+        $bootcampsPartiallyRecorded = 0;
+        $bootcampsWithoutRecording = 0;
+
+        foreach ($bootcamps as $bootcamp) {
+            $schedules = $bootcamp->schedules;
+            $totalSchedules = $schedules->count();
+            if ($totalSchedules === 0) {
+                $bootcampsWithoutRecording++;
+                continue;
+            }
+            $uploadedCount = $schedules->whereNotNull('recording_url')->where('recording_url', '!=', '')->count();
+            if ($uploadedCount === $totalSchedules) {
+                $bootcampsWithRecording++;
+            } elseif ($uploadedCount > 0) {
+                $bootcampsPartiallyRecorded++;
+            } else {
+                $bootcampsWithoutRecording++;
+            }
+        }
+
         $statistics = [
             'overview' => [
                 'total_bootcamps' => $totalBootcamps,
@@ -75,6 +96,11 @@ class BootcampController extends Controller
             'completion' => [
                 'completed' => $completedBootcamps,
                 'ongoing' => $ongoingBootcamps,
+            ],
+            'recording' => [
+                'with_recording' => $bootcampsWithRecording,
+                'partially_recorded' => $bootcampsPartiallyRecorded,
+                'without_recording' => $bootcampsWithoutRecording,
             ],
             'performance' => [
                 'total_enrollments' => $totalEnrollments,
@@ -213,7 +239,14 @@ class BootcampController extends Controller
         ])
             ->whereHas('bootcampItems', function ($query) use ($id) {
                 $query->where('bootcamp_id', $id);
-            })
+            });
+
+        $transactions = (clone $transactionQuery)
+            ->whereDoesntHave('bundleEnrollments')
+            ->latest()
+            ->get();
+
+        $ratingTransactions = (clone $transactionQuery)
             ->latest()
             ->get();
 
@@ -271,7 +304,7 @@ class BootcampController extends Controller
                 ];
             });
 
-        $ratings = $transactions->flatMap(function ($invoice) {
+        $ratings = $ratingTransactions->flatMap(function ($invoice) {
             return $invoice->bootcampItems->map(function ($item) use ($invoice) {
                 if ($item->rating && $item->review) {
                     return [
