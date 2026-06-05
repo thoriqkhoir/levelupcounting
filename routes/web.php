@@ -5,6 +5,7 @@ use App\Http\Controllers\AffiliateController;
 use App\Http\Controllers\AffiliateEarningController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\BootcampController;
+use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\BundleController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CertificateController;
@@ -19,7 +20,9 @@ use App\Http\Controllers\CourseRatingController;
 use App\Http\Controllers\DiscountCodeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\LessonAssignmentController;
 use App\Http\Controllers\MentorController;
+use App\Http\Controllers\PrivateClassController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\PromotionController;
@@ -27,27 +30,27 @@ use App\Http\Controllers\ToolController;
 use App\Http\Controllers\User\CourseController as UserCourseController;
 use App\Http\Controllers\User\BootcampController as UserBootcampController;
 use App\Http\Controllers\User\BundleController as UserBundleController;
-use App\Http\Controllers\User\WebinarController as UserWebinarController;
 use App\Http\Controllers\User\CertificationProgramController as UserCertificationProgramController;
+use App\Http\Controllers\User\PrivateController as UserPrivateController;
+use App\Http\Controllers\User\WebinarController as UserWebinarController;
 use App\Http\Controllers\User\ArticleController as UserArticleController;
 use App\Http\Controllers\User\MentorController as UserMentorController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\Profile\BootcampController as ProfileBootcampController;
+use App\Http\Controllers\User\Profile\CertificationProgramController as ProfileCertificationProgramController;
 use App\Http\Controllers\User\Profile\CourseController as ProfileCourseController;
 use App\Http\Controllers\User\Profile\TransactionController as ProfileTransactionController;
 use App\Http\Controllers\User\Profile\WebinarController as ProfileWebinarController;
-use App\Http\Controllers\User\Profile\CertificationProgramController as ProfileCertificationProgramController;
 use App\Http\Controllers\User\Profile\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\User\QuizController as UserQuizController;
-use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
 
 Route::post('/auto-login', function (Request $request) {
     try {
@@ -98,20 +101,25 @@ Route::get('/bootcamp', [UserBootcampController::class, 'index'])->name('bootcam
 Route::get('/bootcamp/{bootcamp:slug}', [UserBootcampController::class, 'detail'])->name('bootcamp.detail');
 Route::get('/webinar', [UserWebinarController::class, 'index'])->name('webinar.index');
 Route::get('/webinar/{webinar:slug}', [UserWebinarController::class, 'detail'])->name('webinar.detail');
+Route::get('/private', [UserPrivateController::class, 'index'])->name('private.index');
+Route::get('/private/{privateClass:slug}', [UserPrivateController::class, 'detail'])->name('private.detail');
 Route::get('/bundle', [UserBundleController::class, 'index'])->name('bundle.index');
 Route::get('/bundle/{bundle:slug}', [UserBundleController::class, 'detail'])->name('bundle.detail');
 Route::get('/certification-programs', [UserCertificationProgramController::class, 'index'])->name('certification-programs.index');
 Route::get('/certification-programs/{program:slug}', [UserCertificationProgramController::class, 'detail'])->name('certification-programs.detail');
 Route::get('/certificate/{code}', [CertificateParticipantController::class, 'show'])->name('certificate.participant.detail');
+Route::get('/certificate/{code}/pdf', [CertificateParticipantController::class, 'viewPdf'])->name('certificate.participant.pdf');
+Route::get('/certificate/{code}/download', [CertificateParticipantController::class, 'downloadPdf'])->name('certificate.participant.download.public');
+Route::get('/check-certificate', [CertificateParticipantController::class, 'checkForm'])->name('certificates.check');
 Route::get('/article', [UserArticleController::class, 'index'])->name('article.index');
 Route::get('/article/{slug}', [UserArticleController::class, 'show'])->name('article.show');
 Route::get('/mentor', [UserMentorController::class, 'index'])->name('mentor.index');
 Route::get('/mentor/{id}', [UserMentorController::class, 'show'])->name('mentor.show');
-Route::get('/about', [UserMentorController::class, 'aboutPage'])->name('about');
 
 Route::get('/course/{course:slug}/checkout', [UserCourseController::class, 'showCheckout'])->name('course.checkout');
 Route::get('/bootcamp/{bootcamp:slug}/register', [UserBootcampController::class, 'showRegister'])->name('bootcamp.register');
 Route::get('/webinar/{webinar:slug}/register', [UserWebinarController::class, 'showRegister'])->name('webinar.register');
+Route::get('/private/{privateClass:slug}/register', [UserPrivateController::class, 'showRegister'])->name('private.register');
 Route::get('/bundle/{bundle:slug}/checkout', [UserBundleController::class, 'showCheckout'])->name('bundle.checkout');
 Route::get('/certification-programs/{program:slug}/register', [UserCertificationProgramController::class, 'showRegister'])->name('certification-programs.register');
 Route::get('/certification-programs/{program:slug}/scholarship-apply', [UserCertificationProgramController::class, 'scholarshipApply'])->name('certification-programs.scholarship-apply');
@@ -122,6 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/course/checkout/success', [UserCourseController::class, 'showCheckoutSuccess'])->name('course.checkout.success');
     Route::get('/bootcamp/register/success', [UserBootcampController::class, 'showRegisterSuccess'])->name('bootcamp.register.success');
     Route::get('/webinar/register/success', [UserWebinarController::class, 'showRegisterSuccess'])->name('webinar.register.success');
+    Route::get('/private/register/success', [UserPrivateController::class, 'showRegisterSuccess'])->name('private.register.success');
 
     Route::post('/invoice', [InvoiceController::class, 'store'])->name('invoice.store');
     Route::post('/invoice-bundle', [InvoiceController::class, 'storeBundle'])->name('invoice.store.bundle');
@@ -144,13 +153,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/profile/my-bootcamps/review/submit', [ProfileBootcampController::class, 'submitReview'])->name('profile.bootcamp.review.submit');
     Route::get('/profile/my-bootcamps/{bootcamp}/certificate', [ProfileBootcampController::class, 'downloadCertificate'])->name('profile.bootcamp.certificate');
     Route::get('/profile/my-bootcamps/{bootcamp}/certificate/preview', [ProfileBootcampController::class, 'previewCertificate'])->name('profile.bootcamp.certificate.preview');
+    Route::get('/profile/my-certification-programs', [ProfileCertificationProgramController::class, 'index'])->name('profile.certification-programs');
+    Route::get('/profile/my-certification-programs/{program}', [ProfileCertificationProgramController::class, 'detail'])->name('profile.certification-program.detail');
     Route::get('/profile/my-webinars', [ProfileWebinarController::class, 'index'])->name('profile.webinars');
     Route::get('/profile/my-webinars/{webinar}', [ProfileWebinarController::class, 'detail'])->name('profile.webinar.detail');
     Route::post('/profile/my-webinar/attendance-review/submit', [ProfileWebinarController::class, 'submitAttendanceAndReview'])->name('profile.webinar.attendance-review.submit');
     Route::get('/profile/my-webinars/{webinar}/certificate', [ProfileWebinarController::class, 'downloadCertificate'])->name('profile.webinar.certificate');
     Route::get('/profile/my-webinars/{webinar}/certificate/preview', [ProfileWebinarController::class, 'previewCertificate'])->name('profile.webinar.certificate.preview');
-    Route::get('/profile/my-certification-programs', [ProfileCertificationProgramController::class, 'index'])->name('profile.certification-programs');
-    Route::get('/profile/my-certification-programs/{program}', [ProfileCertificationProgramController::class, 'detail'])->name('profile.certification-program.detail');
     Route::get('/profile/transactions', [ProfileTransactionController::class, 'index'])->name('profile.transactions');
     Route::get('/profile/transactions/{invoice}', [ProfileTransactionController::class, 'show'])->name('profile.transaction.detail');
 
@@ -174,6 +183,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('enrollment.check')
         ->name('learn.course.quiz');
     Route::post('/lesson/{lesson}/complete', [App\Http\Controllers\LessonController::class, 'markComplete'])->name('lesson.complete');
+    Route::post('/lesson/{lesson}/assignment-submit', [LessonAssignmentController::class, 'submit'])->name('lesson.assignment.submit');
 
     Route::post('/enrollment/progress/{courseSlug}', [EnrollmentProgressController::class, 'updateProgress'])->name('enrollment.progress.update');
     Route::get('/enrollment/progress/{courseSlug}', [EnrollmentProgressController::class, 'getProgress'])->name('enrollment.progress.get');
@@ -212,10 +222,19 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate'])->prefix('
 
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class);
+
+        Route::resource('broadcasts', BroadcastController::class);
+        Route::post('broadcasts/{broadcast}/filtered-users', [BroadcastController::class, 'filteredUsers'])->name('broadcasts.filtered-users');
+        Route::post('broadcasts/{broadcast}/send', [BroadcastController::class, 'send'])->name('broadcasts.send');
+        Route::post('broadcasts/{broadcast}/send-single', [BroadcastController::class, 'sendSingle'])->name('broadcasts.send-single');
         Route::resource('certificates', CertificateController::class);
         Route::get('/{certificate}/preview', [CertificateController::class, 'preview'])->name('certificates.preview');
         Route::get('/{certificate}/download-all', [CertificateController::class, 'downloadAll'])->name('certificates.download.all');
         Route::get('/participant/{participant}/download', [CertificateController::class, 'downloadParticipant'])->name('certificates.participant.download');
+        Route::get('/certificates/{certificate}/download-grades-template', [CertificateController::class, 'downloadGradesTemplate'])->name('certificates.download-grades-template');
+        Route::post('/certificates/{certificate}/import-grades', [CertificateController::class, 'importGrades'])->name('certificates.import-grades');
+        Route::get('/certificates/{certificate}/download-participants-template', [CertificateController::class, 'downloadParticipantsTemplate'])->name('certificates.download-participants-template');
+        Route::post('/certificates/{certificate}/import-manual-participants', [CertificateController::class, 'importManualParticipants'])->name('certificates.import-manual-participants');
         Route::resource('certificate-designs', CertificateDesignController::class);
         Route::resource('certificate-signs', CertificateSignController::class);
 
@@ -226,13 +245,6 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate'])->prefix('
         Route::post('/bootcamps/{bootcamp}/hidden', [BootcampController::class, 'hidden'])->name('bootcamps.hidden');
         Route::post('/bootcamps/{bootcamp}/schedules/{schedule}/recording', [BootcampController::class, 'addScheduleRecording'])->name('bootcamps.add-recording');
         Route::delete('/bootcamps/{bootcamp}/schedules/{schedule}/recording', [BootcampController::class, 'removeScheduleRecording'])->name('bootcamps.remove-recording');
-
-        Route::resource('webinars', WebinarController::class);
-        Route::post('/webinars/{webinar}/publish', [WebinarController::class, 'publish'])->name('webinars.publish');
-        Route::post('/webinars/{webinar}/archive', [WebinarController::class, 'archive'])->name('webinars.archive');
-        Route::post('/webinars/{webinar}/duplicate', [WebinarController::class, 'duplicate'])->name('webinars.duplicate');
-        Route::patch('webinars/{webinar}/add-recording', [WebinarController::class, 'addRecording'])->name('webinars.add-recording');
-        Route::delete('/webinars/{id}/recording', [WebinarController::class, 'removeRecording'])->name('webinars.recording.remove');
 
         Route::resource('certification-programs', CertificationProgramController::class);
         Route::post('/certification-programs/{program}/publish', [CertificationProgramController::class, 'publish'])->name('certification-programs.publish');
@@ -246,6 +258,18 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate'])->prefix('
         Route::post('/certification-programs/{program}/applications/{application}/reject', [CertificationProgramController::class, 'rejectApplication'])->name('certification-programs.applications.reject');
         Route::post('/certification-programs/{program}/scholarship-applications/{application}/approve', [CertificationProgramController::class, 'approveScholarshipApplication'])->name('certification-programs.scholarship-applications.approve');
         Route::post('/certification-programs/{program}/scholarship-applications/{application}/reject', [CertificationProgramController::class, 'rejectScholarshipApplication'])->name('certification-programs.scholarship-applications.reject');
+
+        Route::resource('webinars', WebinarController::class);
+        Route::post('/webinars/{webinar}/publish', [WebinarController::class, 'publish'])->name('webinars.publish');
+        Route::post('/webinars/{webinar}/archive', [WebinarController::class, 'archive'])->name('webinars.archive');
+        Route::post('/webinars/{webinar}/duplicate', [WebinarController::class, 'duplicate'])->name('webinars.duplicate');
+        Route::patch('webinars/{webinar}/add-recording', [WebinarController::class, 'addRecording'])->name('webinars.add-recording');
+        Route::delete('/webinars/{id}/recording', [WebinarController::class, 'removeRecording'])->name('webinars.recording.remove');
+
+        Route::resource('privates', PrivateClassController::class);
+        Route::post('/privates/{private}/publish', [PrivateClassController::class, 'publish'])->name('privates.publish');
+        Route::post('/privates/{private}/archive', [PrivateClassController::class, 'archive'])->name('privates.archive');
+        Route::post('/privates/{private}/duplicate', [PrivateClassController::class, 'duplicate'])->name('privates.duplicate');
 
         Route::resource('bundles', BundleController::class);
         Route::post('/bundles/{bundle}/publish', [BundleController::class, 'publish'])->name('bundles.publish');
@@ -266,14 +290,14 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate'])->prefix('
 
         Route::post('/course-ratings/{rating}/approve', [CourseRatingController::class, 'approve'])->name('course-ratings.approve');
         Route::post('/course-ratings/{rating}/reject', [CourseRatingController::class, 'reject'])->name('course-ratings.reject');
+        Route::post('/lesson-assignment-submissions/{submission}/approve', [LessonAssignmentController::class, 'approve'])->name('lesson-assignments.approve');
+        Route::post('/lesson-assignment-submissions/{submission}/reject', [LessonAssignmentController::class, 'reject'])->name('lesson-assignments.reject');
 
         Route::resource('discount-codes', DiscountCodeController::class);
         Route::get('transactions', [InvoiceController::class, 'index'])->name('transactions.index');
 
         Route::resource('promotions', PromotionController::class);
         Route::patch('promotions/{promotion}/toggle-status', [PromotionController::class, 'toggleStatus'])->name('promotions.toggle-status');
-
-        Route::get('transactions', [InvoiceController::class, 'index'])->name('transactions.index');
         Route::get('transactions/export', [InvoiceController::class, 'export'])->name('transactions.export');
     });
 
@@ -284,17 +308,17 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate'])->prefix('
         Route::get('webinars', [WebinarController::class, 'index'])->name('webinars.index');
         Route::get('webinars/{webinar}', [WebinarController::class, 'show'])->name('webinars.show');
 
-        Route::get('bundles', [BundleController::class, 'index'])->name('bundles.index');
-        Route::get('bundles/{bundle}', [BundleController::class, 'show'])->name('bundles.show');
+        Route::get('privates', [PrivateClassController::class, 'index'])->name('privates.index');
+        Route::get('privates/{private}', [PrivateClassController::class, 'show'])->name('privates.show');
     });
 
-    Route::middleware(['role:affiliate|mentor'])->group(function () {
+    Route::middleware(['role:affiliate|mentor|admin'])->group(function () {
         Route::get('affiliate-earnings', [AffiliateEarningController::class, 'index'])->name('earnings.index');
+        Route::get('affiliate-earnings/export', [AffiliateEarningController::class, 'export'])->name('earnings.export');
     });
 });
 
 Route::post('/api/discount-codes/validate', [DiscountCodeController::class, 'validate'])->name('api.discount-codes.validate');
-
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
