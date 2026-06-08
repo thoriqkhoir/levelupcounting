@@ -26,7 +26,7 @@ export default function CtaSection() {
                             className="rounded-full border-2 bg-primary hover:bg-secondary hover:text-white"
                         >
                             <Link
-                                href="https://wa.me/+6287754764475?text=Halo%20Admin%20Level%20Up%20Accounting,%20saya%20ingin%20bertanya%20tentang%20Bootcamp%20online."
+                                href="https://wa.me/+6287775764475?text=Halo%20Admin%20Level%20Up%20Accounting,%20saya%20ingin%20bertanya%20tentang%20Bootcamp%20online."
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -65,7 +65,7 @@ export default function CtaSection() {
                                     className="inline-flex items-center gap-3 text-base text-white/80 transition-colors hover:text-white"
                                 >
                                     <Phone className="h-5 w-5 flex-shrink-0 text-white" />
-                                    087-754-764-475
+                                    0877-7576-4475
                                 </a>
                                 <a
                                     href="mailto:levelupacc4@gmail.com"

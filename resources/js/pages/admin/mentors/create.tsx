@@ -4,7 +4,9 @@ import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitl
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useForm } from '@inertiajs/react';
-import { FormEventHandler, useRef } from 'react';
+import { FormEventHandler, useRef, useState, useEffect } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useInitials } from '@/hooks/use-initials';
 
 interface CreateMentorProps {
     setOpen: (open: boolean) => void;
@@ -16,6 +18,9 @@ export default function CreateMentor({ setOpen }: CreateMentorProps) {
     const emailInput = useRef<HTMLInputElement>(null);
     const phoneInput = useRef<HTMLInputElement>(null);
     const commissionInput = useRef<HTMLInputElement>(null);
+
+    const getInitials = useInitials();
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     const {
         data,
@@ -34,6 +39,16 @@ export default function CreateMentor({ setOpen }: CreateMentorProps) {
         commission: 0,
         photo_url: null,
     });
+
+    useEffect(() => {
+        if (data.photo_url instanceof File) {
+            const url = URL.createObjectURL(data.photo_url);
+            setPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        } else {
+            setPreviewUrl(null);
+        }
+    }, [data.photo_url]);
 
     const createMentor: FormEventHandler = (e) => {
         e.preventDefault();
@@ -158,19 +173,28 @@ export default function CreateMentor({ setOpen }: CreateMentorProps) {
                     <Label htmlFor="photo_url" className="text-xs text-gray-500">
                         Foto Profil
                     </Label>
-                    <Input
-                        id="photo_url"
-                        type="file"
-                        name="photo_url"
-                        onChange={(e) => {
-                            if (e.target.files && e.target.files.length > 0) {
-                                setData('photo_url', e.target.files[0]);
-                            } else {
-                                setData('photo_url', null);
-                            }
-                        }}
-                        accept="image/*"
-                    />
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-12 w-12 border shadow-sm">
+                            <AvatarImage src={previewUrl || undefined} className="object-cover" />
+                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                {getInitials(data.name || 'M')}
+                            </AvatarFallback>
+                        </Avatar>
+                        <Input
+                            id="photo_url"
+                            type="file"
+                            name="photo_url"
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files.length > 0) {
+                                    setData('photo_url', e.target.files[0]);
+                                } else {
+                                    setData('photo_url', null);
+                                }
+                            }}
+                            accept="image/*"
+                            className="flex-1"
+                        />
+                    </div>
                     <InputError message={errors.photo_url} />
                 </div>
                 <DialogFooter className="gap-2">

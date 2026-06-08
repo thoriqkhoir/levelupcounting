@@ -20,7 +20,7 @@ export default function CarouselSection() {
                     <CarouselItem className="px-4">
                         <a href="#latest-products">
                             <img
-                                src="/assets/images/carousel-1.webp"
+                                src="/assets/images/1.png"
                                 alt="Slide 1"
                                 loading="lazy"
                                 className="mx-auto w-full max-w-7xl rounded-xl object-cover shadow-lg"
@@ -30,7 +30,7 @@ export default function CarouselSection() {
                     <CarouselItem className="px-4">
                         <Link href={route('certification-programs.index')}>
                             <img
-                                src="/assets/images/carousel-2.webp"
+                                src="/assets/images/2.png"
                                 alt="Slide 2"
                                 loading="lazy"
                                 className="mx-auto w-full max-w-7xl rounded-xl object-cover shadow-lg"
@@ -40,7 +40,7 @@ export default function CarouselSection() {
                     <CarouselItem className="px-4">
                         <Link href={route('bootcamp.index')}>
                             <img
-                                src="/assets/images/carousel-3.webp"
+                                src="/assets/images/3.png"
                                 alt="Slide 3"
                                 loading="lazy"
                                 className="mx-auto w-full max-w-7xl rounded-xl object-cover shadow-lg"
@@ -50,7 +50,7 @@ export default function CarouselSection() {
                     <CarouselItem className="px-4">
                         <Link href={route('course.index')}>
                             <img
-                                src="/assets/images/carousel-2.webp"
+                                src="/assets/images/4.png"
                                 alt="Slide 4"
                                 loading="lazy"
                                 className="mx-auto w-full max-w-7xl rounded-xl object-cover shadow-lg"
