@@ -89,7 +89,7 @@ export default function ImportManualParticipantsDialog({ certificateId }: Import
                 <div className="space-y-4 py-2">
                     <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                         <p className="text-xs text-blue-700">
-                            <strong>Catatan:</strong> Kode sertifikat (AKS-{new Date().getFullYear().toString().slice(-2)}XXXX) akan di-generate otomatis untuk setiap
+                            <strong>Catatan:</strong> Kode sertifikat (LVU-{new Date().getFullYear().toString().slice(-2)}XXXX) akan di-generate otomatis untuk setiap
                             peserta. Jika peserta belum terdaftar, akun baru akan dibuat otomatis.
                         </p>
                     </div>

@@ -134,10 +134,10 @@ class CertificateController extends Controller
                 $prefilledData['program_type'] = 'course';
                 $prefilledData['course_id'] = $courseId;
                 $prefilledData['title'] = "Sertifikat {$course->title}";
-                $prefilledData['description'] = "Sertifikat {$course->title} yang diselenggarakan oleh Aksademy";
+                $prefilledData['description'] = "Sertifikat {$course->title} yang diselenggarakan oleh Level Up Accounting";
 
                 if (!$courses->contains('id', $courseId)) {
-                    $courses->push((object)[
+                    $courses->push((object) [
                         'id' => $course->id,
                         'title' => $course->title
                     ]);
@@ -153,10 +153,10 @@ class CertificateController extends Controller
                 $prefilledData['program_type'] = 'bootcamp';
                 $prefilledData['bootcamp_id'] = $bootcampId;
                 $prefilledData['title'] = "Sertifikat {$bootcamp->title}";
-                $prefilledData['description'] = "Sertifikat {$bootcamp->title} yang diselenggarakan oleh Aksademy";
+                $prefilledData['description'] = "Sertifikat {$bootcamp->title} yang diselenggarakan oleh Level Up Accounting";
 
                 if (!$bootcamps->contains('id', $bootcampId)) {
-                    $bootcamps->push((object)[
+                    $bootcamps->push((object) [
                         'id' => $bootcamp->id,
                         'title' => $bootcamp->title
                     ]);
@@ -172,10 +172,10 @@ class CertificateController extends Controller
                 $prefilledData['program_type'] = 'webinar';
                 $prefilledData['webinar_id'] = $webinarId;
                 $prefilledData['title'] = "Sertifikat {$webinar->title}";
-                $prefilledData['description'] = "Sertifikat {$webinar->title} yang diselenggarakan oleh Aksademy";
+                $prefilledData['description'] = "Sertifikat {$webinar->title} yang diselenggarakan oleh Level Up Accounting";
 
                 if (!$webinars->contains('id', $webinarId)) {
-                    $webinars->push((object)[
+                    $webinars->push((object) [
                         'id' => $webinar->id,
                         'title' => $webinar->title
                     ]);
