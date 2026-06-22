@@ -24,6 +24,7 @@ interface Program {
     strikethrough_price?: number;
     thumbnail?: string | null;
     registration_deadline?: string;
+    socialization_registration_deadline?: string;
 }
 
 interface MyProgramIds {
@@ -130,7 +131,8 @@ export default function CertificationProgramSection({ categories, programs, myPr
                 ) : (
                     visiblePrograms.map((program) => {
                         const displayPrice = program.type === 'scholarship' ? (program.scholarship_price ?? program.price) : program.price;
-                        const deadlineDate = program.registration_deadline ? new Date(program.registration_deadline) : null;
+                        const deadline = program.type === 'scholarship' ? program.socialization_registration_deadline : program.registration_deadline;
+                        const deadlineDate = deadline ? new Date(deadline) : null;
                         const daysLeft = deadlineDate ? Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
                         const discount = calcDiscount(program.strikethrough_price ?? 0, displayPrice);
                         const hasAccess = hasProgramAccess(program.id);

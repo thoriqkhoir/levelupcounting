@@ -14,6 +14,7 @@ interface RelatedProgram {
     category?: { name: string };
     thumbnail?: string | null;
     registration_deadline?: string;
+    socialization_registration_deadline?: string;
 }
 
 export default function RelatedPrograms({ relatedPrograms }: { relatedPrograms: RelatedProgram[] }) {
@@ -31,7 +32,8 @@ export default function RelatedPrograms({ relatedPrograms }: { relatedPrograms: 
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {relatedPrograms.map((program) => {
-                    const deadlineDate = program.registration_deadline ? new Date(program.registration_deadline) : null;
+                    const deadline = program.type === 'scholarship' ? program.socialization_registration_deadline : program.registration_deadline;
+                    const deadlineDate = deadline ? new Date(deadline) : null;
                     const discount = calculateDiscount(program.strikethrough_price ?? 0, program.price);
 
                     return (
