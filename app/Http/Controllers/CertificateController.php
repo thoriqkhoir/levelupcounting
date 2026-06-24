@@ -98,8 +98,19 @@ class CertificateController extends Controller
             'participants.user'
         ]);
 
+        $programType = '';
+        if ($certificate->is_independent) {
+            $programType = 'independent';
+        } elseif ($certificate->course_id) {
+            $programType = 'course';
+        } elseif ($certificate->bootcamp_id) {
+            $programType = 'bootcamp';
+        } elseif ($certificate->webinar_id) {
+            $programType = 'webinar';
+        }
+
         return Inertia::render('admin/certificates/show', [
-            'certificate' => $certificate
+            'certificate' => array_merge($certificate->toArray(), ['program_type' => $programType])
         ]);
     }
 
@@ -113,7 +124,7 @@ class CertificateController extends Controller
             ->get();
 
         $bootcamps = Bootcamp::whereDoesntHave('certificate')
-            ->select(['id', 'title'])
+            ->select(['id', 'title', 'curriculum'])
             ->get();
 
         $webinars = Webinar::whereDoesntHave('certificate')
@@ -134,10 +145,10 @@ class CertificateController extends Controller
                 $prefilledData['program_type'] = 'course';
                 $prefilledData['course_id'] = $courseId;
                 $prefilledData['title'] = "Sertifikat {$course->title}";
-                $prefilledData['description'] = "Sertifikat {$course->title} yang diselenggarakan oleh Level Up Accounting";
+                $prefilledData['description'] = "Sertifikat {$course->title} yang diselenggarakan oleh LevelUpAccounting";
 
                 if (!$courses->contains('id', $courseId)) {
-                    $courses->push((object) [
+                    $courses->push((object)[
                         'id' => $course->id,
                         'title' => $course->title
                     ]);
@@ -153,12 +164,13 @@ class CertificateController extends Controller
                 $prefilledData['program_type'] = 'bootcamp';
                 $prefilledData['bootcamp_id'] = $bootcampId;
                 $prefilledData['title'] = "Sertifikat {$bootcamp->title}";
-                $prefilledData['description'] = "Sertifikat {$bootcamp->title} yang diselenggarakan oleh Level Up Accounting";
+                $prefilledData['description'] = "Sertifikat {$bootcamp->title} yang diselenggarakan oleh LevelUpAccounting";
 
                 if (!$bootcamps->contains('id', $bootcampId)) {
-                    $bootcamps->push((object) [
+                    $bootcamps->push((object)[
                         'id' => $bootcamp->id,
-                        'title' => $bootcamp->title
+                        'title' => $bootcamp->title,
+                        'curriculum' => $bootcamp->curriculum,
                     ]);
                 }
             }
@@ -172,10 +184,10 @@ class CertificateController extends Controller
                 $prefilledData['program_type'] = 'webinar';
                 $prefilledData['webinar_id'] = $webinarId;
                 $prefilledData['title'] = "Sertifikat {$webinar->title}";
-                $prefilledData['description'] = "Sertifikat {$webinar->title} yang diselenggarakan oleh Level Up Accounting";
+                $prefilledData['description'] = "Sertifikat {$webinar->title} yang diselenggarakan oleh LevelUpAccounting";
 
                 if (!$webinars->contains('id', $webinarId)) {
-                    $webinars->push((object) [
+                    $webinars->push((object)[
                         'id' => $webinar->id,
                         'title' => $webinar->title
                     ]);
@@ -205,7 +217,7 @@ class CertificateController extends Controller
             'header_bottom' => 'nullable|string',
             'issued_date' => 'nullable|date',
             'period' => 'nullable|string',
-            'program_type' => 'required|in:course,bootcamp,webinar',
+            'program_type' => 'required|in:course,bootcamp,webinar,independent',
             'course_id' => 'required_if:program_type,course|nullable|exists:courses,id',
             'bootcamp_id' => 'required_if:program_type,bootcamp|nullable|exists:bootcamps,id',
             'webinar_id' => 'required_if:program_type,webinar|nullable|exists:webinars,id',
@@ -216,16 +228,27 @@ class CertificateController extends Controller
         ]);
 
         $data = $request->all();
-        if ($request->program_type !== 'course') {
-            $data['course_id'] = null;
+        $programType = $request->program_type;
+
+        // Handle is_independent flag
+        $data['is_independent'] = ($programType === 'independent');
+
+        // Always null-out program IDs first
+        $data['course_id'] = null;
+        $data['bootcamp_id'] = null;
+        $data['webinar_id'] = null;
+
+        if ($programType === 'course') {
+            $data['course_id'] = $request->course_id;
+        } elseif ($programType === 'webinar') {
+            $data['webinar_id'] = $request->webinar_id;
         }
-        if ($request->program_type !== 'bootcamp') {
-            $data['bootcamp_id'] = null;
-            $data['page_count'] = 1;
-            $data['second_page_grade'] = false;
-            $data['second_page_material'] = false;
-            $data['assessment_subjects'] = null;
-        } else {
+
+        // Page count / second page logic: applies to bootcamp and independent
+        if (in_array($programType, ['bootcamp', 'independent'])) {
+            if ($programType === 'bootcamp') {
+                $data['bootcamp_id'] = $request->bootcamp_id;
+            }
             $data['page_count'] = $request->input('page_count', 1);
             if ($data['page_count'] != 2) {
                 $data['second_page_grade'] = false;
@@ -234,15 +257,17 @@ class CertificateController extends Controller
             } else {
                 $data['second_page_grade'] = $request->boolean('second_page_grade');
                 $data['second_page_material'] = $request->boolean('second_page_material');
-                if ($data['second_page_grade']) {
+                if ($data['second_page_grade'] || $data['second_page_material']) {
                     $data['assessment_subjects'] = array_values(array_filter($request->input('assessment_subjects', [])));
                 } else {
                     $data['assessment_subjects'] = null;
                 }
             }
-        }
-        if ($request->program_type !== 'webinar') {
-            $data['webinar_id'] = null;
+        } else {
+            $data['page_count'] = 1;
+            $data['second_page_grade'] = false;
+            $data['second_page_material'] = false;
+            $data['assessment_subjects'] = null;
         }
 
         Certificate::create($data);
@@ -265,7 +290,7 @@ class CertificateController extends Controller
         $bootcamps = Bootcamp::where(function ($query) use ($certificate) {
             $query->whereDoesntHave('certificate')
                 ->orWhere('id', $certificate->bootcamp_id);
-        })->select(['id', 'title'])->get();
+        })->select(['id', 'title', 'curriculum'])->get();
 
 
         $webinars = Webinar::where(function ($query) use ($certificate) {
@@ -274,7 +299,9 @@ class CertificateController extends Controller
         })->select(['id', 'title'])->get();
 
         $programType = '';
-        if ($certificate->course_id) {
+        if ($certificate->is_independent) {
+            $programType = 'independent';
+        } elseif ($certificate->course_id) {
             $programType = 'course';
         } elseif ($certificate->bootcamp_id) {
             $programType = 'bootcamp';
@@ -304,7 +331,7 @@ class CertificateController extends Controller
             'header_bottom' => 'nullable|string',
             'issued_date' => 'nullable|date',
             'period' => 'nullable|string',
-            'program_type' => 'required|in:course,bootcamp,webinar',
+            'program_type' => 'required|in:course,bootcamp,webinar,independent',
             'course_id' => 'required_if:program_type,course|nullable|exists:courses,id',
             'bootcamp_id' => 'required_if:program_type,bootcamp|nullable|exists:bootcamps,id',
             'webinar_id' => 'required_if:program_type,webinar|nullable|exists:webinars,id',
@@ -315,16 +342,27 @@ class CertificateController extends Controller
         ]);
 
         $data = $request->all();
-        if ($request->program_type !== 'course') {
-            $data['course_id'] = null;
+        $programType = $request->program_type;
+
+        // Handle is_independent flag
+        $data['is_independent'] = ($programType === 'independent');
+
+        // Always null-out program IDs first
+        $data['course_id'] = null;
+        $data['bootcamp_id'] = null;
+        $data['webinar_id'] = null;
+
+        if ($programType === 'course') {
+            $data['course_id'] = $request->course_id;
+        } elseif ($programType === 'webinar') {
+            $data['webinar_id'] = $request->webinar_id;
         }
-        if ($request->program_type !== 'bootcamp') {
-            $data['bootcamp_id'] = null;
-            $data['page_count'] = 1;
-            $data['second_page_grade'] = false;
-            $data['second_page_material'] = false;
-            $data['assessment_subjects'] = null;
-        } else {
+
+        // Page count / second page logic: applies to bootcamp and independent
+        if (in_array($programType, ['bootcamp', 'independent'])) {
+            if ($programType === 'bootcamp') {
+                $data['bootcamp_id'] = $request->bootcamp_id;
+            }
             $data['page_count'] = $request->input('page_count', 1);
             if ($data['page_count'] != 2) {
                 $data['second_page_grade'] = false;
@@ -333,15 +371,17 @@ class CertificateController extends Controller
             } else {
                 $data['second_page_grade'] = $request->boolean('second_page_grade');
                 $data['second_page_material'] = $request->boolean('second_page_material');
-                if ($data['second_page_grade']) {
+                if ($data['second_page_grade'] || $data['second_page_material']) {
                     $data['assessment_subjects'] = array_values(array_filter($request->input('assessment_subjects', [])));
                 } else {
                     $data['assessment_subjects'] = null;
                 }
             }
-        }
-        if ($request->program_type !== 'webinar') {
-            $data['webinar_id'] = null;
+        } else {
+            $data['page_count'] = 1;
+            $data['second_page_grade'] = false;
+            $data['second_page_material'] = false;
+            $data['assessment_subjects'] = null;
         }
 
         $certificate->update($data);
