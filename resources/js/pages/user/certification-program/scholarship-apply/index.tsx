@@ -147,7 +147,7 @@ export default function ScholarshipApply({ program }: { program: Program }) {
                                         <a href="#form">
                                             <Button>Isi Formulir</Button>
                                         </a>
-                                        <a href="https://wa.me/+6285142505794" target="_blank" rel="noopener noreferrer">
+                                        <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                                             <Button variant="outline">Hubungi Kami</Button>
                                         </a>
                                     </motion.div>
@@ -215,7 +215,7 @@ export default function ScholarshipApply({ program }: { program: Program }) {
                             <p className="mb-3 text-xs font-semibold md:text-sm">📞 Untuk informasi lebih lanjut, silakan hubungi:</p>
                             <div className="space-y-1">
                                 <p className="text-sm">📧 <span className="font-medium">aksarateknologimandiri@gmail.com</span></p>
-                                <p className="text-sm">💬 <span className="font-medium">+6285142505794</span></p>
+                                <p className="text-sm">💬 <span className="font-medium">+6287775764475</span></p>
                             </div>
                         </div>
                     </motion.div>

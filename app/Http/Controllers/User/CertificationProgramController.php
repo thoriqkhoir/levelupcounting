@@ -18,8 +18,8 @@ class CertificationProgramController extends Controller
 {
     use WablasTrait;
 
-    private const ADMIN_WHATSAPP_URL = 'https://wa.me/+6285142505794';
-    private const ADMIN_WHATSAPP_NUMBER = '6285142505794';
+    private const ADMIN_WHATSAPP_URL = 'https://wa.me/+6287775764475';
+    private const ADMIN_WHATSAPP_NUMBER = '6287775764475';
 
     public function index()
     {

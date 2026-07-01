@@ -130,7 +130,7 @@ export default function HeroSection({ program }: { program: CertificationProgram
                         <a href="#register">
                             <Button>Daftar Sekarang</Button>
                         </a>
-                        <a href="https://wa.me/+6285142505794" target="_blank" rel="noopener noreferrer">
+                        <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                             <Button variant="outline">Hubungi Kami</Button>
                         </a>
                     </motion.div>
