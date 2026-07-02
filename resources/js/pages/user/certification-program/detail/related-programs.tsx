@@ -17,7 +17,13 @@ interface RelatedProgram {
     socialization_registration_deadline?: string;
 }
 
-export default function RelatedPrograms({ relatedPrograms }: { relatedPrograms: RelatedProgram[] }) {
+export default function RelatedPrograms({
+    relatedPrograms,
+    approvedScholarshipProgramIds = [],
+}: {
+    relatedPrograms: RelatedProgram[];
+    approvedScholarshipProgramIds?: string[];
+}) {
     if (!relatedPrograms || relatedPrograms.length === 0) return null;
 
     const calculateDiscount = (original: number, discounted: number) => {
@@ -86,13 +92,24 @@ export default function RelatedPrograms({ relatedPrograms }: { relatedPrograms: 
                                             </p>
                                         )}
                                         <div className="mb-2 flex items-center justify-between gap-2 px-2">
-                                            {program.price === 0 ? (
-                                                <p className="text-lg font-semibold text-green-600 dark:text-green-400">Gratis</p>
-                                            ) : (
-                                                <p className="text-primary text-base font-bold dark:text-gray-200">
-                                                    Rp {program.price.toLocaleString('id-ID')}
-                                                </p>
-                                            )}
+                                            {(() => {
+                                                const isApprovedScholarship = program.type === 'scholarship' && approvedScholarshipProgramIds?.includes(program.id);
+                                                const isScholarshipNotApproved = program.type === 'scholarship' && !isApprovedScholarship;
+                                                const displayPrice = isScholarshipNotApproved ? 0 : program.price;
+
+                                                return displayPrice === 0 ? (
+                                                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">Gratis</p>
+                                                ) : (
+                                                    <div className="mb-2">
+                                                        {!isScholarshipNotApproved && program.strikethrough_price && program.strikethrough_price > 0 && (
+                                                            <p className="text-sm text-red-500 line-through">{program.strikethrough_price.toLocaleString('id-ID')}</p>
+                                                        )}
+                                                        <p className="text-primary text-base font-bold dark:text-gray-200">
+                                                            Rp {displayPrice.toLocaleString('id-ID')}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })()}   
                                             {program.category && (
                                                 <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-semibold">
                                                     {program.category.name}

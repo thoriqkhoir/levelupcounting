@@ -54,6 +54,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
 
     // Check if scholarship is approved (only matters for scholarship programs)
     const isScholarshipApproved = program.type === 'scholarship' ? scholarshipApplication?.status === 'approved' : true;
+    const isScholarshipNotApproved = program.type === 'scholarship' && !isScholarshipApproved;
     const canRegisterRegular = isRegularRegistrationOpen && !isEnrolled && isScholarshipApproved;
 
     // Scholarship program deadline
@@ -61,7 +62,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
     const isScholarshipRegistrationOpen = scholarshipDeadline ? new Date() < scholarshipDeadline : true;
     const canRegisterScholarship = isScholarshipRegistrationOpen && !isEnrolled;
 
-    const displayPrice = program.type === 'scholarship' ? (program.scholarship_price ?? program.price) : program.price;
+    const displayPrice = isScholarshipNotApproved ? 0 : (program.type === 'scholarship' ? (program.scholarship_price ?? program.price) : program.price);
 
     const discount = program.strikethrough_price && program.strikethrough_price > 0 && displayPrice > 0
         ? Math.round(((program.strikethrough_price - displayPrice) / program.strikethrough_price) * 100)
@@ -128,7 +129,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                     </p>
                                     {displayPrice > 0 ? (
                                         <>
-                                            {program.strikethrough_price && program.strikethrough_price > 0 && (
+                                            {!isScholarshipNotApproved && program.strikethrough_price && program.strikethrough_price > 0 && (
                                                 <span className="block text-xl text-red-500 line-through">
                                                     Rp {program.strikethrough_price.toLocaleString('id-ID')}
                                                 </span>
@@ -136,7 +137,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                             <span className="block text-4xl font-extrabold text-primary">
                                                 Rp {displayPrice.toLocaleString('id-ID')}
                                             </span>
-                                            {program.type === 'scholarship' && program.scholarship_price !== undefined && program.scholarship_price > 0 && (
+                                            {!isScholarshipNotApproved && program.type === 'scholarship' && program.scholarship_price !== undefined && program.scholarship_price > 0 && (
                                                 <span className="mt-2 inline-block rounded-full bg-purple-100 px-4 py-1 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
                                                     Harga Beasiswa
                                                 </span>
@@ -221,7 +222,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                                     </Link>
                                                 </Button>
                                             )}
-                                            {program.type === 'scholarship' && (
+                                            {program.type === 'scholarship' && !isScholarshipApproved && (
                                                 <Button
                                                     asChild
                                                     size="lg"
@@ -229,7 +230,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                                     disabled={!canRegisterScholarship}
                                                     className={`w-full py-4 text-md font-bold ${!canRegisterScholarship ? 'cursor-not-allowed opacity-50' : ''}`}
                                                 >
-                                                    <Link href={canRegisterScholarship ? route('certification-programs.scholarship-apply', program.slug) : '#'}>
+                                                    <Link href={canRegisterScholarship ? route('certification-programs.register', { program: program.slug, scholarship: 1 }) : '#'}>
                                                         <GraduationCap className="mr-2 h-5 w-5" />
                                                         {canRegisterScholarship ? 'Ajukan Beasiswa' : 'Pendaftaran Beasiswa Ditutup'}
                                                     </Link>

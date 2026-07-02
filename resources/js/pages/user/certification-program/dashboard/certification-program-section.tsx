@@ -35,9 +35,10 @@ interface CertificationProgramSectionProps {
     categories: Category[];
     programs: Program[];
     myProgramIds?: string[] | MyProgramIds;
+    approvedScholarshipProgramIds?: string[];
 }
 
-export default function CertificationProgramSection({ categories, programs, myProgramIds }: CertificationProgramSectionProps) {
+export default function CertificationProgramSection({ categories, programs, myProgramIds, approvedScholarshipProgramIds = [] }: CertificationProgramSectionProps) {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [visibleCount, setVisibleCount] = useState(6);
@@ -130,7 +131,9 @@ export default function CertificationProgramSection({ categories, programs, myPr
                     </div>
                 ) : (
                     visiblePrograms.map((program) => {
-                        const displayPrice = program.type === 'scholarship' ? (program.scholarship_price ?? program.price) : program.price;
+                        const isApprovedScholarship = program.type === 'scholarship' && approvedScholarshipProgramIds?.includes(program.id);
+                        const isScholarshipNotApproved = program.type === 'scholarship' && !isApprovedScholarship;
+                        const displayPrice = isScholarshipNotApproved ? 0 : (program.type === 'scholarship' ? (program.scholarship_price ?? program.price) : program.price);
                         const deadline = program.type === 'scholarship' ? program.socialization_registration_deadline : program.registration_deadline;
                         const deadlineDate = deadline ? new Date(deadline) : null;
                         const daysLeft = deadlineDate ? Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
@@ -194,7 +197,7 @@ export default function CertificationProgramSection({ categories, programs, myPr
                                             <p className="line-clamp-2 text-sm text-muted-foreground leading-relaxed">{program.short_description}</p>
                                         )}
                                         <div>
-                                            {(program.strikethrough_price ?? 0) > 0 && (program.strikethrough_price ?? 0) > displayPrice && (
+                                            {!isScholarshipNotApproved && program.strikethrough_price && program.strikethrough_price > 0 && (
                                                 <p className="text-base text-red-500 line-through">Rp. {(program.strikethrough_price ?? 0).toLocaleString('id-ID')}</p>
                                             )}
                                             {displayPrice === 0 ? (
