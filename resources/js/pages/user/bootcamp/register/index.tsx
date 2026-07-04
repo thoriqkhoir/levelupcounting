@@ -87,6 +87,7 @@ type RegisterForm = {
     email: string;
     phone_number: string;
     instance: string;
+    city: string;
     password: string;
     password_confirmation: string;
 };
@@ -152,7 +153,7 @@ export default function RegisterBootcamp({
     const [checkingEmail, setCheckingEmail] = useState(false);
     const { auth } = usePage<SharedData>().props;
     const isLoggedIn = !!auth.user;
-    const isProfileComplete = isLoggedIn && auth.user?.phone_number;
+    const isProfileComplete = isLoggedIn && auth.user?.phone_number && auth.user?.instance && auth.user?.city;
 
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -197,6 +198,7 @@ export default function RegisterBootcamp({
         email: '',
         phone_number: '',
         instance: '',
+        city: '',
         password: '',
         password_confirmation: '',
     });
@@ -219,6 +221,7 @@ export default function RegisterBootcamp({
                     setData('name', response.data.name || '');
                     setData('phone_number', response.data.phone_number || '');
                     setData('instance', response.data.instance || '');
+                    setData('city', response.data.city || '');
                 } else {
                     setEmailExists(false);
                 }
@@ -324,7 +327,7 @@ export default function RegisterBootcamp({
         e.preventDefault();
 
         if (!isProfileComplete) {
-            toast.error('Profil Anda belum lengkap! Harap lengkapi nomor telepon terlebih dahulu.');
+            toast.error('Profil Anda belum lengkap! Harap lengkapi nomor telepon, instansi, dan kota domisili terlebih dahulu untuk mendaftar bootcamp.');
             setTimeout(() => {
                 window.location.href = route('profile.edit');
             }, 1500);
@@ -360,7 +363,7 @@ export default function RegisterBootcamp({
 
         // Jika belum login, lakukan registrasi/login terlebih dahulu
         if (!isLoggedIn) {
-            if (!data.email || !data.name || !data.phone_number) {
+            if (!data.email || !data.name || !data.phone_number || !data.instance || !data.city) {
                 toast.error('Lengkapi data terlebih dahulu');
                 return;
             }
@@ -373,6 +376,8 @@ export default function RegisterBootcamp({
                     const response = await axios.post('/auto-login', {
                         email: data.email,
                         phone_number: data.phone_number,
+                        instance: data.instance,
+                        city: data.city,
                     });
 
                     if (!response.data.success) {
@@ -403,6 +408,8 @@ export default function RegisterBootcamp({
                         name: data.name,
                         email: data.email,
                         phone_number: data.phone_number,
+                        instance: data.instance,
+                        city: data.city,
                         password: data.phone_number,
                         password_confirmation: data.phone_number,
                     });
@@ -1246,11 +1253,24 @@ export default function RegisterBootcamp({
                                                 autoComplete="organization"
                                                 value={data.instance}
                                                 onChange={(e) => setData('instance', e.target.value)}
-                                                disabled={processing || emailExists}
+                                                disabled={processing}
                                                 placeholder="Instansi atau perusahaan Anda"
                                             />
-                                            {!emailExists && <p className="text-xs text-gray-500">Kosongkan jika tidak memiliki instansi</p>}
                                             <InputError message={errors.instance} />
+                                        </div>
+                                        <div className="grid gap-2 pb-2">
+                                            <Label htmlFor="city">Kota Domisili</Label>
+                                            <Input
+                                                id="city"
+                                                 type="text"
+                                                tabIndex={5}
+                                                autoComplete="city"
+                                                value={data.city}
+                                                onChange={(e) => setData('city', e.target.value)}
+                                                disabled={processing}
+                                                placeholder="Kota domisili Anda"
+                                            />
+                                            <InputError message={errors.city} />
                                         </div>
                                     </div>
                                 </form>

@@ -51,6 +51,9 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    phone_number?: string | null;
+    instance?: string | null;
+    city?: string | null;
     avatar?: string;
     photo_url?: string;
     email_verified_at: string | null;
