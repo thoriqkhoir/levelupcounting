@@ -25,6 +25,7 @@ interface Bundle {
     price: number;
     strikethrough_price: number;
     registration_deadline?: string | null;
+    batch?: string | null;
     bundle_items_count: number;
     category?: Category;
     user?: User;
@@ -81,7 +82,7 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                             </span>
 
                                             {/* Items Count Badge - Bottom Left */}
-                                            <div className="absolute bottom-2 left-2 z-20">
+                                            <div className="absolute bottom-2 left-2 z-20 flex items-center gap-2">
                                                 <Badge
                                                     variant="secondary"
                                                     className="bg-white/30 backdrop-blur-md border border-white/40 text-black font-semibold shadow dark:bg-gray-800/30 dark:text-white"
@@ -89,6 +90,11 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                                     <Package size={12} className="mr-1" />
                                                     {bundle.bundle_items_count} Program
                                                 </Badge>
+                                                {bundle.batch && (
+                                                    <Badge className="border-orange-300 bg-orange-100 text-orange-700 dark:border-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                                                        {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : `Batch ${bundle.batch}`}
+                                                    </Badge>
+                                                )}
                                             </div>
 
                                             {/* Deadline Display - Bottom Right */}
@@ -118,7 +124,14 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                                 </div>
                                             )}
                                         </div>
-                                        <h2 className="mx-4 mt-2 line-clamp-2 text-left text-lg font-semibold">{bundle.title}</h2>
+                                        <div className="mx-4 mt-2">
+                                            {bundle.batch && (
+                                                <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
+                                                    {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : `Batch ${bundle.batch}`}
+                                                </span>
+                                            )}
+                                            <h2 className="line-clamp-2 text-left text-lg font-semibold">{bundle.title}</h2>
+                                        </div>
                                     </div>
 
                                     <div className="mt-auto w-full p-2 text-left">

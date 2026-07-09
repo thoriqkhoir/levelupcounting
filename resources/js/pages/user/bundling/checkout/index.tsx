@@ -39,6 +39,7 @@ interface Bundle {
     short_description?: string | null;
     description?: string | null;
     thumbnail?: string | null;
+    batch?: string | null;
     price: number;
     strikethrough_price: number;
     registration_deadline?: string | null;
@@ -740,6 +741,18 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             Paket Bundling
                         </motion.div>
 
+                        {bundle.batch && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.15 }}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
+                            >
+                                <Hourglass className="h-3.5 w-3.5" />
+                                {bundle.batch}
+                            </motion.div>
+                        )}
+
                         {bundleDiscount > 0 && (
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
@@ -808,6 +821,18 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                 <p className="font-semibold">{rupiahFormatter.format(bundleDiscount)}</p>
                             </div>
                         </div>
+
+                        {bundle.batch && (
+                            <div className="flex items-center gap-2 text-black">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
+                                    <Hourglass className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-black">Batch</p>
+                                    <p className="font-semibold">{bundle.batch}</p>
+                                </div>
+                            </div>
+                        )}
                         </motion.div>
                     </div>
                 </motion.div>
@@ -1193,6 +1218,35 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                     </div>
 
                                     <div className="space-y-6 p-6">
+                                        {/* Bundle Info Card */}
+                                        <div className="flex gap-4 rounded-xl border bg-gray-50/50 p-4 dark:bg-zinc-900/50">
+                                            {bundle.thumbnail && (
+                                                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border bg-white dark:bg-zinc-800">
+                                                    <img
+                                                        src={
+                                                            bundle.thumbnail.startsWith('http') || bundle.thumbnail.startsWith('/storage')
+                                                                ? bundle.thumbnail
+                                                                : `/storage/${bundle.thumbnail}`
+                                                        }
+                                                        alt={bundle.title}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0 flex flex-col justify-center text-left">
+                                                <h3 className="font-semibold text-sm line-clamp-2 text-gray-900 dark:text-white leading-snug">
+                                                    {bundle.title}
+                                                </h3>
+                                                {bundle.batch && (
+                                                    <div className="mt-1">
+                                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                                                            {bundle.batch}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         {/* Invoice Info */}
                                         <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
                                             <div className="flex items-center justify-between">
@@ -1200,17 +1254,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                                 <span className="font-semibold text-gray-900 dark:text-white">{pendingInvoice.invoice_code}</span>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                {/* <span className="text-sm text-gray-600 dark:text-gray-400">Metode Pembayaran</span>
-                                                <div className="flex items-center gap-2">
-                                                    <img
-                                                        src={getPaymentGroupIcon(pendingInvoice.payment_channel)}
-                                                        alt={pendingInvoice.payment_channel}
-                                                        className="h-5 w-5 object-contain"
-                                                    />
-                                                    <span className="font-semibold text-gray-900 dark:text-white">
-                                                        {transactionDetail?.payment_name || getPaymentChannelName(pendingInvoice.payment_channel)}
-                                                    </span>
-                                                </div> */}
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Pembayaran</span>
@@ -1338,6 +1381,35 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                     </div>
 
                                     <form onSubmit={handleCheckout} className="px-4 pt-4 pb-6">
+                                        {/* Bundle Info Card */}
+                                        <div className="mb-6 flex gap-4 rounded-xl border bg-gray-50/50 p-4 dark:bg-zinc-900/50">
+                                            {bundle.thumbnail && (
+                                                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border bg-white dark:bg-zinc-800">
+                                                    <img
+                                                        src={
+                                                            bundle.thumbnail.startsWith('http') || bundle.thumbnail.startsWith('/storage')
+                                                                ? bundle.thumbnail
+                                                                : `/storage/${bundle.thumbnail}`
+                                                        }
+                                                        alt={bundle.title}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0 flex flex-col justify-center text-left">
+                                                <h3 className="font-semibold text-sm line-clamp-2 text-gray-900 dark:text-white leading-snug">
+                                                    {bundle.title}
+                                                </h3>
+                                                {bundle.batch && (
+                                                    <div className="mt-1">
+                                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                                                            {bundle.batch}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         <div className="space-y-2 mb-4">
                                             <Label htmlFor="promo-code" className="text-sm font-medium">
                                                 Punya Kode Promo?

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Package, Sparkles } from 'lucide-react';
+import { Calendar, Package, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Bundle {
@@ -9,6 +9,7 @@ interface Bundle {
     thumbnail?: string | null;
     short_description?: string | null;
     registration_deadline?: string | null;
+    batch?: string | null;
     bundle_items_count: number;
 }
 
@@ -45,6 +46,12 @@ export default function HeroSection({ bundle, discountPercentage }: HeroSectionP
                             <Sparkles size={14} className="mr-1" />
                             Paket Bundling
                         </span>
+                        {bundle.batch && (
+                            <span className="text-secondary border-secondary bg-background mb-4 inline-flex w-fit items-center gap-2 rounded-full border bg-gradient-to-t from-[#FED6AD] to-white px-4 py-1 text-sm font-medium shadow-xs">
+                                <Calendar size={14} className="mr-1" />
+                                {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : `Batch ${bundle.batch}`}
+                            </span>
+                        )}
                         {discountPercentage > 0 && (
                             <span className="text-secondary border-secondary bg-background mb-4 inline-flex w-fit items-center rounded-full border bg-gradient-to-t from-[#FED6AD] to-white px-3 py-1 text-sm font-medium shadow-xs hover:text-[#FF925B]">
                                 Hemat {discountPercentage}%
