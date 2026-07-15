@@ -42,6 +42,7 @@ use App\Http\Controllers\User\Profile\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\User\QuizController as UserQuizController;
+use App\Http\Controllers\BiinsightImportController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -244,6 +245,8 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate'])->prefix('
 
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', UserController::class);
+
+        Route::get('/biinsight-import/programs', [BiinsightImportController::class, 'getPrograms'])->name('admin.biinsight-import.programs');
         
         Route::resource('broadcasts', BroadcastController::class);
         Route::post('broadcasts/{broadcast}/filtered-users', [BroadcastController::class, 'filteredUsers'])->name('broadcasts.filtered-users');
