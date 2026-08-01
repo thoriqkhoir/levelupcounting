@@ -1,7 +1,10 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,13 +12,11 @@ import UserLayout from '@/layouts/user-layout';
 import { rupiahFormatter } from '@/lib/utils';
 import { SharedData } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
-import { BadgeCheck, Check, CreditCard, Gift, Hourglass, LoaderCircle, Lock, Package, Play, RefreshCw, Shield, Tag, User, X } from 'lucide-react';
+import { BadgeCheck, Calendar, Check, CreditCard, Gift, Hourglass, LoaderCircle, Package, Play, RefreshCw, Shield, Tag, User, X } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import axios from 'axios';
-import { Input } from '@/components/ui/input';
-import InputError from '@/components/input-error';
 
 interface Product {
     id: string;
@@ -166,21 +167,56 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
     const [promoLoading, setPromoLoading] = useState(false);
     const [promoError, setPromoError] = useState('');
     const [discountData, setDiscountData] = useState<DiscountData | null>(null);
+    const [codeType, setCodeType] = useState<'voucher' | 'referral'>('voucher');
+    const [referralData, setReferralData] = useState<{ valid: boolean; referrer?: { name: string } } | null>(null);
+    const [referralLoading, setReferralLoading] = useState(false);
+    const [referralError, setReferralError] = useState('');
     const totalPrice = bundle.price + adminFee - (discountData?.discount_amount || 0);
 
     useEffect(() => {
         if (!promoCode.trim()) {
             setDiscountData(null);
+            setReferralData(null);
             setPromoError('');
+            setReferralError('');
             return;
         }
 
         const timer = setTimeout(() => {
-            validatePromoCode();
+            if (codeType === 'voucher') {
+                validatePromoCode();
+            } else {
+                validateReferralCode();
+            }
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [promoCode]);
+    }, [promoCode, codeType]);
+
+    const validateReferralCode = async () => {
+        if (!promoCode.trim()) return;
+
+        setReferralLoading(true);
+        setReferralError('');
+
+        try {
+            const response = await axios.post('/api/referral/validate', { code: promoCode });
+            const responseData = response.data;
+
+            if (responseData.valid) {
+                setReferralData(responseData);
+                setReferralError('');
+            } else {
+                setReferralData(null);
+                setReferralError(responseData.message || 'Kode referral tidak valid');
+            }
+        } catch (error: any) {
+            setReferralData(null);
+            setReferralError(error.response?.data?.message || 'Terjadi kesalahan saat memvalidasi kode referral');
+        } finally {
+            setReferralLoading(false);
+        }
+    };
 
     const validatePromoCode = async () => {
         if (!promoCode.trim()) return;
@@ -217,7 +253,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
         }
     };
 
-
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         name: '',
         email: '',
@@ -238,7 +273,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
             setCheckingEmail(true);
             try {
                 const response = await axios.post('/api/check-email', {
-                    email: data.email
+                    email: data.email,
                 });
 
                 if (response.data.exists) {
@@ -274,8 +309,12 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
 
         if (refFromUrl) {
             sessionStorage.setItem('referral_code', refFromUrl);
+            setCodeType('referral');
+            setPromoCode(refFromUrl);
         } else if (referralInfo.code) {
             sessionStorage.setItem('referral_code', referralInfo.code);
+            setCodeType('referral');
+            setPromoCode(referralInfo.code);
         }
     }, [referralInfo]);
 
@@ -333,7 +372,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             termsAccepted,
                             timestamp: Date.now(),
                             discountData: discountData,
-                            source: 'login'
+                            source: 'login',
                         }),
                     );
 
@@ -365,7 +404,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             termsAccepted,
                             timestamp: Date.now(),
                             discountData: discountData,
-                            source: 'register'
+                            source: 'register',
                         }),
                     );
 
@@ -388,7 +427,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
 
         // Validasi profil setelah login
         if (!isProfileComplete) {
-            toast.error('Profil Anda belum lengkap! Harap lengkapi nomor telepon, instansi, dan kota domisili terlebih dahulu.');
+            toast.error('Profil Anda belum lengkap! Harap lengkapi nomor telepon terlebih dahulu.');
             window.location.href = route('profile.edit', { redirect: window.location.href });
             return;
         }
@@ -413,9 +452,13 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                 total_amount: totalPrice,
             };
 
-            if (discountData?.valid) {
+            if (discountData?.valid && codeType === 'voucher') {
                 invoiceData.discount_code_id = discountData.discount_code.id;
                 invoiceData.discount_code_amount = discountData.discount_amount;
+            }
+
+            if (codeType === 'referral' && referralData?.valid) {
+                (invoiceData as any).referral_code = promoCode;
             }
 
             try {
@@ -505,7 +548,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
     };
 
     useEffect(() => {
-
         const pendingCheckout = sessionStorage.getItem('pendingCheckout');
 
         if (pendingCheckout && isLoggedIn) {
@@ -571,7 +613,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             invoiceData.discount_code_amount = checkoutData.discountData.discount_amount;
                         }
 
-
                         try {
                             const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
 
@@ -586,7 +627,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                 credentials: 'same-origin',
                                 body: JSON.stringify(invoiceData),
                             });
-
 
                             if (res.status === 419 && retryCount < 2) {
                                 await refreshCSRFToken();
@@ -631,7 +671,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                 toast.error('Gagal memproses checkout');
             }
         }
-
     }, [isLoggedIn, bundle.id]);
 
     if (isLoggedIn && !isProfileComplete) {
@@ -707,30 +746,13 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
     }
 
     return (
-        <div className="relative min-h-screen bg-background">
-            {/* Global Decorative Background — Blobs */}
-            <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
-            <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
-            {/* Global Decorative Background — Grid Pattern */}
-            <div
-                className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]"
-                style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                }}
-            />
-
         <UserLayout>
             <Head title={`Checkout - ${bundle.title}`} />
 
             {/* Hero Section */}
-            <section className="relative mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 p-8 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60 sm:p-12">
-                    <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
-                    <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-secondary/20 blur-3xl" />
-                    <div className="relative z-10">
-                        <div className="mb-6 flex flex-wrap items-center gap-3">
+            <section className="from-primary to-primary-foreground relative overflow-hidden bg-gradient-to-br px-4 py-12">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-7xl">
+                    <div className="mb-6 flex flex-wrap items-center gap-3">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -741,18 +763,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             Paket Bundling
                         </motion.div>
 
-                        {bundle.batch && (
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.15 }}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
-                            >
-                                <Hourglass className="h-3.5 w-3.5" />
-                                {bundle.batch}
-                            </motion.div>
-                        )}
-
                         {bundleDiscount > 0 && (
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
@@ -762,6 +772,18 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             >
                                 <Tag className="h-3.5 w-3.5" />
                                 Hemat {Math.round((bundleDiscount / bundle.strikethrough_price) * 100)}%
+                            </motion.div>
+                        )}
+
+                        {bundle.batch && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.25 }}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
+                            >
+                                <Calendar className="h-3.5 w-3.5" />
+                                {bundle.batch}
                             </motion.div>
                         )}
 
@@ -783,6 +805,11 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                         className="mb-4 text-3xl font-bold text-black sm:text-4xl lg:text-5xl"
                     >
                         {bundle.title}
+                        {bundle.batch && (
+                            <span className="ml-3 inline-flex items-center gap-1.5 rounded-md border border-black/10 bg-black/10 px-2.5 py-0.5 text-sm font-medium text-gray-800 backdrop-blur-sm">
+                                {bundle.batch}
+                            </span>
+                        )}
                     </motion.h1>
 
                     {bundle.description && (
@@ -812,6 +839,18 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             </div>
                         </div>
 
+                        {bundle.batch && (
+                            <div className="flex items-center gap-2 text-black">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
+                                    <Calendar className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-black">Batch</p>
+                                    <p className="font-semibold">{bundle.batch}</p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex items-center gap-2 text-black">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
                                 <Tag className="h-5 w-5" />
@@ -821,20 +860,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                 <p className="font-semibold">{rupiahFormatter.format(bundleDiscount)}</p>
                             </div>
                         </div>
-
-                        {bundle.batch && (
-                            <div className="flex items-center gap-2 text-black">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
-                                    <Hourglass className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-black">Batch</p>
-                                    <p className="font-semibold">{bundle.batch}</p>
-                                </div>
-                            </div>
-                        )}
-                        </motion.div>
-                    </div>
+                    </motion.div>
                 </motion.div>
             </section>
 
@@ -844,27 +870,21 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                     {/* Left Column - Bundle Details */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-2">
                         <Tabs defaultValue="programs" className="w-full">
-                            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-2xl p-1.5 transition-all duration-300 sm:p-2 border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
-                                <TabsTrigger 
-                                    value="programs" 
-                                    className="group relative flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md sm:gap-2 sm:px-3 sm:py-3 sm:text-sm"
-                                >
-                                    <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="programs" className="gap-2">
+                                    <Package className="h-4 w-4" />
                                     <span className="hidden sm:inline">Program Included</span>
                                     <span className="sm:hidden">Program</span>
                                 </TabsTrigger>
-                                <TabsTrigger 
-                                    value="benefits" 
-                                    className="group relative flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md sm:gap-2 sm:px-3 sm:py-3 sm:text-sm"
-                                >
-                                    <BadgeCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                                <TabsTrigger value="benefits" className="gap-2">
+                                    <BadgeCheck className="h-4 w-4" />
                                     <span className="hidden sm:inline">Keuntungan</span>
                                     <span className="sm:hidden">Benefit</span>
                                 </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="programs" className="mt-4">
-                                <Card className="border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                <Card className="p-6">
                                     <div className="mb-6">
                                         <h2 className="mb-2 text-2xl font-bold">Program dalam Paket</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -890,8 +910,8 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                                         {item.bundleable_type.includes('Course')
                                                             ? '📚 Kelas Online'
                                                             : item.bundleable_type.includes('Bootcamp')
-                                                                ? '🚀 Bootcamp'
-                                                                : '🎥 Webinar'}
+                                                              ? '🚀 Bootcamp'
+                                                              : '🎥 Webinar'}
                                                     </p>
                                                 </div>
                                                 <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -908,7 +928,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                             </TabsContent>
 
                             <TabsContent value="benefits" className="mt-4">
-                                <Card className="border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                <Card className="p-6">
                                     <div className="mb-6">
                                         <h2 className="mb-2 text-2xl font-bold">Keuntungan Paket Bundling</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -944,7 +964,10 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                         </Tabs>
 
                         {!isLoggedIn && (
-                            <form className="mt-6 flex flex-col gap-6 rounded-2xl border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60" onSubmit={submit}>
+                            <form
+                                className="mt-6 flex flex-col gap-6 rounded-2xl border bg-white/95 p-6 shadow-xl backdrop-blur-sm dark:bg-gray-800/95"
+                                onSubmit={submit}
+                            >
                                 <h1 className="text-xl font-bold">Masukkan Data Diri Anda</h1>
                                 <div className="grid gap-2">
                                     <Label htmlFor="email">Email</Label>
@@ -986,13 +1009,15 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                                 setCheckingEmail(true);
                                                 try {
                                                     const response = await axios.post('/api/check-email', {
-                                                        email: data.email
+                                                        email: data.email,
                                                     });
 
                                                     if (response.data.exists) {
                                                         setEmailExists(true);
                                                         setData('name', response.data.name || '');
                                                         setData('phone_number', response.data.phone_number || '');
+                                                        setData('instance', response.data.instance || '');
+                                                        setData('city', response.data.city || '');
                                                         toast.success('Email ditemukan!');
                                                     } else {
                                                         setEmailExists(false);
@@ -1012,9 +1037,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                             <RefreshCw className="h-4 w-4" />
                                         </Button>
                                     </div>
-                                    {emailExists && (
-                                        <p className="text-xs text-green-600">Email ditemukan, data terisi otomatis</p>
-                                    )}
+                                    {emailExists && <p className="text-xs text-green-600">Email ditemukan, data terisi otomatis</p>}
                                     <InputError message={errors.email} />
                                 </div>
 
@@ -1045,19 +1068,11 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                             autoComplete="tel"
                                             value={data.phone_number}
                                             onChange={(e) => setData('phone_number', e.target.value)}
-                                            disabled={processing || emailExists}
+                                            disabled={processing}
                                             placeholder="08xxxxxxxxxx"
                                         />
-                                        {!emailExists && (
-                                            <p className="text-xs text-gray-500">
-                                                Nomor telepon akan digunakan sebagai password anda
-                                            </p>
-                                        )}
-                                        {emailExists && (
-                                            <p className="text-xs text-blue-600">
-                                                Pastikan nomor telepon sesuai dengan yang terdaftar
-                                            </p>
-                                        )}
+                                        {!emailExists && <p className="text-xs text-gray-500">Nomor telepon akan digunakan sebagai password anda</p>}
+                                        {emailExists && <p className="text-xs text-blue-600">Pastikan nomor telepon sesuai dengan yang terdaftar</p>}
                                         <InputError message={errors.phone_number} />
                                     </div>
                                     <div className="grid gap-2 pb-2">
@@ -1071,6 +1086,7 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                             onChange={(e) => setData('instance', e.target.value)}
                                             disabled={processing}
                                             placeholder="Instansi atau perusahaan Anda"
+                                            required
                                         />
                                         <InputError message={errors.instance} />
                                     </div>
@@ -1080,11 +1096,11 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                             id="city"
                                             type="text"
                                             tabIndex={5}
-                                            autoComplete="city"
                                             value={data.city}
                                             onChange={(e) => setData('city', e.target.value)}
                                             disabled={processing}
                                             placeholder="Kota domisili Anda"
+                                            required
                                         />
                                         <InputError message={errors.city} />
                                     </div>
@@ -1160,8 +1176,8 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-1">
                         <div className="sticky top-4">
                             {hasAccess ? (
-                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
-                                    <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 p-8 text-center backdrop-blur-md dark:from-green-950/40 dark:to-emerald-950/40">
+                                <Card className="overflow-hidden border-2 border-green-500/20">
+                                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 text-center dark:from-green-950/20 dark:to-emerald-950/20">
                                         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
                                             <BadgeCheck className="h-10 w-10 text-white" />
                                         </div>
@@ -1184,9 +1200,9 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                     </div>
                                 </Card>
                             ) : pendingInvoice ? (
-                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                <Card className="overflow-hidden border-2">
                                     <div
-                                        className="border-b border-primary/10 p-4 backdrop-blur-md"
+                                        className="border-b p-4"
                                         style={{
                                             backgroundColor: (() => {
                                                 const expiryInfo = formatExpiryTime(pendingInvoice.expires_at);
@@ -1218,35 +1234,6 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                     </div>
 
                                     <div className="space-y-6 p-6">
-                                        {/* Bundle Info Card */}
-                                        <div className="flex gap-4 rounded-xl border bg-gray-50/50 p-4 dark:bg-zinc-900/50">
-                                            {bundle.thumbnail && (
-                                                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border bg-white dark:bg-zinc-800">
-                                                    <img
-                                                        src={
-                                                            bundle.thumbnail.startsWith('http') || bundle.thumbnail.startsWith('/storage')
-                                                                ? bundle.thumbnail
-                                                                : `/storage/${bundle.thumbnail}`
-                                                        }
-                                                        alt={bundle.title}
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                </div>
-                                            )}
-                                            <div className="flex-1 min-w-0 flex flex-col justify-center text-left">
-                                                <h3 className="font-semibold text-sm line-clamp-2 text-gray-900 dark:text-white leading-snug">
-                                                    {bundle.title}
-                                                </h3>
-                                                {bundle.batch && (
-                                                    <div className="mt-1">
-                                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
-                                                            {bundle.batch}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
                                         {/* Invoice Info */}
                                         <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
                                             <div className="flex items-center justify-between">
@@ -1254,6 +1241,17 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                                 <span className="font-semibold text-gray-900 dark:text-white">{pendingInvoice.invoice_code}</span>
                                             </div>
                                             <div className="flex items-center justify-between">
+                                                {/* <span className="text-sm text-gray-600 dark:text-gray-400">Metode Pembayaran</span>
+                                                <div className="flex items-center gap-2">
+                                                    <img
+                                                        src={getPaymentGroupIcon(pendingInvoice.payment_channel)}
+                                                        alt={pendingInvoice.payment_channel}
+                                                        className="h-5 w-5 object-contain"
+                                                    />
+                                                    <span className="font-semibold text-gray-900 dark:text-white">
+                                                        {transactionDetail?.payment_name || getPaymentChannelName(pendingInvoice.payment_channel)}
+                                                    </span>
+                                                </div> */}
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Pembayaran</span>
@@ -1375,101 +1373,129 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
                                     </div>
                                 </Card>
                             ) : (
-                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
-                                    <div className="border-b border-primary/20 bg-primary/90 p-4 backdrop-blur-md">
+                                <Card className="overflow-hidden border-2">
+                                    <div className="bg-primary border-b p-4">
                                         <h2 className="text-center text-lg font-bold text-white">Detail Pembayaran</h2>
                                     </div>
 
                                     <form onSubmit={handleCheckout} className="px-4 pt-4 pb-6">
-                                        {/* Bundle Info Card */}
-                                        <div className="mb-6 flex gap-4 rounded-xl border bg-gray-50/50 p-4 dark:bg-zinc-900/50">
-                                            {bundle.thumbnail && (
-                                                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border bg-white dark:bg-zinc-800">
-                                                    <img
-                                                        src={
-                                                            bundle.thumbnail.startsWith('http') || bundle.thumbnail.startsWith('/storage')
-                                                                ? bundle.thumbnail
-                                                                : `/storage/${bundle.thumbnail}`
-                                                        }
-                                                        alt={bundle.title}
-                                                        className="h-full w-full object-cover"
-                                                    />
+                                        <div className="mb-4 space-y-4">
+                                            {/* Jenis Kode */}
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-medium flex items-center gap-2">
+                                                    <Tag className="h-4 w-4" />
+                                                    Jenis Kode
+                                                </Label>
+                                                <RadioGroup
+                                                    value={codeType}
+                                                    onValueChange={(val: 'voucher' | 'referral') => {
+                                                        setCodeType(val);
+                                                        setPromoCode('');
+                                                        setDiscountData(null);
+                                                        setReferralData(null);
+                                                        setPromoError('');
+                                                        setReferralError('');
+                                                    }}
+                                                    className="flex gap-4"
+                                                >
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="voucher" id="bund-code-voucher" />
+                                                        <Label htmlFor="bund-code-voucher" className="cursor-pointer text-sm">Voucher</Label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="referral" id="bund-code-referral" />
+                                                        <Label htmlFor="bund-code-referral" className="cursor-pointer text-sm">Referral</Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            </div>
+
+                                            {/* Input Kode */}
+                                            <div className="space-y-2">
+                                                <Label htmlFor="promo-code" className="text-sm font-medium">
+                                                    {codeType === 'voucher' ? 'Kode Voucher / Promo' : 'Kode Referral'}
+                                                </Label>
+                                                <div className="flex gap-2">
+                                                    <div className="relative flex-1">
+                                                        <Input
+                                                            id="promo-code"
+                                                            type="text"
+                                                            placeholder={codeType === 'voucher' ? 'Masukkan kode promo' : 'Masukkan kode referral'}
+                                                            value={promoCode}
+                                                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                                            className="pr-10"
+                                                        />
+                                                        {(promoLoading || referralLoading) && (
+                                                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                                                                <LoaderCircle className="h-4 w-4 animate-spin text-gray-400" />
+                                                            </div>
+                                                        )}
+                                                        {!(promoLoading || referralLoading) && promoCode && (
+                                                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                                                                {codeType === 'voucher' ? (
+                                                                    discountData?.valid ? (
+                                                                        <Check className="h-5 w-5 text-green-600" />
+                                                                    ) : promoError ? (
+                                                                        <X className="h-5 w-5 text-red-600" />
+                                                                    ) : null
+                                                                ) : (
+                                                                    referralData?.valid ? (
+                                                                        <Check className="h-5 w-5 text-green-600" />
+                                                                    ) : referralError ? (
+                                                                        <X className="h-5 w-5 text-red-600" />
+                                                                    ) : null
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={async () => {
+                                                            if (!promoCode.trim()) {
+                                                                toast.error(`Masukkan kode ${codeType === 'voucher' ? 'promo' : 'referral'} terlebih dahulu`);
+                                                                return;
+                                                            }
+                                                            if (codeType === 'voucher') await validatePromoCode();
+                                                            else await validateReferralCode();
+                                                        }}
+                                                        disabled={promoLoading || referralLoading || !promoCode.trim()}
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        <RefreshCw className="h-4 w-4" />
+                                                    </Button>
                                                 </div>
-                                            )}
-                                            <div className="flex-1 min-w-0 flex flex-col justify-center text-left">
-                                                <h3 className="font-semibold text-sm line-clamp-2 text-gray-900 dark:text-white leading-snug">
-                                                    {bundle.title}
-                                                </h3>
-                                                {bundle.batch && (
-                                                    <div className="mt-1">
-                                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
-                                                            {bundle.batch}
-                                                        </span>
+
+                                                {/* Voucher feedback */}
+                                                {codeType === 'voucher' && promoError && <p className="text-sm text-red-600">{promoError}</p>}
+                                                {codeType === 'voucher' && discountData?.valid && (
+                                                    <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
+                                                        <div className="flex items-center gap-2">
+                                                            <Check className="h-4 w-4 text-green-600" />
+                                                            <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                                                                Promo "{discountData.discount_code.code}" diterapkan!
+                                                            </p>
+                                                        </div>
+                                                        <p className="mt-1 text-xs text-green-600 dark:text-green-300">
+                                                            {discountData.discount_code.name}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Referral feedback */}
+                                                {codeType === 'referral' && referralError && <p className="text-sm text-red-600">{referralError}</p>}
+                                                {codeType === 'referral' && referralData?.valid && (
+                                                    <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
+                                                        <div className="flex items-center gap-2">
+                                                            <Check className="h-4 w-4 text-green-600" />
+                                                            <p className="text-sm font-medium text-green-800 dark:text-green-200">Kode Referral Valid!</p>
+                                                        </div>
+                                                        <p className="mt-1 text-xs text-green-600 dark:text-green-300">
+                                                            Dirujuk oleh <span className="font-bold">{referralData.referrer?.name}</span>. Reward poin akan masuk setelah pembayaran sukses.
+                                                        </p>
                                                     </div>
                                                 )}
                                             </div>
-                                        </div>
-
-                                        <div className="space-y-2 mb-4">
-                                            <Label htmlFor="promo-code" className="text-sm font-medium">
-                                                Punya Kode Promo?
-                                            </Label>
-                                            <div className="flex gap-2">
-                                                <div className="relative flex-1">
-                                                    <Input
-                                                        id="promo-code"
-                                                        type="text"
-                                                        placeholder="Masukkan kode promo"
-                                                        value={promoCode}
-                                                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                                                        className="pr-10"
-                                                    />
-                                                    {promoLoading && (
-                                                        <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                                                            <LoaderCircle className="h-4 w-4 animate-spin text-gray-400" />
-                                                        </div>
-                                                    )}
-                                                    {!promoLoading && promoCode && (
-                                                        <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                                                            {discountData?.valid ? (
-                                                                <Check className="h-5 w-5 text-green-600" />
-                                                            ) : promoError ? (
-                                                                <X className="h-5 w-5 text-red-600" />
-                                                            ) : null}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={async () => {
-                                                        if (!promoCode.trim()) {
-                                                            toast.error('Masukkan kode promo terlebih dahulu');
-                                                            return;
-                                                        }
-                                                        await validatePromoCode();
-                                                    }}
-                                                    disabled={promoLoading || !promoCode.trim()}
-                                                    className="flex-shrink-0"
-                                                >
-                                                    <RefreshCw className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                            {promoError && <p className="text-sm text-red-600">{promoError}</p>}
-                                            {discountData?.valid && (
-                                                <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
-                                                    <div className="flex items-center gap-2">
-                                                        <Check className="h-4 w-4 text-green-600" />
-                                                        <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                                                            Promo "{discountData.discount_code.code}" diterapkan!
-                                                        </p>
-                                                    </div>
-                                                    <p className="mt-1 text-xs text-green-600 dark:text-green-300">
-                                                        {discountData.discount_code.name}
-                                                    </p>
-                                                </div>
-                                            )}
                                         </div>
                                         {/* Price Breakdown */}
                                         <div className="mb-6 space-y-3 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">
@@ -1592,6 +1618,5 @@ export default function CheckoutBundle({ bundle, hasAccess, pendingInvoice, tran
             </section>
             <Toaster position="top-center" richColors />
         </UserLayout>
-        </div>
     );
 }

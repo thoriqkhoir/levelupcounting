@@ -215,7 +215,7 @@ class CourseController extends Controller
     {
         return [
             'code' => session('referral_code'),
-            'hasActive' => session('referral_code') && session('referral_code') !== 'SPJ2025',
+            'hasActive' => session('referral_code') && session('referral_code') !== 'LUC2025',
         ];
     }
 }

@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserLayout from '@/layouts/user-layout';
@@ -99,20 +100,11 @@ interface PendingCheckoutData {
     needsDocumentUpload?: boolean;
 }
 
-interface ListItem {
-    text: string;
-    html?: string;
-}
-
-function parseList(items?: string | null): ListItem[] {
+function parseList(items?: string | null): string[] {
     if (!items) return [];
     const matches = items.match(/<li>(.*?)<\/li>/g);
     if (!matches) return [];
-    return matches.map((li) => {
-        const html = li.replace(/<\/?li>/g, '').trim();
-        const text = html.replace(/<[^>]*>/g, '').trim();
-        return { text, html };
-    });
+    return matches.map((li) => li.replace(/<\/?li>/g, '').trim());
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -155,10 +147,14 @@ export default function Register({
     const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
     const [documentAttachment, setDocumentAttachment] = useState<File | null>(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
+    const [codeType, setCodeType] = useState<'voucher' | 'referral'>('voucher');
     const [promoCode, setPromoCode] = useState('');
     const [discountData, setDiscountData] = useState<DiscountData | null>(null);
     const [promoLoading, setPromoLoading] = useState(false);
     const [promoError, setPromoError] = useState('');
+    const [referralData, setReferralData] = useState<{ valid: boolean; referrer?: { name: string } } | null>(null);
+    const [referralLoading, setReferralLoading] = useState(false);
+    const [referralError, setReferralError] = useState('');
     const [checkingEmail, setCheckingEmail] = useState(false);
     const [emailExists, setEmailExists] = useState(false);
     const [guestScholarshipStatus, setGuestScholarshipStatus] = useState<string | null>(null);
@@ -167,7 +163,7 @@ export default function Register({
         email: user?.email ?? '',
         phone_number: user?.phone_number ?? '',
         instance: user?.instance ?? '',
-        city: (user as any)?.city ?? '',
+        city: user?.city ?? '',
     });
 
     const formatRupiah = (amount: number) =>
@@ -193,12 +189,12 @@ export default function Register({
 
         const hasEmail = !!guestFormData.email;
         const hasPhone = !!guestFormData.phone_number;
-        const hasName = !!guestFormData.name || emailExists;
-        const hasInstance = !!guestFormData.instance;
-        const hasCity = !!guestFormData.city;
+        const hasNameOrEmailExists = !!guestFormData.name || emailExists;
+        const hasInstanceOrEmailExists = !!guestFormData.instance || guestScholarshipStatus === 'approved';
+        const hasCityOrEmailExists = !!guestFormData.city;
 
-        return hasEmail && hasPhone && hasName && hasInstance && hasCity;
-    }, [isLoggedIn, guestFormData, emailExists]);
+        return hasEmail && hasPhone && hasNameOrEmailExists && hasInstanceOrEmailExists && hasCityOrEmailExists;
+    }, [isLoggedIn, guestFormData, emailExists, guestScholarshipStatus]);
 
     const validatePromoCode = useCallback(async () => {
         if (!promoCode.trim() || displayPrice === 0) return;
@@ -240,19 +236,54 @@ export default function Register({
         }
     }, [displayPrice, emailExists, guestFormData.email, isLoggedIn, program.id, promoCode]);
 
+    const validateReferralCode = useCallback(async () => {
+        if (!promoCode.trim() || displayPrice === 0) return;
+
+        setReferralLoading(true);
+        setReferralError('');
+
+        try {
+            const response = await axios.post('/api/referral/validate', { code: promoCode });
+            const data = response.data;
+
+            if (data.valid) {
+                setReferralData(data);
+                setReferralError('');
+            } else {
+                setReferralData(null);
+                setReferralError(data.message || 'Kode referral tidak valid');
+            }
+        } catch (error: unknown) {
+            setReferralData(null);
+            if (axios.isAxiosError(error)) {
+                setReferralError(error.response?.data?.message || 'Terjadi kesalahan saat memvalidasi kode referral');
+            } else {
+                setReferralError('Terjadi kesalahan saat memvalidasi kode referral');
+            }
+        } finally {
+            setReferralLoading(false);
+        }
+    }, [displayPrice, promoCode]);
+
     useEffect(() => {
         if (!promoCode.trim() || displayPrice === 0) {
             setDiscountData(null);
+            setReferralData(null);
             setPromoError('');
+            setReferralError('');
             return;
         }
 
         const timer = setTimeout(() => {
-            validatePromoCode();
+            if (codeType === 'voucher') {
+                validatePromoCode();
+            } else {
+                validateReferralCode();
+            }
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [displayPrice, promoCode, validatePromoCode]);
+    }, [displayPrice, promoCode, codeType, validatePromoCode, validateReferralCode]);
 
     useEffect(() => {
         if (isLoggedIn) return;
@@ -342,8 +373,13 @@ export default function Register({
     const ensureAuthenticated = useCallback(async (): Promise<boolean> => {
         if (isLoggedIn) return true;
 
-        if (!guestFormData.email || !guestFormData.phone_number || !guestFormData.instance || !guestFormData.city) {
-            toast.error('Lengkapi semua data diri terlebih dahulu.');
+        if (!guestFormData.email || !guestFormData.phone_number) {
+            toast.error('Email dan nomor telepon wajib diisi.');
+            return false;
+        }
+
+        if (!guestFormData.instance || !guestFormData.city) {
+            toast.error('Instansi dan Kota Domisili wajib diisi.');
             return false;
         }
 
@@ -396,7 +432,7 @@ export default function Register({
             }
             return false;
         }
-    }, [emailExists, guestFormData.email, guestFormData.instance, guestFormData.city, guestFormData.name, guestFormData.phone_number, isLoggedIn, savePendingCheckout]);
+    }, [emailExists, guestFormData.email, guestFormData.instance, guestFormData.name, guestFormData.phone_number, isLoggedIn, savePendingCheckout]);
 
     // Show scholarship prompt only when the user hasn't applied yet or their application was rejected.
     // For guests, consider `guestScholarshipStatus` returned by `/api/check-email`.
@@ -453,9 +489,13 @@ export default function Register({
                 isScholarship: isScholarship ? 1 : 0,
             };
 
-            if (discountData?.valid) {
+            if (discountData?.valid && codeType === 'voucher') {
                 invoiceData.discount_code_id = discountData.discount_code.id;
                 invoiceData.discount_code_amount = discountData.discount_amount;
+            }
+
+            if (codeType === 'referral' && referralData?.valid) {
+                (invoiceData as any).referral_code = promoCode;
             }
 
             try {
@@ -551,8 +591,13 @@ export default function Register({
     ]);
 
     const ensureAuthenticatedForDocument = useCallback(async () => {
-        if (!guestFormData.email || !guestFormData.phone_number || !guestFormData.instance || !guestFormData.city) {
-            toast.error('Lengkapi semua data diri terlebih dahulu.');
+        if (!guestFormData.email || !guestFormData.phone_number) {
+            toast.error('Email dan nomor telepon wajib diisi.');
+            return;
+        }
+
+        if (!guestFormData.instance || !guestFormData.city) {
+            toast.error('Instansi dan Kota Domisili wajib diisi.');
             return;
         }
 
@@ -603,7 +648,7 @@ export default function Register({
                 toast.error(getErrorMessage(error, 'Gagal memproses login/registrasi otomatis.'));
             }
         }
-    }, [emailExists, guestFormData.email, guestFormData.instance, guestFormData.city, guestFormData.name, guestFormData.phone_number, savePendingCheckout]);
+    }, [emailExists, guestFormData.email, guestFormData.instance, guestFormData.name, guestFormData.phone_number, savePendingCheckout]);
 
     useEffect(() => {
         if (!isLoggedIn) return;
@@ -854,7 +899,7 @@ export default function Register({
                                                             <Check className="h-4 w-4" />
                                                         </div>
                                                         <p className="text-sm leading-relaxed font-medium text-gray-700 dark:text-gray-300">
-                                                            {benefit.html ? <span dangerouslySetInnerHTML={{ __html: benefit.html }} /> : benefit.text}
+                                                            {benefit}
                                                         </p>
                                                     </motion.div>
                                                 ))}
@@ -872,9 +917,7 @@ export default function Register({
                                                         className="flex items-start gap-3 rounded-lg border bg-gray-50 p-3 dark:bg-gray-900/50"
                                                     >
                                                         <BadgeCheck size={18} className="mt-1 min-w-6 flex-shrink-0 text-blue-600" />
-                                                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                                                            {requirement.html ? <span dangerouslySetInnerHTML={{ __html: requirement.html }} /> : requirement.text}
-                                                        </p>
+                                                        <p className="text-sm text-gray-700 dark:text-gray-300">{requirement}</p>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1009,7 +1052,7 @@ export default function Register({
                                                 autoComplete="tel"
                                                 value={guestFormData.phone_number}
                                                 onChange={(e) => updateGuestForm('phone_number', e.target.value)}
-                                                disabled={isLoading || emailExists}
+                                                disabled={isLoading}
                                                 placeholder="08xxxxxxxxxx"
                                             />
                                             {!emailExists && (
@@ -1039,7 +1082,6 @@ export default function Register({
                                                 id="guest-city"
                                                 type="text"
                                                 tabIndex={5}
-                                                autoComplete="city"
                                                 value={guestFormData.city}
                                                 onChange={(e) => updateGuestForm('city', e.target.value)}
                                                 disabled={isLoading}
@@ -1176,61 +1218,113 @@ export default function Register({
                                     )}
 
                                     {displayPrice > 0 && (
-                                        <div className="mb-6 space-y-2">
-                                            <Label htmlFor="promo-code" className="flex items-center gap-2 text-sm font-medium">
-                                                <Tag className="h-4 w-4" />
-                                                Punya Kode Promo?
-                                            </Label>
-                                            <div className="flex gap-2">
-                                                <div className="relative flex-1">
-                                                    <Input
-                                                        id="promo-code"
-                                                        type="text"
-                                                        placeholder="Masukkan kode promo"
-                                                        value={promoCode}
-                                                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                                                        className="pr-10"
-                                                    />
-                                                    {promoLoading && (
-                                                        <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                                                            <LoaderCircle className="h-4 w-4 animate-spin text-gray-400" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={validatePromoCode}
-                                                    disabled={promoLoading || !promoCode.trim()}
-                                                    className="flex-shrink-0"
+                                        <div className="mb-6 space-y-4">
+                                            {/* Jenis Kode */}
+                                            <div className="space-y-2">
+                                                <Label className="flex items-center gap-2 text-sm font-medium">
+                                                    <Tag className="h-4 w-4" />
+                                                    Jenis Kode
+                                                </Label>
+                                                <RadioGroup
+                                                    value={codeType}
+                                                    onValueChange={(val: 'voucher' | 'referral') => {
+                                                        setCodeType(val);
+                                                        setPromoCode('');
+                                                        setDiscountData(null);
+                                                        setReferralData(null);
+                                                        setPromoError('');
+                                                        setReferralError('');
+                                                    }}
+                                                    className="flex gap-4"
                                                 >
-                                                    <RefreshCw className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                            {promoError && <p className="text-sm text-red-600">{promoError}</p>}
-
-                                            {discountData?.valid && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, scale: 0.95 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    className="mt-3 rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-green-950/20 dark:to-emerald-950/20"
-                                                >
-                                                    <div className="mb-2 flex items-center gap-2">
-                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
-                                                            <Check className="h-4 w-4 text-white" />
-                                                        </div>
-                                                        <p className="font-semibold text-green-800 dark:text-green-200">Kode Promo Diterapkan!</p>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="voucher" id="cert-code-voucher" />
+                                                        <Label htmlFor="cert-code-voucher" className="cursor-pointer text-sm">Voucher</Label>
                                                     </div>
-                                                    <p className="text-sm text-green-700 dark:text-green-300">
-                                                        <span className="font-mono font-bold">{discountData.discount_code.code}</span> -{' '}
-                                                        {discountData.discount_code.name}
-                                                    </p>
-                                                    <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                                                        Hemat {discountData.discount_code.formatted_value}
-                                                    </p>
-                                                </motion.div>
-                                            )}
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="referral" id="cert-code-referral" />
+                                                        <Label htmlFor="cert-code-referral" className="cursor-pointer text-sm">Referral</Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            </div>
+
+                                            {/* Input Kode */}
+                                            <div className="space-y-2">
+                                                <Label htmlFor="promo-code" className="text-sm font-medium">
+                                                    {codeType === 'voucher' ? 'Kode Voucher / Promo' : 'Kode Referral'}
+                                                </Label>
+                                                <div className="flex gap-2">
+                                                    <div className="relative flex-1">
+                                                        <Input
+                                                            id="promo-code"
+                                                            type="text"
+                                                            placeholder={codeType === 'voucher' ? 'Masukkan kode promo' : 'Masukkan kode referral'}
+                                                            value={promoCode}
+                                                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                                            className="pr-10"
+                                                        />
+                                                        {(promoLoading || referralLoading) && (
+                                                            <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                                                                <LoaderCircle className="h-4 w-4 animate-spin text-gray-400" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={codeType === 'voucher' ? validatePromoCode : validateReferralCode}
+                                                        disabled={promoLoading || referralLoading || !promoCode.trim()}
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        <RefreshCw className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+
+                                                {/* Voucher feedback */}
+                                                {codeType === 'voucher' && promoError && <p className="text-sm text-red-600">{promoError}</p>}
+                                                {codeType === 'voucher' && discountData?.valid && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="mt-3 rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-green-950/20 dark:to-emerald-950/20"
+                                                    >
+                                                        <div className="mb-2 flex items-center gap-2">
+                                                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+                                                                <Check className="h-4 w-4 text-white" />
+                                                            </div>
+                                                            <p className="font-semibold text-green-800 dark:text-green-200">Kode Promo Diterapkan!</p>
+                                                        </div>
+                                                        <p className="text-sm text-green-700 dark:text-green-300">
+                                                            <span className="font-mono font-bold">{discountData.discount_code.code}</span> -{' '}
+                                                            {discountData.discount_code.name}
+                                                        </p>
+                                                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                                                            Hemat {discountData.discount_code.formatted_value}
+                                                        </p>
+                                                    </motion.div>
+                                                )}
+
+                                                {/* Referral feedback */}
+                                                {codeType === 'referral' && referralError && <p className="text-sm text-red-600">{referralError}</p>}
+                                                {codeType === 'referral' && referralData?.valid && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="mt-3 rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-green-950/20 dark:to-emerald-950/20"
+                                                    >
+                                                        <div className="mb-2 flex items-center gap-2">
+                                                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+                                                                <Check className="h-4 w-4 text-white" />
+                                                            </div>
+                                                            <p className="font-semibold text-green-800 dark:text-green-200">Kode Referral Valid!</p>
+                                                        </div>
+                                                        <p className="text-sm text-green-700 dark:text-green-300">
+                                                            Pembelian Anda dirujuk oleh <span className="font-bold">{referralData.referrer?.name}</span>. Reward poin akan masuk setelah pembayaran sukses.
+                                                        </p>
+                                                    </motion.div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
 

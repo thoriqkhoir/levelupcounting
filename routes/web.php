@@ -186,6 +186,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile/my-certification-programs/{program}', [ProfileCertificationProgramController::class, 'detail'])->name('profile.certification-program.detail');
     Route::get('/profile/transactions', [ProfileTransactionController::class, 'index'])->name('profile.transactions');
     Route::get('/profile/transactions/{invoice}', [ProfileTransactionController::class, 'show'])->name('profile.transaction.detail');
+    Route::get('/profile/referral', [ProfileController::class, 'referral'])->name('profile.referral');
+    Route::get('/api/user/points', [App\Http\Controllers\ReferralController::class, 'getPoints'])->name('api.user.points');
 
     Route::redirect('learn', 'profile/my-courses');
     Route::redirect('learn/course', 'profile/my-courses');
@@ -320,6 +322,13 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate'])->prefix('
         
         Route::get('transactions', [InvoiceController::class, 'index'])->name('transactions.index');
         Route::get('transactions/export', [InvoiceController::class, 'export'])->name('transactions.export');
+
+        // Referral admin routes
+        Route::get('referral/settings', [App\Http\Controllers\Admin\ReferralAdminController::class, 'settings'])->name('admin.referral.settings');
+        Route::post('referral/settings', [App\Http\Controllers\Admin\ReferralAdminController::class, 'updateSettings'])->name('admin.referral.settings.update');
+        Route::get('referral/report', [App\Http\Controllers\Admin\ReferralAdminController::class, 'report'])->name('admin.referral.report');
+        Route::get('referral/transactions', [App\Http\Controllers\Admin\ReferralAdminController::class, 'transactions'])->name('admin.referral.transactions');
+        Route::post('referral/adjust-points', [App\Http\Controllers\Admin\ReferralAdminController::class, 'adjustPoints'])->name('admin.referral.adjust-points');
     });
 
     Route::middleware(['role:affiliate|admin'])->group(function () {
@@ -343,6 +352,7 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate'])->prefix('
 });
 
 Route::post('/api/discount-codes/validate', [DiscountCodeController::class, 'validate'])->name('api.discount-codes.validate');
+Route::post('/api/referral/validate', [App\Http\Controllers\ReferralController::class, 'validateCode'])->name('api.referral.validate');
 
 
 require __DIR__ . '/settings.php';

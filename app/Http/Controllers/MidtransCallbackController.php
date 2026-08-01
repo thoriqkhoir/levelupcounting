@@ -91,6 +91,13 @@ class MidtransCallbackController extends Controller
                         'status' => $transactionStatus
                     ]);
 
+                    // Refund poin jika invoice ini menggunakan redeem poin
+                    try {
+                        app(\App\Services\PointService::class)->refundPoints($invoice);
+                    } catch (\Exception $e) {
+                        Log::error('Gagal refund poin untuk invoice: ' . $invoice->invoice_code, ['error' => $e->getMessage()]);
+                    }
+
                     // Kirim WhatsApp untuk pembayaran gagal
                     $this->sendWhatsAppPaymentFailed($invoice, $transactionStatus);
                 }
@@ -162,6 +169,10 @@ class MidtransCallbackController extends Controller
 
         $this->processInvoiceEnrollments($invoice);
         $this->recordAffiliateCommission($invoice);
+
+        // Dispatch event untuk reward referral
+        event(new \App\Events\TransactionPaid($invoice));
+
         $this->sendEmailNotification($invoice);
 
         // Kirim WhatsApp setelah pembayaran berhasil
@@ -555,7 +566,7 @@ class MidtransCallbackController extends Controller
                 ]);
             }
         } else {
-            $defaultAffiliate = User::where('affiliate_code', 'SPJ2025')->first();
+            $defaultAffiliate = User::where('affiliate_code', 'LUC2025')->first();
 
             if ($defaultAffiliate && $defaultAffiliate->affiliate_status === 'Active' && (float) $defaultAffiliate->commission > 0) {
                 $commissionAmount = $invoice->nett_amount * ($defaultAffiliate->commission / 100);

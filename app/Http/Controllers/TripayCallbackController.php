@@ -366,7 +366,7 @@ class TripayCallbackController extends Controller
                 ]);
             }
         } else {
-            $defaultAffiliate = User::where('affiliate_code', 'SPJ2025')->first();
+            $defaultAffiliate = User::where('affiliate_code', 'LUC2025')->first();
 
             if ($defaultAffiliate && $defaultAffiliate->affiliate_status === 'Active' && $defaultAffiliate->commission > 0) {
                 $commissionAmount = $invoice->nett_amount * ($defaultAffiliate->commission / 100);
@@ -379,7 +379,7 @@ class TripayCallbackController extends Controller
                     'status' => 'approved',
                 ]);
 
-                Log::info('Default affiliate commission recorded (SPJ2025)', [
+                Log::info('Default affiliate commission recorded (LUC2025)', [
                     'affiliate_id' => $defaultAffiliate->id,
                     'invoice_code' => $invoice->invoice_code,
                     'commission_amount' => $commissionAmount

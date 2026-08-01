@@ -61,6 +61,8 @@ export interface User {
     commission: number;
     affiliate_code: string;
     affiliate_status: string;
+    referral_code?: string | null;
+    point_balance?: number;
     created_at: string;
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...

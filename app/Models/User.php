@@ -22,6 +22,8 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'referral_code',
+        'point_balance',
         'google_id',
         'github_id',
         // 'referred_by_user_id',
@@ -118,6 +120,31 @@ class User extends Authenticatable
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Auto-generate referral code LUC-XXXXXX saat user baru dibuat.
+     */
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            if (empty($user->referral_code)) {
+                do {
+                    $code = 'LUC-' . strtoupper(\Illuminate\Support\Str::random(6));
+                } while (static::where('referral_code', $code)->exists());
+                $user->referral_code = $code;
+            }
+        });
+    }
+
+    public function referredInvoices()
+    {
+        return $this->hasMany(Invoice::class, 'referred_by_user_id');
+    }
+
+    public function pointTransactions()
+    {
+        return $this->hasMany(PointTransaction::class);
     }
 
     public function courseEnrollments()

@@ -75,6 +75,7 @@ class CertificationProgramController extends Controller
 
     public function detail(Request $request, CertificationProgram $program)
     {
+        $this->handleReferralCode($request);
         if (!in_array($program->status, ['published', 'hidden'], true)) {
             return Inertia::render('user/unavailable/index', [
                 'title' => 'Program Tidak Tersedia',
@@ -146,11 +147,13 @@ class CertificationProgramController extends Controller
             'myProgramIds' => $myProgramIds,
             'scholarshipApplication' => $scholarshipApplication,
             'approvedScholarshipProgramIds' => $approvedScholarshipProgramIds,
+            'referralInfo' => $this->getReferralInfo(),
         ]);
     }
 
     public function showRegister(Request $request, CertificationProgram $program)
     {
+        $this->handleReferralCode($request);
         if (!in_array($program->status, ['published', 'hidden'], true)) {
             return Inertia::render('user/unavailable/index', [
                 'title' => 'Program Tidak Tersedia',
@@ -220,6 +223,7 @@ class CertificationProgramController extends Controller
             'regularApplication' => $regularApplication,
             'scholarshipApplication' => $scholarshipApplication,
             'isScholarship' => $isScholarship,
+            'referralInfo' => $this->getReferralInfo(),
         ]);
     }
 
@@ -438,5 +442,24 @@ class CertificationProgramController extends Controller
         }
 
         return $phoneNumber;
+    }
+
+    private function handleReferralCode(Request $request): void
+    {
+        $referralCode = $request->query('ref');
+
+        if ($referralCode) {
+            session([
+                'referral_code' => $referralCode,
+            ]);
+        }
+    }
+
+    private function getReferralInfo(): array
+    {
+        return [
+            'code' => session('referral_code'),
+            'hasActive' => session('referral_code') && session('referral_code') !== 'LUC2025',
+        ];
     }
 }

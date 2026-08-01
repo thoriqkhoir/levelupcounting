@@ -3,12 +3,14 @@ import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserLayout from '@/layouts/user-layout';
 import { SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import { BadgeCheck, Check, Clock, CreditCard, Gift, Hourglass, Lock, Play, Shield, Star, Tag, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -119,6 +121,7 @@ interface InvoiceData {
     // payment_channel?: string;
     discount_code_id?: string;
     discount_code_amount?: number;
+    referral_code?: string;
 }
 
 function getYoutubeId(url: string) {
@@ -168,10 +171,14 @@ export default function CheckoutCourse({
     const firstVideoLesson = course.modules?.flatMap((module) => module.lessons || []).find((lesson) => lesson.type === 'video' && lesson.video_url);
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [codeType, setCodeType] = useState<'voucher' | 'referral'>('voucher');
     const [promoCode, setPromoCode] = useState('');
     const [discountData, setDiscountData] = useState<DiscountData | null>(null);
     const [promoLoading, setPromoLoading] = useState(false);
     const [promoError, setPromoError] = useState('');
+    const [referralData, setReferralData] = useState<{ valid: boolean; referrer?: { name: string } } | null>(null);
+    const [referralLoading, setReferralLoading] = useState(false);
+    const [referralError, setReferralError] = useState('');
 
     const keyPointList = parseList(course.key_points);
 
@@ -201,24 +208,59 @@ export default function CheckoutCourse({
 
         if (refFromUrl) {
             sessionStorage.setItem('referral_code', refFromUrl);
+            setCodeType('referral');
+            setPromoCode(refFromUrl);
         } else if (referralInfo.code) {
             sessionStorage.setItem('referral_code', referralInfo.code);
+            setCodeType('referral');
+            setPromoCode(referralInfo.code);
         }
     }, [referralInfo]);
 
     useEffect(() => {
         if (!promoCode.trim() || isFree) {
             setDiscountData(null);
+            setReferralData(null);
             setPromoError('');
+            setReferralError('');
             return;
         }
 
         const timer = setTimeout(() => {
-            validatePromoCode();
+            if (codeType === 'voucher') {
+                validatePromoCode();
+            } else {
+                validateReferralCode();
+            }
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [promoCode]);
+    }, [promoCode, codeType]);
+
+    const validateReferralCode = async () => {
+        if (!promoCode.trim() || isFree) return;
+
+        setReferralLoading(true);
+        setReferralError('');
+
+        try {
+            const response = await axios.post('/api/referral/validate', { code: promoCode });
+            const data = response.data;
+
+            if (data.valid) {
+                setReferralData(data);
+                setReferralError('');
+            } else {
+                setReferralData(null);
+                setReferralError(data.message || 'Kode referral tidak valid');
+            }
+        } catch (error: any) {
+            setReferralData(null);
+            setReferralError(error.response?.data?.message || 'Terjadi kesalahan saat memvalidasi kode referral');
+        } finally {
+            setReferralLoading(false);
+        }
+    };
 
     const validatePromoCode = async () => {
         if (!promoCode.trim() || isFree) return;
@@ -341,9 +383,13 @@ export default function CheckoutCourse({
                 // payment_channel: selectedChannel?.code,
             };
 
-            if (discountData?.valid) {
+            if (discountData?.valid && codeType === 'voucher') {
                 invoiceData.discount_code_id = discountData.discount_code.id;
                 invoiceData.discount_code_amount = discountData.discount_amount;
+            }
+
+            if (codeType === 'referral' && referralData?.valid) {
+                invoiceData.referral_code = promoCode;
             }
 
             try {
@@ -431,64 +477,48 @@ export default function CheckoutCourse({
         const loginUrl = route('login', { redirect: currentUrl });
 
         return (
-            <div className="relative min-h-screen bg-background">
-                {/* Global Decorative Background — Blobs */}
-                <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
-                <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
-                {/* Global Decorative Background — Grid Pattern */}
-                <div
-                    className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                    }}
-                />
-                
-                <UserLayout>
-                    <Head title="Login Required" />
+            <UserLayout>
+                <Head title="Login Required" />
 
-                    <section className="relative mx-auto mt-12 w-full max-w-4xl px-4">
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-gradient-to-br from-blue-600/90 via-blue-700/90 to-purple-700/90 p-12 text-center shadow-2xl backdrop-blur-xl">
-                            <div className="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]" />
-                            <div className="absolute top-0 left-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/30 blur-3xl" />
-                            <div className="absolute right-0 bottom-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-purple-400/30 blur-3xl" />
+                <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 px-4 py-16">
+                    <div className="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]" />
+                    <div className="absolute top-0 left-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/30 blur-3xl" />
+                    <div className="absolute right-0 bottom-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-purple-400/30 blur-3xl" />
 
-                            <div className="relative z-10">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.1 }}
-                                    className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm"
-                                >
-                                    <Lock className="h-4 w-4 text-white" />
-                                    <span className="text-sm font-medium text-white">Login Diperlukan</span>
-                                </motion.div>
-
-                                <motion.h1
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                    className="mb-4 text-3xl font-bold text-white sm:text-4xl lg:text-5xl"
-                                >
-                                    {course.title}
-                                </motion.h1>
-
-                                <motion.p
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                    className="text-lg text-blue-100"
-                                >
-                                    Silakan login terlebih dahulu untuk melanjutkan pendaftaran
-                                </motion.p>
-                            </div>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-4xl text-center">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm"
+                        >
+                            <Lock className="h-4 w-4 text-white" />
+                            <span className="text-sm font-medium text-white">Login Diperlukan</span>
                         </motion.div>
-                    </section>
 
-                    <section className="mx-auto my-8 w-full max-w-2xl px-4">
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                            <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="mb-4 text-3xl font-bold text-white sm:text-4xl lg:text-5xl"
+                        >
+                            {course.title}
+                        </motion.h1>
+
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-lg text-blue-100"
+                        >
+                            Silakan login terlebih dahulu untuk melanjutkan pendaftaran
+                        </motion.p>
+                    </motion.div>
+                </section>
+
+                <section className="mx-auto my-8 w-full max-w-2xl px-4">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                        <Card className="overflow-hidden border-2">
                             <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-8 dark:from-blue-950/20 dark:to-purple-950/20">
                                 <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
                                     <User className="h-10 w-10 text-white" />
@@ -520,70 +550,53 @@ export default function CheckoutCourse({
                     </motion.div>
                 </section>
             </UserLayout>
-            </div>
         );
     }
 
     if (!isProfileComplete) {
         return (
-            <div className="relative min-h-screen bg-background">
-                {/* Global Decorative Background — Blobs */}
-                <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
-                <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
-                {/* Global Decorative Background — Grid Pattern */}
-                <div
-                    className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                    }}
-                />
-                
-                <UserLayout>
-                    <Head title="Lengkapi Profil" />
+            <UserLayout>
+                <Head title="Lengkapi Profil" />
 
-                    <section className="relative mx-auto mt-12 w-full max-w-4xl px-4">
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-gradient-to-br from-orange-600/90 via-orange-700/90 to-red-700/90 p-12 text-center shadow-2xl backdrop-blur-xl">
-                            <div className="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]" />
-                            <div className="absolute top-0 left-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-400/30 blur-3xl" />
-                            <div className="absolute right-0 bottom-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-red-400/30 blur-3xl" />
+                <section className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-700 to-red-700 px-4 py-16">
+                    <div className="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]" />
+                    <div className="absolute top-0 left-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-400/30 blur-3xl" />
+                    <div className="absolute right-0 bottom-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-red-400/30 blur-3xl" />
 
-                            <div className="relative z-10">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.1 }}
-                                    className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm"
-                                >
-                                    <User className="h-4 w-4 text-white" />
-                                    <span className="text-sm font-medium text-white">Profil Belum Lengkap</span>
-                                </motion.div>
-
-                                <motion.h1
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                    className="mb-4 text-3xl font-bold text-white sm:text-4xl lg:text-5xl"
-                                >
-                                    {course.title}
-                                </motion.h1>
-
-                                <motion.p
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                    className="text-lg text-orange-100"
-                                >
-                                    Lengkapi profil Anda terlebih dahulu untuk melanjutkan
-                                </motion.p>
-                            </div>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-4xl text-center">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm"
+                        >
+                            <User className="h-4 w-4 text-white" />
+                            <span className="text-sm font-medium text-white">Profil Belum Lengkap</span>
                         </motion.div>
-                    </section>
 
-                    <section className="mx-auto my-8 w-full max-w-2xl px-4">
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                            <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="mb-4 text-3xl font-bold text-white sm:text-4xl lg:text-5xl"
+                        >
+                            {course.title}
+                        </motion.h1>
+
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-lg text-orange-100"
+                        >
+                            Lengkapi profil Anda terlebih dahulu untuk melanjutkan
+                        </motion.p>
+                    </motion.div>
+                </section>
+
+                <section className="mx-auto my-8 w-full max-w-2xl px-4">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                        <Card className="overflow-hidden border-2">
                             <div className="bg-gradient-to-br from-orange-50 to-red-50 p-8 dark:from-orange-950/20 dark:to-red-950/20">
                                 <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-red-600 shadow-lg">
                                     <User className="h-10 w-10 text-white" />
@@ -609,115 +622,96 @@ export default function CheckoutCourse({
                     </motion.div>
                 </section>
             </UserLayout>
-            </div>
         );
     }
 
     return (
-        <div className="relative min-h-screen bg-background">
-            {/* Global Decorative Background — Blobs */}
-            <div className="pointer-events-none absolute -top-32 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
-            <div className="pointer-events-none absolute -top-32 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-0 -left-32 z-0 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-0 -right-0 z-0 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl" />
-            {/* Global Decorative Background — Grid Pattern */}
-            <div
-                className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]"
-                style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                }}
-            />
-            
         <UserLayout>
             <Head title={`Checkout - ${course.title}`} />
 
             {/* Hero Section */}
-            <section className="relative mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 p-8 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60 sm:p-12">
-                    <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
-                    <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-secondary/20 blur-3xl" />
-                    <div className="relative z-10">
-                        <div className="mb-6 flex flex-wrap items-center gap-3">
+            <section className="from-primary to-primary-foreground relative overflow-hidden bg-gradient-to-br px-4 py-12">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-7xl">
+                    <div className="mb-6 flex flex-wrap items-center gap-3">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium backdrop-blur-sm ${levelColors[course.level]}`}
+                        >
+                            <Star className="h-3.5 w-3.5" />
+                            {levelLabels[course.level]}
+                        </motion.div>
+
+                        {isFree && (
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium backdrop-blur-sm ${levelColors[course.level]}`}
+                                transition={{ delay: 0.2 }}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-green-500/20 bg-white px-3 py-1.5 text-sm font-medium text-green-600 backdrop-blur-sm"
                             >
-                                <Star className="h-3.5 w-3.5" />
-                                {levelLabels[course.level]}
+                                <Gift className="h-3.5 w-3.5" />
+                                Gratis
                             </motion.div>
+                        )}
 
-                            {isFree && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                    className="inline-flex items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1.5 text-sm font-medium text-green-700 dark:text-green-400 backdrop-blur-sm"
-                                >
-                                    <Gift className="h-3.5 w-3.5" />
-                                    Gratis
-                                </motion.div>
-                            )}
+                        {course.strikethrough_price > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-red-700 bg-red-200 px-3 py-1.5 text-sm font-medium text-red-600 backdrop-blur-sm"
+                            >
+                                <Tag className="h-3.5 w-3.5" />
+                                Diskon {Math.round(((course.strikethrough_price - course.price) / course.strikethrough_price) * 100)}%
+                            </motion.div>
+                        )}
+                    </div>
 
-                            {course.strikethrough_price > 0 && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-400 backdrop-blur-sm"
-                                >
-                                    <Tag className="h-3.5 w-3.5" />
-                                    Diskon {Math.round(((course.strikethrough_price - course.price) / course.strikethrough_price) * 100)}%
-                                </motion.div>
-                            )}
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="mb-4 text-3xl font-bold text-black sm:text-4xl lg:text-5xl"
+                    >
+                        {course.title}
+                    </motion.h1>
+
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="mb-6 max-w-3xl text-justify text-lg text-black"
+                    >
+                        {course.description}
+                    </motion.p>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="flex flex-wrap gap-6"
+                    >
+                        <div className="flex items-center gap-2 text-black">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
+                                <Play className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-black">Total Modul</p>
+                                <p className="font-semibold">{totalModules} Modul</p>
+                            </div>
                         </div>
 
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="mb-4 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl lg:text-5xl"
-                        >
-                            {course.title}
-                        </motion.h1>
-
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="mb-6 max-w-3xl text-justify text-lg leading-relaxed text-zinc-700 dark:text-zinc-300"
-                        >
-                            {course.description}
-                        </motion.p>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="flex flex-wrap gap-6"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary backdrop-blur-sm">
-                                    <Play className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Total Modul</p>
-                                    <p className="font-bold text-zinc-900 dark:text-zinc-100">{totalModules} Modul</p>
-                                </div>
+                        <div className="flex items-center gap-2 text-black">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
+                                <Clock className="h-5 w-5" />
                             </div>
-
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary backdrop-blur-sm">
-                                    <Clock className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Total Pelajaran</p>
-                                    <p className="font-bold text-zinc-900 dark:text-zinc-100">{totalLessons} Pelajaran</p>
-                                </div>
+                            <div>
+                                <p className="text-sm text-black">Total Pelajaran</p>
+                                <p className="font-semibold">{totalLessons} Pelajaran</p>
                             </div>
-                        </motion.div>
-                    </div>
+                        </div>
+                    </motion.div>
                 </motion.div>
             </section>
 
@@ -727,23 +721,21 @@ export default function CheckoutCourse({
                     {/* Left Column - Course Details */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-2">
                         <Tabs defaultValue="detail" className="w-full">
-                            <div className="mb-6 rounded-2xl border-2 border-gray-200 bg-white/60 p-1.5 shadow-lg backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
-                                <TabsList className="grid h-auto w-full grid-cols-2 bg-transparent gap-2">
-                                    <TabsTrigger value="detail" className="gap-2 rounded-xl py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all">
-                                        <BadgeCheck className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Yang Akan Dipelajari</span>
-                                        <span className="sm:hidden">Detail</span>
-                                    </TabsTrigger>
-                                    <TabsTrigger value="preview" className="gap-2 rounded-xl py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all">
-                                        <Play className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Preview Video</span>
-                                        <span className="sm:hidden">Preview</span>
-                                    </TabsTrigger>
-                                </TabsList>
-                            </div>
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="detail" className="gap-2">
+                                    <BadgeCheck className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Yang Akan Dipelajari</span>
+                                    <span className="sm:hidden">Detail</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="preview" className="gap-2">
+                                    <Play className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Preview Video</span>
+                                    <span className="sm:hidden">Preview</span>
+                                </TabsTrigger>
+                            </TabsList>
 
-                            <TabsContent value="detail" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                                <Card className="border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                            <TabsContent value="detail" className="mt-4">
+                                <Card className="p-6">
                                     <div className="mb-6">
                                         <h2 className="mb-2 text-2xl font-bold">Yang Akan Kamu Pelajari</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -770,8 +762,8 @@ export default function CheckoutCourse({
                                 </Card>
                             </TabsContent>
 
-                            <TabsContent value="preview" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                                <Card className="overflow-hidden border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                            <TabsContent value="preview" className="mt-4">
+                                <Card className="overflow-hidden p-6">
                                     <div className="mb-4">
                                         <h2 className="mb-2 text-2xl font-bold">Preview Video Kelas</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -866,7 +858,7 @@ export default function CheckoutCourse({
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-1">
                         <div className="sticky top-4">
                             {hasAccess ? (
-                                <Card className="overflow-hidden border border-green-500/20 bg-white/60 shadow-xl backdrop-blur-xl dark:border-green-500/10 dark:bg-zinc-900/60">
+                                <Card className="overflow-hidden border-2 border-green-500/20">
                                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 text-center dark:from-green-950/20 dark:to-emerald-950/20">
                                         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
                                             <BadgeCheck className="h-10 w-10 text-white" />
@@ -890,7 +882,7 @@ export default function CheckoutCourse({
                                     </div>
                                 </Card>
                             ) : pendingInvoice ? (
-                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
+                                <Card className="overflow-hidden border-2">
                                     <div
                                         className="border-b p-4"
                                         style={{
@@ -1063,8 +1055,8 @@ export default function CheckoutCourse({
                                     </div>
                                 </Card>
                             ) : (
-                                <Card className="overflow-hidden border border-white/40 bg-white/60 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
-                                    <div className="bg-primary/90 border-b border-primary/20 p-4 backdrop-blur-md">
+                                <Card className="overflow-hidden border-2">
+                                    <div className="bg-primary border-b p-4">
                                         <h2 className="text-center text-lg font-bold text-white">
                                             {isFree ? 'Pendaftaran Gratis' : 'Detail Pembayaran'}
                                         </h2>
@@ -1079,70 +1071,136 @@ export default function CheckoutCourse({
                                             </div>
                                         ) : (
                                             <>
-                                                <div className="mb-6 space-y-2">
-                                                    <Label htmlFor="promo-code" className="flex items-center gap-2 text-sm font-medium">
-                                                        <Tag className="h-4 w-4" />
-                                                        Punya Kode Promo?
-                                                    </Label>
-                                                    <div className="relative">
-                                                        <Input
-                                                            id="promo-code"
-                                                            type="text"
-                                                            placeholder="Masukkan kode promo"
-                                                            value={promoCode}
-                                                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                                                            className="pr-10 font-mono"
-                                                        />
-                                                        {promoLoading && (
-                                                            <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
-                                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                                                <div className="mb-6 space-y-4">
+                                                    {/* Jenis Kode */}
+                                                    <div className="space-y-2">
+                                                        <Label className="flex items-center gap-2 text-sm font-medium">
+                                                            <Tag className="h-4 w-4" />
+                                                            Jenis Kode
+                                                        </Label>
+                                                        <RadioGroup
+                                                            value={codeType}
+                                                            onValueChange={(val: 'voucher' | 'referral') => {
+                                                                setCodeType(val);
+                                                                setPromoCode('');
+                                                                setDiscountData(null);
+                                                                setReferralData(null);
+                                                                setPromoError('');
+                                                                setReferralError('');
+                                                            }}
+                                                            className="flex gap-4"
+                                                        >
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem value="voucher" id="code-voucher" />
+                                                                <Label htmlFor="code-voucher" className="cursor-pointer text-sm">Voucher</Label>
                                                             </div>
-                                                        )}
-                                                        {!promoLoading && promoCode && (
-                                                            <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
-                                                                {discountData?.valid ? (
-                                                                    <Check className="h-4 w-4 text-green-600" />
-                                                                ) : promoError ? (
-                                                                    <X className="h-4 w-4 text-red-600" />
-                                                                ) : null}
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem value="referral" id="code-referral" />
+                                                                <Label htmlFor="code-referral" className="cursor-pointer text-sm">Referral</Label>
                                                             </div>
-                                                        )}
+                                                        </RadioGroup>
                                                     </div>
 
-                                                    {promoError && (
-                                                        <motion.div
-                                                            initial={{ opacity: 0, y: -10 }}
-                                                            animate={{ opacity: 1, y: 0 }}
-                                                            className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/20"
-                                                        >
-                                                            <X className="h-4 w-4 flex-shrink-0 text-red-600" />
-                                                            <p className="text-sm text-red-600 dark:text-red-400">{promoError}</p>
-                                                        </motion.div>
-                                                    )}
-
-                                                    {discountData?.valid && (
-                                                        <motion.div
-                                                            initial={{ opacity: 0, scale: 0.95 }}
-                                                            animate={{ opacity: 1, scale: 1 }}
-                                                            className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-green-950/20 dark:to-emerald-950/20"
-                                                        >
-                                                            <div className="mb-2 flex items-center gap-2">
-                                                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
-                                                                    <Check className="h-4 w-4 text-white" />
+                                                    {/* Input Kode */}
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="promo-code" className="text-sm font-medium">
+                                                            {codeType === 'voucher' ? 'Kode Voucher / Promo' : 'Kode Referral'}
+                                                        </Label>
+                                                        <div className="relative">
+                                                            <Input
+                                                                id="promo-code"
+                                                                type="text"
+                                                                placeholder={codeType === 'voucher' ? 'Masukkan kode promo' : 'Masukkan kode referral'}
+                                                                value={promoCode}
+                                                                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                                                className="pr-10 font-mono"
+                                                            />
+                                                            {(promoLoading || referralLoading) && (
+                                                                <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
+                                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
                                                                 </div>
-                                                                <p className="font-semibold text-green-800 dark:text-green-200">
-                                                                    Kode Promo Diterapkan!
+                                                            )}
+                                                            {!(promoLoading || referralLoading) && promoCode && (
+                                                                <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
+                                                                    {codeType === 'voucher' ? (
+                                                                        discountData?.valid ? (
+                                                                            <Check className="h-4 w-4 text-green-600" />
+                                                                        ) : promoError ? (
+                                                                            <X className="h-4 w-4 text-red-600" />
+                                                                        ) : null
+                                                                    ) : (
+                                                                        referralData?.valid ? (
+                                                                            <Check className="h-4 w-4 text-green-600" />
+                                                                        ) : referralError ? (
+                                                                            <X className="h-4 w-4 text-red-600" />
+                                                                        ) : null
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Voucher feedback */}
+                                                        {codeType === 'voucher' && promoError && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: -10 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/20"
+                                                            >
+                                                                <X className="h-4 w-4 flex-shrink-0 text-red-600" />
+                                                                <p className="text-sm text-red-600 dark:text-red-400">{promoError}</p>
+                                                            </motion.div>
+                                                        )}
+                                                        {codeType === 'voucher' && discountData?.valid && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-green-950/20 dark:to-emerald-950/20"
+                                                            >
+                                                                <div className="mb-2 flex items-center gap-2">
+                                                                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+                                                                        <Check className="h-4 w-4 text-white" />
+                                                                    </div>
+                                                                    <p className="font-semibold text-green-800 dark:text-green-200">Kode Promo Diterapkan!</p>
+                                                                </div>
+                                                                <p className="text-sm text-green-700 dark:text-green-300">
+                                                                    <span className="font-mono font-bold">{discountData.discount_code.code}</span> -{' '}
+                                                                    {discountData.discount_code.name}
                                                                 </p>
-                                                            </div>
-                                                            <p className="text-sm text-green-700 dark:text-green-300">
-                                                                <span className="font-mono font-bold">{discountData.discount_code.code}</span> -{' '}
-                                                                {discountData.discount_code.name}
-                                                            </p>
-                                                            <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                                                                Hemat {discountData.discount_code.formatted_value}
-                                                            </p>
-                                                        </motion.div>
-                                                    )}
+                                                                <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                                                                    Hemat {discountData.discount_code.formatted_value}
+                                                                </p>
+                                                            </motion.div>
+                                                        )}
+
+                                                        {/* Referral feedback */}
+                                                        {codeType === 'referral' && referralError && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: -10 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/20"
+                                                            >
+                                                                <X className="h-4 w-4 flex-shrink-0 text-red-600" />
+                                                                <p className="text-sm text-red-600 dark:text-red-400">{referralError}</p>
+                                                            </motion.div>
+                                                        )}
+                                                        {codeType === 'referral' && referralData?.valid && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-green-950/20 dark:to-emerald-950/20"
+                                                            >
+                                                                <div className="mb-2 flex items-center gap-2">
+                                                                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+                                                                        <Check className="h-4 w-4 text-white" />
+                                                                    </div>
+                                                                    <p className="font-semibold text-green-800 dark:text-green-200">Kode Referral Valid!</p>
+                                                                </div>
+                                                                <p className="text-sm text-green-700 dark:text-green-300">
+                                                                    Pembelian Anda dirujuk oleh <span className="font-bold">{referralData.referrer?.name}</span>. Reward poin akan masuk setelah pembayaran sukses.
+                                                                </p>
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
                                                 </div>
 
                                                 {/* Price Breakdown */}
@@ -1270,6 +1328,5 @@ export default function CheckoutCourse({
             </section>
             <Toaster position="top-center" richColors />
         </UserLayout>
-        </div>
     );
 }

@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
+import { FormEventHandler, useEffect, useState } from 'react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -17,12 +17,13 @@ type RegisterForm = {
     city: string;
     password: string;
     password_confirmation: string;
+    affiliate_code?: string;
 };
 
 export default function Register() {
     const [showPassword, setShowPassword] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
+    const { data, setData, post, processing, errors, reset } = useForm<RegisterForm>({
         name: '',
         email: '',
         phone_number: '',
@@ -30,7 +31,16 @@ export default function Register() {
         city: '',
         password: '',
         password_confirmation: '',
+        affiliate_code: '',
     });
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const refFromUrl = urlParams.get('ref');
+        if (refFromUrl) {
+            setData('affiliate_code', refFromUrl.toUpperCase());
+        }
+    }, []);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -179,6 +189,21 @@ export default function Register() {
                             </button>
                         </div>
                         <InputError message={errors.password_confirmation} />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="affiliate_code">Kode Referral / Afiliasi (Opsional)</Label>
+                        <Input
+                            id="affiliate_code"
+                            type="text"
+                            tabIndex={5}
+                            value={data.affiliate_code || ''}
+                            onChange={(e) => setData('affiliate_code', e.target.value.toUpperCase())}
+                            disabled={processing}
+                            placeholder="Contoh: LUC-XXXXXX"
+                            className="font-mono uppercase"
+                        />
+                        <InputError message={errors.affiliate_code} />
                     </div>
 
                     <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
