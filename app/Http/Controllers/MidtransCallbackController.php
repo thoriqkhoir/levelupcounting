@@ -192,6 +192,7 @@ class MidtransCallbackController extends Controller
                 'webinarItems.webinar',
                 'bundleEnrollments.bundle',
                 'bundleEnrollments.bundle.bundleItems',
+                'certificationProgramItems.certificationProgram',
                 'discountUsage.discountCode',
             ]);
 
@@ -245,6 +246,7 @@ class MidtransCallbackController extends Controller
                 'bootcampItems.bootcamp',
                 'webinarItems.webinar',
                 'bundleEnrollments.bundle',
+                'certificationProgramItems.certificationProgram',
             ]);
 
             $user = $invoice->user;
@@ -264,6 +266,8 @@ class MidtransCallbackController extends Controller
                 $itemType = 'Webinar';
             } elseif ($invoice->bundleEnrollments->count() > 0) {
                 $itemType = 'Bundle';
+            } elseif ($invoice->certificationProgramItems->count() > 0) {
+                $itemType = 'Sertifikasi Program';
             }
 
             $statusText = $midtransStatus ? " (status: {$midtransStatus})" : '';
@@ -292,13 +296,24 @@ class MidtransCallbackController extends Controller
         }
     }
 
+    /**
+     * Buat pesan WhatsApp sukses untuk pembayaran
+     */
     private function createWhatsAppSuccessMessage(Invoice $invoice): string
     {
         $user = $invoice->user;
         $loginUrl = route('login');
         $profileUrl = route('profile.index');
 
-        $invoice->load('discountUsage.discountCode');
+        $invoice->loadMissing([
+            'user',
+            'courseItems.course',
+            'bootcampItems.bootcamp',
+            'webinarItems.webinar',
+            'bundleEnrollments.bundle',
+            'certificationProgramItems.certificationProgram',
+            'discountUsage.discountCode',
+        ]);
 
         $itemType = null;
         $typeInfo = [
@@ -353,6 +368,17 @@ class MidtransCallbackController extends Controller
                 'title' => $webinar->title ?? '-',
                 'item' => $webinar,
             ];
+        } elseif ($invoice->certificationProgramItems->count() > 0) {
+            $itemType = 'certification_program';
+            $program = $invoice->certificationProgramItems->first()->certificationProgram;
+
+            $typeInfo = [
+                'icon' => '📜',
+                'name' => 'Program Sertifikasi',
+                'menu' => 'Program Sertifikasi',
+                'title' => $program->title ?? '-',
+                'item' => $program,
+            ];
         }
 
         $paidAt = $invoice->paid_at
@@ -366,6 +392,9 @@ class MidtransCallbackController extends Controller
         $message .= "*Detail Pembelian:*\n";
         $message .= "🧾 Invoice: *{$invoice->invoice_code}*\n";
         $message .= "{$typeInfo['icon']} {$typeInfo['name']}: *{$typeInfo['title']}*\n";
+        if (!empty($user->phone_number)) {
+            $message .= "📱 No. WA: *{$user->phone_number}*\n";
+        }
 
         if ($itemType === 'bundle' && $typeInfo['item']) {
             $bundle = $typeInfo['item'];
@@ -421,6 +450,16 @@ class MidtransCallbackController extends Controller
                 $message .= "⚠️ *Penting:* \n";
                 $message .= "• Bergabung dengan group untuk mendapatkan info penting dan diskusi\n";
                 $message .= "• Aktif mengikuti seluruh kegiatan bootcamp\n\n";
+            }
+        } elseif ($itemType === 'certification_program' && $typeInfo['item']) {
+            $program = $typeInfo['item'];
+
+            if (!empty($program->group_url)) {
+                $message .= "*Join Group Sertifikasi:*\n";
+                $message .= "👥 {$program->group_url}\n\n";
+                $message .= "⚠️ *Penting:*\n";
+                $message .= "• Bergabung dengan group untuk mendapatkan info penting\n";
+                $message .= "• Ikuti jadwal program yang tersedia\n\n";
             }
         }
 

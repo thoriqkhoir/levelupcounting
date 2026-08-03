@@ -1325,11 +1325,25 @@ class InvoiceController extends Controller
         $loginUrl = route('login');
         $profileUrl = route('profile.index');
 
-        $invoice->load('discountUsage.discountCode');
+        $invoice->loadMissing([
+            'user',
+            'courseItems.course',
+            'bootcampItems.bootcamp',
+            'webinarItems.webinar',
+            'bundleEnrollments.bundle',
+            'certificationProgramItems.certificationProgram',
+            'discountUsage.discountCode',
+        ]);
 
         $itemType = null;
         $itemData = null;
-        $typeInfo = null;
+        $typeInfo = [
+            'icon' => '📘',
+            'name' => 'Program',
+            'menu' => 'Dashboard',
+            'title' => '-',
+            'item' => null,
+        ];
 
         if ($invoice->bundleEnrollments->count() > 0) {
             $itemType = 'bundle';
@@ -1340,7 +1354,7 @@ class InvoiceController extends Controller
                 'icon' => '📦',
                 'name' => 'Paket Bundling',
                 'menu' => 'Dashboard',
-                'title' => $bundle->title,
+                'title' => $bundle->title ?? '-',
                 'item' => $bundle
             ];
         } elseif ($invoice->courseItems->count() > 0) {
@@ -1350,7 +1364,7 @@ class InvoiceController extends Controller
                 'icon' => '📚',
                 'name' => 'Kelas Online',
                 'menu' => 'Kelas Saya',
-                'title' => $itemData->course->title,
+                'title' => $itemData->course->title ?? '-',
                 'item' => $itemData->course
             ];
         } elseif ($invoice->bootcampItems->count() > 0) {
@@ -1360,7 +1374,7 @@ class InvoiceController extends Controller
                 'icon' => '🎯',
                 'name' => 'Bootcamp',
                 'menu' => 'Bootcamp Saya',
-                'title' => $itemData->bootcamp->title,
+                'title' => $itemData->bootcamp->title ?? '-',
                 'item' => $itemData->bootcamp
             ];
         } elseif ($invoice->webinarItems->count() > 0) {
@@ -1370,8 +1384,18 @@ class InvoiceController extends Controller
                 'icon' => '📺',
                 'name' => 'Webinar',
                 'menu' => 'Webinar Saya',
-                'title' => $itemData->webinar->title,
+                'title' => $itemData->webinar->title ?? '-',
                 'item' => $itemData->webinar
+            ];
+        } elseif ($invoice->certificationProgramItems->count() > 0) {
+            $itemType = 'certification_program';
+            $itemData = $invoice->certificationProgramItems->first();
+            $typeInfo = [
+                'icon' => '📜',
+                'name' => 'Program Sertifikasi',
+                'menu' => 'Dashboard',
+                'title' => $itemData->certificationProgram->title ?? '-',
+                'item' => $itemData->certificationProgram
             ];
         }
 
@@ -1390,6 +1414,9 @@ class InvoiceController extends Controller
         $message .= "*Detail " . ($isFreePurchase ? 'Pendaftaran' : 'Pembelian') . ":*\n";
         $message .= "🧾 " . ($isFreePurchase ? 'Kode' : 'Invoice') . ": *{$invoice->invoice_code}*\n";
         $message .= "{$typeInfo['icon']} {$typeInfo['name']}: *{$typeInfo['title']}*\n";
+        if (!empty($user->phone_number)) {
+            $message .= "📱 No. WA: *{$user->phone_number}*\n";
+        }
 
         if ($itemType === 'bundle') {
             $bundle = $typeInfo['item'];
