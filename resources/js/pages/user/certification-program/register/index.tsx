@@ -1363,12 +1363,19 @@ export default function Register({
                                             </div>
                                         )}
 
+                                        {displayPrice > 0 && (
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400">Biaya Admin</span>
+                                                <span className="font-semibold">{formatRupiah(5000)}</span>
+                                            </div>
+                                        )}
+
                                         <Separator />
 
                                         <div className="flex items-center justify-between">
                                             <span className="font-bold">Total Pembayaran</span>
                                             <span className="text-2xl font-bold text-orange-600">
-                                                {displayPrice === 0 ? 'GRATIS' : formatRupiah(displayPrice - (discountData?.discount_amount || 0))}
+                                                {displayPrice === 0 ? 'GRATIS' : formatRupiah(displayPrice - (discountData?.discount_amount || 0) + 5000)}
                                             </span>
                                         </div>
                                     </div>
