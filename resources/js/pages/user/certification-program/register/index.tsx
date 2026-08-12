@@ -149,6 +149,14 @@ export default function Register({
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [codeType, setCodeType] = useState<'voucher' | 'referral'>('voucher');
     const [promoCode, setPromoCode] = useState('');
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const refFromUrl = urlParams.get('ref');
+        if (refFromUrl) {
+            sessionStorage.setItem('affiliate_code', refFromUrl);
+        }
+    }, []);
     const [discountData, setDiscountData] = useState<DiscountData | null>(null);
     const [promoLoading, setPromoLoading] = useState(false);
     const [promoError, setPromoError] = useState('');
@@ -496,6 +504,11 @@ export default function Register({
 
             if (codeType === 'referral' && referralData?.valid) {
                 (invoiceData as any).referral_code = promoCode;
+            }
+
+            const storedAffiliate = sessionStorage.getItem('affiliate_code') || new URLSearchParams(window.location.search).get('ref');
+            if (storedAffiliate) {
+                (invoiceData as any).affiliate_code = storedAffiliate;
             }
 
             try {

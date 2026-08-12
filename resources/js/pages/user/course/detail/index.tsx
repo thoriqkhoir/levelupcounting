@@ -86,8 +86,7 @@ export default function DetailCourse({
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const refFromUrl = urlParams.get('ref');
-        if (refFromUrl) sessionStorage.setItem('referral_code', refFromUrl);
-        else if (referralInfo.code) sessionStorage.setItem('referral_code', referralInfo.code);
+        if (refFromUrl) sessionStorage.setItem('affiliate_code', refFromUrl);
     }, [referralInfo]);
 
     useEffect(() => {

@@ -49,7 +49,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                 const refFromRedirect = redirectUrlObj.searchParams.get('ref');
 
                 if (refFromRedirect) {
-                    sessionStorage.setItem('referral_code', refFromRedirect);
+                    sessionStorage.setItem('affiliate_code', refFromRedirect);
                     setReferralCode(refFromRedirect);
                 }
             } catch (error) {
@@ -57,9 +57,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             }
         }
 
-        const storedReferral = sessionStorage.getItem('referral_code');
-        if (storedReferral && !referralCode) {
-            setReferralCode(storedReferral);
+        const storedAffiliate = sessionStorage.getItem('affiliate_code') || sessionStorage.getItem('referral_code');
+        if (storedAffiliate && !referralCode) {
+            setReferralCode(storedAffiliate);
         }
 
         setData('redirect', redirectUrl ?? '');
@@ -67,10 +67,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
     const getRegisterUrl = () => {
         const baseUrl = route('register');
-        const storedReferral = sessionStorage.getItem('referral_code');
+        const storedAffiliate = sessionStorage.getItem('affiliate_code') || sessionStorage.getItem('referral_code');
 
-        if (storedReferral) {
-            return `${baseUrl}?ref=${storedReferral}`;
+        if (storedAffiliate) {
+            return `${baseUrl}?ref=${storedAffiliate}`;
         }
 
         return baseUrl;
