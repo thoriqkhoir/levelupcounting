@@ -225,13 +225,7 @@ export default function RegisterWebinar({
         const refFromUrl = urlParams.get('ref');
 
         if (refFromUrl) {
-            sessionStorage.setItem('referral_code', refFromUrl);
-            setCodeType('referral');
-            setPromoCode(refFromUrl);
-        } else if (referralInfo.code) {
-            sessionStorage.setItem('referral_code', referralInfo.code);
-            setCodeType('referral');
-            setPromoCode(referralInfo.code);
+            sessionStorage.setItem('affiliate_code', refFromUrl);
         }
     }, [referralInfo]);
 
@@ -348,6 +342,11 @@ export default function RegisterWebinar({
 
         if (codeType === 'referral' && referralData?.valid) {
             payload.referral_code = promoCode;
+        }
+
+        const storedAffiliate = sessionStorage.getItem('affiliate_code') || new URLSearchParams(window.location.search).get('ref');
+        if (storedAffiliate) {
+            (payload as any).affiliate_code = storedAffiliate;
         }
 
         return payload;

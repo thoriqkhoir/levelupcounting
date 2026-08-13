@@ -199,11 +199,11 @@ class CourseController extends Controller
      */
     private function handleReferralCode(Request $request): void
     {
-        $referralCode = $request->query('ref');
+        $affiliateCode = $request->query('ref');
 
-        if ($referralCode) {
+        if ($affiliateCode) {
             session([
-                'referral_code' => $referralCode,
+                'affiliate_code' => $affiliateCode,
             ]);
         }
     }
@@ -214,8 +214,8 @@ class CourseController extends Controller
     private function getReferralInfo(): array
     {
         return [
-            'code' => session('referral_code'),
-            'hasActive' => session('referral_code') && session('referral_code') !== 'LUC2025',
+            'code' => session('affiliate_code') ?? session('referral_code'),
+            'hasActive' => (bool) (session('affiliate_code') || session('referral_code')),
         ];
     }
 }

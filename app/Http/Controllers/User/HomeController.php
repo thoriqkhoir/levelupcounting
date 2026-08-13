@@ -20,10 +20,10 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-        $referralCode = $request->query('ref');
+        $affiliateCode = $request->query('ref');
 
-        if ($referralCode) {
-            session(['referral_code' => $referralCode]);
+        if ($affiliateCode) {
+            session(['affiliate_code' => $affiliateCode]);
         }
 
         $tools = Tool::all();
@@ -321,8 +321,8 @@ class HomeController extends Controller
             'allProducts' => $allProducts,
             'activePromotion' => $activePromotion,
             'referralInfo' => [
-                'code' => session('referral_code'),
-                'hasActive' => session('referral_code') && session('referral_code') !== 'LUC2025',
+                'code' => session('affiliate_code') ?? session('referral_code'),
+                'hasActive' => (bool) (session('affiliate_code') || session('referral_code')),
             ],
         ]);
     }
