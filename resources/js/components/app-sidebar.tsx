@@ -3,26 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { SharedData, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import {
-    Banknote,
-    BookText,
-    BriefcaseBusiness,
-    Dock,
-    DollarSign,
-    FileText,
-    Gift,
-    LayoutGrid,
-    List,
-    Megaphone,
-    MonitorPlay,
-    Presentation,
-    Proportions,
-
-    SquareMousePointer,
-    User,
-    UserCheck,
-    Users,
-} from 'lucide-react';
+import { BookText, DollarSign, FileText, Gift, LayoutGrid, List, Megaphone, Users } from 'lucide-react';
 
 const allNavItems: (NavItem & { roles: string[] })[] = [
     {
@@ -102,6 +83,7 @@ const allNavItems: (NavItem & { roles: string[] })[] = [
                 title: 'Sertifikat',
                 href: '/admin/certificates',
                 roles: ['admin'],
+                activeUrls: ['/admin/certificates', '/admin/certificate-designs', '/admin/certificate-signs'],
             } as any,
         ],
     },
