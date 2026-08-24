@@ -10,27 +10,35 @@ const allNavItems: (NavItem & { roles: string[] })[] = [
         title: 'Dashboard',
         href: '/admin/dashboard',
         icon: LayoutGrid,
-        roles: ['admin', 'mentor', 'affiliate'],
+        roles: ['admin', 'mentor', 'affiliate', 'staff'],
     },
     {
         title: 'Manajemen Pengguna',
         href: '#',
         icon: Users,
-        roles: ['admin'],
+        roles: ['admin', 'staff'],
         items: [
             {
                 title: 'Pengguna',
                 href: '/admin/users',
-                roles: ['admin'],
+                roles: ['admin', 'staff'],
+                permissionKey: 'users',
             } as any,
             {
                 title: 'Afiliasi',
                 href: '/admin/affiliates',
-                roles: ['admin'],
+                roles: ['admin', 'staff'],
+                permissionKey: 'affiliates',
             } as any,
             {
                 title: 'Mentor',
                 href: '/admin/mentors',
+                roles: ['admin', 'staff'],
+                permissionKey: 'mentors',
+            } as any,
+            {
+                title: 'Staff',
+                href: '/admin/staff',
                 roles: ['admin'],
             } as any,
         ],
@@ -39,27 +47,31 @@ const allNavItems: (NavItem & { roles: string[] })[] = [
         title: 'Program Pelatihan',
         href: '#',
         icon: BookText,
-        roles: ['admin', 'mentor', 'affiliate'],
+        roles: ['admin', 'mentor', 'affiliate', 'staff'],
         items: [
             {
                 title: 'Kelas Online',
                 href: '/admin/courses',
-                roles: ['admin', 'mentor', 'affiliate'],
+                roles: ['admin', 'mentor', 'affiliate', 'staff'],
+                permissionKey: 'courses',
             } as any,
             {
                 title: 'Bootcamp',
                 href: '/admin/bootcamps',
-                roles: ['admin', 'affiliate'],
+                roles: ['admin', 'affiliate', 'staff'],
+                permissionKey: 'bootcamps',
             } as any,
             {
                 title: 'Webinar',
                 href: '/admin/webinars',
-                roles: ['admin', 'affiliate'],
+                roles: ['admin', 'affiliate', 'staff'],
+                permissionKey: 'webinars',
             } as any,
             {
                 title: 'Sertifikasi Program',
                 href: '/admin/certification-programs',
-                roles: ['admin', 'affiliate'],
+                roles: ['admin', 'affiliate', 'staff'],
+                permissionKey: 'certification-programs',
             } as any,
         ],
     },
@@ -67,22 +79,25 @@ const allNavItems: (NavItem & { roles: string[] })[] = [
         title: 'Data Master',
         href: '#',
         icon: List,
-        roles: ['admin', 'mentor'],
+        roles: ['admin', 'mentor', 'staff'],
         items: [
             {
                 title: 'Kategori',
                 href: '/admin/categories',
-                roles: ['admin', 'mentor'],
+                roles: ['admin', 'mentor', 'staff'],
+                permissionKey: 'categories',
             } as any,
             {
                 title: 'Tools',
                 href: '/admin/tools',
-                roles: ['admin', 'mentor'],
+                roles: ['admin', 'mentor', 'staff'],
+                permissionKey: 'tools',
             } as any,
             {
                 title: 'Sertifikat',
                 href: '/admin/certificates',
-                roles: ['admin'],
+                roles: ['admin', 'staff'],
+                permissionKey: 'certificates',
                 activeUrls: ['/admin/certificates', '/admin/certificate-designs', '/admin/certificate-signs'],
             } as any,
         ],
@@ -91,45 +106,25 @@ const allNavItems: (NavItem & { roles: string[] })[] = [
         title: 'Promosi & Marketing',
         href: '#',
         icon: Megaphone,
-        roles: ['admin'],
+        roles: ['admin', 'staff'],
         items: [
             {
                 title: 'Kode Diskon',
                 href: '/admin/discount-codes',
-                roles: ['admin'],
+                roles: ['admin', 'staff'],
+                permissionKey: 'discount-codes',
             } as any,
             {
                 title: 'Flyer Promosi',
                 href: '/admin/promotions',
-                roles: ['admin'],
+                roles: ['admin', 'staff'],
+                permissionKey: 'promotions',
             } as any,
             {
                 title: 'Broadcast',
                 href: '/admin/broadcasts',
-                roles: ['admin'],
-            } as any,
-        ],
-    },
-    {
-        title: 'Referral & Poin',
-        href: '#',
-        icon: Gift,
-        roles: ['admin'],
-        items: [
-            {
-                title: 'Pengaturan Referral',
-                href: '/admin/referral/settings',
-                roles: ['admin'],
-            } as any,
-            {
-                title: 'Laporan Referral',
-                href: '/admin/referral/report',
-                roles: ['admin'],
-            } as any,
-            {
-                title: 'Transaksi Poin',
-                href: '/admin/referral/transactions',
-                roles: ['admin'],
+                roles: ['admin', 'staff'],
+                permissionKey: 'broadcasts',
             } as any,
         ],
     },
@@ -137,42 +132,115 @@ const allNavItems: (NavItem & { roles: string[] })[] = [
         title: 'Paket Bundling',
         href: '/admin/bundles',
         icon: Gift,
-        roles: ['admin', 'affiliate'],
+        roles: ['admin', 'affiliate', 'staff'],
+        permissionKey: 'bundles',
+    },
+    {
+        title: 'Referral & Poin',
+        href: '#',
+        icon: Gift,
+        roles: ['admin', 'staff'],
+        items: [
+            {
+                title: 'Pengaturan Referral',
+                href: '/admin/referral/settings',
+                roles: ['admin', 'staff'],
+                permissionKey: 'referral',
+            } as any,
+            {
+                title: 'Laporan Referral',
+                href: '/admin/referral/report',
+                roles: ['admin', 'staff'],
+                permissionKey: 'referral',
+            } as any,
+            {
+                title: 'Transaksi Poin',
+                href: '/admin/referral/transactions',
+                roles: ['admin', 'staff'],
+                permissionKey: 'referral',
+            } as any,
+        ],
     },
     {
         title: 'Transaksi',
         href: '/admin/transactions',
         icon: DollarSign,
-        roles: ['admin'],
+        roles: ['admin', 'staff'],
+        permissionKey: 'transactions',
     },
     {
         title: 'Artikel',
         href: '/admin/articles',
         icon: FileText,
-        roles: ['admin', 'mentor'],
+        roles: ['admin', 'mentor', 'staff'],
+        permissionKey: 'articles',
     },
     {
         title: 'Pendapatan',
         href: '/admin/affiliate-earnings',
         icon: DollarSign,
-        roles: ['affiliate', 'mentor'],
+        roles: ['affiliate', 'mentor', 'admin', 'staff'],
+        permissionKey: 'earnings',
     },
 ];
 
 export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
-    const role = auth.role[0];
+    const role = auth.role?.[0];
+    const permissions = auth.permissions || [];
+
+    const hasPermission = (permissionKey?: string) => {
+        if (!permissionKey) return false;
+        return permissions.includes(`${permissionKey}.view`) || permissions.includes(`${permissionKey}.manage`);
+    };
+
+    const isItemAllowed = (item: NavItem) => {
+        if (role === 'admin') {
+            return item.roles?.includes('admin') ?? true;
+        }
+        if (role === 'staff') {
+            if (item.roles?.includes('staff')) {
+                if (item.permissionKey) {
+                    return hasPermission(item.permissionKey);
+                }
+                return true;
+            }
+            return false;
+        }
+        return item.roles?.includes(role) ?? false;
+    };
 
     const mainNavItems = allNavItems
-        .filter((item) => item.roles.includes(role))
+        .filter((item) => isItemAllowed(item))
         .map((item) => {
             if (item.items) {
+                const filteredSubItems = item.items.filter((subItem) => {
+                    if (role === 'admin') {
+                        return subItem.roles?.includes('admin') ?? true;
+                    }
+                    if (role === 'staff') {
+                        if (subItem.roles?.includes('staff')) {
+                            if (subItem.permissionKey) {
+                                return hasPermission(subItem.permissionKey);
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                    return subItem.roles?.includes(role) ?? false;
+                });
                 return {
                     ...item,
-                    items: (item.items as (NavItem & { roles: string[] })[]).filter((subItem) => subItem.roles?.includes(role) ?? true),
+                    items: filteredSubItems,
                 };
             }
             return item;
+        })
+        .filter((item) => {
+            if (item.items !== undefined) {
+                return item.items.length > 0;
+            }
+            return true;
         });
 
     return (

@@ -29,6 +29,7 @@ import {
     Users,
 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import EditUser from './edit';
 
 interface UserData {
@@ -304,7 +305,11 @@ const PaginationControls = ({
     );
 };
 
+import { usePermission } from '@/hooks/use-permission';
+
 export default function UserShow({ user, invoices, enrollments, stats }: UserShowProps) {
+    const { canManage } = usePermission();
+    const canManageUser = canManage('users');
     const [editDialogOpen, setEditDialogOpen] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -324,13 +329,16 @@ export default function UserShow({ user, invoices, enrollments, stats }: UserSho
     const handleDelete = () => {
         router.delete(route('users.destroy', user.id), {
             onSuccess: () => {
-                router.visit('/admin/users');
+                toast.success('Pengguna berhasil dihapus');
+            },
+            onError: () => {
+                toast.error('Gagal menghapus pengguna');
             },
         });
     };
 
     let whatsappUrl = '';
-    if (user?.phone_number) {
+    if (user.phone_number) {
         let phoneNumber = user.phone_number.replace(/\D/g, '');
         if (phoneNumber.startsWith('0')) {
             phoneNumber = '62' + phoneNumber.substring(1);
@@ -340,16 +348,15 @@ export default function UserShow({ user, invoices, enrollments, stats }: UserSho
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Detail Peserta - ${user.name}`} />
+            <Head title={`Detail Pengguna - ${user.name}`} />
 
-            <div className="space-y-6 px-4 py-4 md:px-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div>
-                            <h1 className="text-2xl font-semibold">Detail Peserta</h1>
-                            <p className="text-muted-foreground text-sm">Informasi lengkap dan aktivitas peserta</p>
-                        </div>
+            <div className="px-4 py-4 md:px-6">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-semibold">{user.name}</h1>
+                        <p className="text-muted-foreground text-sm">Detail informasi akun dan aktivitas pengguna</p>
                     </div>
+
                     <div className="flex items-center gap-2">
                         {whatsappUrl && (
                             <Tooltip>
@@ -370,49 +377,53 @@ export default function UserShow({ user, invoices, enrollments, stats }: UserSho
                             </Tooltip>
                         )}
 
-                        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm">
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            Edit
-                                        </Button>
-                                    </DialogTrigger>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Edit Data Pengguna</p>
-                                </TooltipContent>
-                            </Tooltip>
-                            <DialogContent>
-                                <EditUser user={{ ...user, instance: user.instance ?? '', phone_number: user.phone_number ?? '' }} setOpen={setEditDialogOpen} />
-                            </DialogContent>
-                        </Dialog>
+                        {canManageUser && (
+                            <>
+                                <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm">
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    Edit
+                                                </Button>
+                                            </DialogTrigger>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Edit Data Pengguna</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    <DialogContent>
+                                        <EditUser user={{ ...user, instance: user.instance ?? '', phone_number: user.phone_number ?? '' }} setOpen={setEditDialogOpen} />
+                                    </DialogContent>
+                                </Dialog>
 
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div>
-                                    <DeleteConfirmDialog
-                                        trigger={
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="border-red-200 text-red-600 hover:border-red-300 hover:text-red-700"
-                                            >
-                                                <Trash className="mr-2 h-4 w-4" />
-                                                Hapus
-                                            </Button>
-                                        }
-                                        title="Apakah Anda yakin ingin menghapus pengguna ini?"
-                                        itemName={user.name}
-                                        onConfirm={handleDelete}
-                                    />
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Hapus Pengguna</p>
-                            </TooltipContent>
-                        </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div>
+                                            <DeleteConfirmDialog
+                                                trigger={
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="border-red-200 text-red-600 hover:border-red-300 hover:text-red-700"
+                                                    >
+                                                        <Trash className="mr-2 h-4 w-4" />
+                                                        Hapus
+                                                    </Button>
+                                                }
+                                                title="Apakah Anda yakin ingin menghapus pengguna ini?"
+                                                itemName={user.name}
+                                                onConfirm={handleDelete}
+                                            />
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Hapus Pengguna</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </>
+                        )}
                     </div>
                 </div>
 

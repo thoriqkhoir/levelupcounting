@@ -10,6 +10,7 @@ import { SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Folder, Package, Trash } from 'lucide-react';
+import { usePermission } from '@/hooks/use-permission';
 
 export type BundleItem = {
     id: string;
@@ -39,7 +40,9 @@ export type Bundle = {
 
 function BundleActions({ bundle }: { bundle: Bundle }) {
     const { auth } = usePage<SharedData>().props;
+    const { canManage } = usePermission();
     const isAffiliate = auth.role.includes('affiliate');
+    const canManageBundle = canManage('bundles') && !isAffiliate;
 
     const handleDelete = () => {
         router.delete(route('bundles.destroy', bundle.id));
@@ -60,7 +63,7 @@ function BundleActions({ bundle }: { bundle: Bundle }) {
                     <p>Lihat Detail</p>
                 </TooltipContent>
             </Tooltip>
-            {!isAffiliate && (
+            {canManageBundle && (
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div>
@@ -78,7 +81,7 @@ function BundleActions({ bundle }: { bundle: Bundle }) {
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>Hapus Bundling</p>
+                        <p>Hapus Paket Bundling</p>
                     </TooltipContent>
                 </Tooltip>
             )}

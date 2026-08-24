@@ -11,6 +11,7 @@ import { id } from 'date-fns/locale';
 import { CircleX, Copy, EyeOff, Send, SquarePen, Trash } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { usePermission } from '@/hooks/use-permission';
 import { Invoice } from './columns-transactions';
 import CertificationProgramApplications from './show-applications';
 import CertificationProgramDetail from './show-details';
@@ -83,8 +84,10 @@ interface ShowCertificationProgramProps {
 
 export default function ShowCertificationProgram({ program, applications, transactions, flash }: ShowCertificationProgramProps) {
     const { auth } = usePage<SharedData>().props;
+    const { canManage } = usePermission();
     const role = auth.role[0];
     const isAffiliate = role === 'affiliate';
+    const canManageProgram = canManage('certification-programs') && !isAffiliate;
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Program Sertifikasi', href: route('certification-programs.index') },
@@ -109,13 +112,12 @@ export default function ShowCertificationProgram({ program, applications, transa
 
     const statusInfo = statusMap[program.status] ?? { label: program.status, color: 'bg-gray-200 text-gray-800' };
     const typeLabel = program.type === 'scholarship' ? 'Beasiswa' : 'Reguler';
-    const typeColor = program.type === 'scholarship' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
+    const typeColor = program.type === 'scholarship' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800';
 
-    const approvedApplications = applications.filter((a) => a.status === 'approved');
     const paidTransactionsCount = transactions.filter((t) => t.status === 'paid').length;
-
-    const totalSchedules = (program.schedules?.length ?? 0) + (program.type === 'scholarship' ? (program.socializationSchedules?.length ?? 0) : 0);
-    const uploadedRecordings = (program.schedules?.filter((s) => s.recording_url).length ?? 0) + (program.type === 'scholarship' ? (program.socializationSchedules?.filter((s) => s.recording_url).length ?? 0) : 0);
+    const approvedApplications = applications.filter((a) => a.status === 'approved');
+    const totalSchedules = (program.schedules?.length ?? 0) + (program.socializationSchedules?.length ?? 0);
+    const uploadedRecordings = (program.schedules?.filter((s) => s.recording_url)?.length ?? 0) + (program.socializationSchedules?.filter((s) => s.recording_url)?.length ?? 0);
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
@@ -127,9 +129,9 @@ export default function ShowCertificationProgram({ program, applications, transa
                     <Badge className={`border-0 ${statusInfo.color}`}>{statusInfo.label}</Badge>
                 </div>
 
-                <div className={`${!isAffiliate ? 'lg:grid-cols-3' : ''} grid grid-cols-1 gap-4 lg:gap-6`}>
+                <div className={`${canManageProgram ? 'lg:grid-cols-3' : ''} grid grid-cols-1 gap-4 lg:gap-6`}>
                     {/* Main Content */}
-                    <div className="lg:col-span-2">
+                    <div className={canManageProgram ? 'lg:col-span-2' : 'w-full'}>
                         <Tabs defaultValue="detail">
                             <TabsList>
                                 <TabsTrigger value="detail">Detail</TabsTrigger>
@@ -187,7 +189,7 @@ export default function ShowCertificationProgram({ program, applications, transa
                     </div>
 
                     {/* Sidebar Actions */}
-                    {!isAffiliate && (
+                    {canManageProgram && (
                         <div>
                             <h2 className="my-2 text-lg font-medium">Edit & Kustom</h2>
                             <div className="space-y-4 rounded-lg border p-4">

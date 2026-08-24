@@ -33,7 +33,12 @@ interface SettingsProps {
     };
 }
 
+import { usePermission } from '@/hooks/use-permission';
+
 export default function ReferralSettings({ settings }: SettingsProps) {
+    const { canManage } = usePermission();
+    const canManageReferral = canManage('referral');
+
     const { data, setData, post, processing, errors } = useForm({
         referral_reward: settings.referral_reward,
         buyer_reward: settings.buyer_reward,
@@ -42,6 +47,7 @@ export default function ReferralSettings({ settings }: SettingsProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!canManageReferral) return;
         post(route('admin.referral.settings.update'), {
             onSuccess: () => {
                 toast.success('Pengaturan referral berhasil disimpan!');
@@ -83,6 +89,7 @@ export default function ReferralSettings({ settings }: SettingsProps) {
                                             id="referral_reward"
                                             type="number"
                                             min="0"
+                                            disabled={!canManageReferral}
                                             value={data.referral_reward}
                                             onChange={(e) => setData('referral_reward', parseInt(e.target.value) || 0)}
                                             className="pr-16 bg-background"
@@ -107,6 +114,7 @@ export default function ReferralSettings({ settings }: SettingsProps) {
                                             id="buyer_reward"
                                             type="number"
                                             min="0"
+                                            disabled={!canManageReferral}
                                             value={data.buyer_reward}
                                             onChange={(e) => setData('buyer_reward', parseInt(e.target.value) || 0)}
                                             className="pr-16 bg-background"
@@ -138,17 +146,20 @@ export default function ReferralSettings({ settings }: SettingsProps) {
                                 </div>
                                 <Switch
                                     id="referral_only_first_purchase"
+                                    disabled={!canManageReferral}
                                     checked={data.referral_only_first_purchase}
                                     onCheckedChange={(checked) => setData('referral_only_first_purchase', checked)}
                                 />
                             </div>
                         </CardContent>
-                        <CardFooter className="justify-end border-t bg-muted/20 px-6 py-4">
-                            <Button type="submit" disabled={processing} className="gap-2">
-                                <Save className="h-4 w-4" />
-                                {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}
-                            </Button>
-                        </CardFooter>
+                        {canManageReferral && (
+                            <CardFooter className="justify-end border-t bg-muted/20 px-6 py-4">
+                                <Button type="submit" disabled={processing} className="gap-2">
+                                    <Save className="h-4 w-4" />
+                                    {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}
+                                </Button>
+                            </CardFooter>
+                        )}
                     </Card>
                 </form>
             </div>

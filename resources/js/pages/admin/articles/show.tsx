@@ -11,6 +11,7 @@ import { id } from 'date-fns/locale';
 import { Archive, Calendar, CircleX, Clock, Copy, Eye, FileText, Send, SquarePen, Trash, User } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { usePermission } from '@/hooks/use-permission';
 
 interface Category {
     id: string;
@@ -50,18 +51,24 @@ interface ShowProps {
 
 export default function ShowArticle({ article, flash }: ShowProps) {
     const { auth } = usePage<SharedData>().props;
+    const { canManage } = usePermission();
     const isAffiliate = auth.role.includes('affiliate');
     const isAdmin = auth.role.includes('admin');
     const isMentor = auth.role.includes('mentor');
+    const canManageArticle = canManage('articles') && !isAffiliate;
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
+            title: 'Dashboard',
+            href: '/admin/dashboard',
+        },
+        {
             title: 'Artikel',
-            href: route('articles.index'),
+            href: '/admin/articles',
         },
         {
             title: article.title,
-            href: route('articles.show', article.id),
+            href: `/admin/articles/${article.id}`,
         },
     ];
 
@@ -74,104 +81,117 @@ export default function ShowArticle({ article, flash }: ShowProps) {
         }
     }, [flash]);
 
+    const getStatusBadge = (status: Article['status']) => {
+        const statusMap = {
+            draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700' },
+            published: { label: 'Published', color: 'bg-green-100 text-green-700' },
+            archived: { label: 'Archived', color: 'bg-red-100 text-red-700' },
+        };
+        const statusInfo = statusMap[status];
+        return <Badge className={`${statusInfo.color} border-0`}>{statusInfo.label}</Badge>;
+    };
+
+    const currentStatus = {
+        draft: { label: 'Draft' },
+        published: { label: 'Published' },
+        archived: { label: 'Archived' },
+    }[article.status];
+
     const handleDelete = () => {
         router.delete(route('articles.destroy', article.id));
     };
 
-    const statusMap = {
-        draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: FileText },
-        published: { label: 'Published', color: 'bg-green-100 text-green-700', icon: Send },
-        archived: { label: 'Archived', color: 'bg-red-100 text-red-700', icon: Archive },
-    };
-
-    const currentStatus = statusMap[article.status];
-
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Detail ${article.title}`} />
+            <Head title={`Detail Artikel - ${article.title}`} />
             <div className="px-4 py-4 md:px-6">
-                <div className="mb-4 flex items-start justify-between">
-                    <div>
-                        <h1 className="text-2xl font-semibold">{article.title}</h1>
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                            <Badge className={currentStatus.color}>
-                                <currentStatus.icon className="mr-1 h-3 w-3" />
-                                {currentStatus.label}
-                            </Badge>
-                            <Badge variant="outline">{article.category.name}</Badge>
-                        </div>
+                <div className="mb-6 flex items-center justify-between">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-semibold">Detail Artikel</h1>
+                        <p className="text-muted-foreground text-sm">Informasi lengkap tentang artikel {article.title}</p>
                     </div>
                 </div>
 
-                <div className={`${!isAffiliate ? 'lg:grid-cols-3' : ''} grid grid-cols-1 gap-4 lg:gap-6`}>
-                    <div className="lg:col-span-2">
+                <div className={`${canManageArticle ? 'lg:grid-cols-3' : ''} grid grid-cols-1 gap-4 lg:gap-6`}>
+                    <div className={canManageArticle ? 'lg:col-span-2' : 'w-full'}>
                         <Card>
                             <CardHeader>
                                 <CardTitle>Detail Artikel</CardTitle>
-                                <CardDescription>Informasi lengkap artikel</CardDescription>
+                                <CardDescription>Informasi artikel yang dibuat.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 {/* Thumbnail */}
+                                {article.thumbnail && (
+                                    <div>
+                                        <label className="text-muted-foreground text-sm font-medium">Thumbnail</label>
+                                        <div className="mt-2">
+                                            <img
+                                                src={`/storage/${article.thumbnail}`}
+                                                alt={article.title}
+                                                className="h-64 w-full rounded-lg object-cover"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Category */}
                                 <div>
-                                    <h3 className="mb-2 text-sm font-medium">Thumbnail</h3>
-                                    <img
-                                        src={article.thumbnail ? `/storage/${article.thumbnail}` : '/assets/images/placeholder.png'}
-                                        alt={article.title}
-                                        className="w-full rounded-lg border object-cover"
-                                    />
+                                    <label className="text-muted-foreground text-sm font-medium">Kategori</label>
+                                    <div className="mt-1">
+                                        <Badge variant="outline">{article.category.name}</Badge>
+                                    </div>
                                 </div>
 
-                                {/* Meta Info */}
-                                <div className="grid gap-4 md:grid-cols-3">
-                                    <div className="rounded-lg border p-4">
-                                        <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-600">
-                                            <Eye className="h-4 w-4" />
-                                            Total Views
-                                        </div>
-                                        <p className="text-2xl font-bold">{article.views.toLocaleString()}</p>
-                                    </div>
-                                    <div className="rounded-lg border p-4">
-                                        <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-600">
-                                            <Clock className="h-4 w-4" />
-                                            Waktu Baca
-                                        </div>
-                                        <p className="text-2xl font-bold">{article.read_time} menit</p>
-                                    </div>
-                                    <div className="rounded-lg border p-4">
-                                        <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-600">
-                                            <User className="h-4 w-4" />
-                                            Penulis
-                                        </div>
-                                        <p className="truncate text-sm font-medium">{article.user.name}</p>
-                                        <p className="text-muted-foreground truncate text-xs">{article.user.bio}</p>
-                                    </div>
+                                {/* Author */}
+                                <div>
+                                    <label className="text-muted-foreground text-sm font-medium">Penulis</label>
+                                    <p className="mt-1 text-base">{article.user.name}</p>
+                                </div>
+
+                                {/* Title */}
+                                <div>
+                                    <label className="text-muted-foreground text-sm font-medium">Judul</label>
+                                    <p className="mt-1 text-base font-semibold">{article.title}</p>
                                 </div>
 
                                 {/* Excerpt */}
                                 {article.excerpt && (
                                     <div>
-                                        <h3 className="mb-2 text-sm font-medium">Ringkasan Singkat</h3>
-                                        <p className="text-muted-foreground text-sm">{article.excerpt}</p>
+                                        <label className="text-muted-foreground text-sm font-medium">Kutipan</label>
+                                        <p className="mt-1 text-base text-gray-700">{article.excerpt}</p>
                                     </div>
                                 )}
 
                                 {/* Content */}
-                                {article.content && (
-                                    <div>
-                                        <h3 className="mb-3 text-sm font-medium">Konten Artikel</h3>
-                                        <div className="prose prose-sm max-w-none rounded-lg border bg-gray-50 p-6">
-                                            <div dangerouslySetInnerHTML={{ __html: article.content }} />
-                                        </div>
+                                <div>
+                                    <label className="text-muted-foreground text-sm font-medium">Konten</label>
+                                    <div className="prose max-w-none mt-2">
+                                        <div dangerouslySetInnerHTML={{ __html: article.content || '' }} />
                                     </div>
-                                )}
+                                </div>
+
+                                {/* Read Time & Views */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-muted-foreground text-sm font-medium">Waktu Baca</label>
+                                        <p className="mt-1 text-base">{article.read_time} menit</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-muted-foreground text-sm font-medium">Views</label>
+                                        <p className="mt-1 text-base">{article.views.toLocaleString()}</p>
+                                    </div>
+                                </div>
+
+                                {/* Status */}
+                                <div>
+                                    <label className="text-muted-foreground text-sm font-medium">Status</label>
+                                    <div className="mt-1">{getStatusBadge(article.status)}</div>
+                                </div>
 
                                 {/* Published Date */}
                                 {article.published_at && (
-                                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                                        <div className="mb-1 flex items-center gap-2 text-sm font-medium text-blue-700">
-                                            <Calendar className="h-4 w-4" />
-                                            Tanggal Publikasi
-                                        </div>
+                                    <div className="rounded-lg bg-blue-50 p-4">
+                                        <label className="text-sm font-medium text-blue-900">Tanggal Publikasi</label>
                                         <p className="text-base font-medium text-blue-900">
                                             {format(new Date(article.published_at), 'dd MMMM yyyy, HH:mm', { locale: id })} WIB
                                         </p>
@@ -182,11 +202,11 @@ export default function ShowArticle({ article, flash }: ShowProps) {
                     </div>
 
                     {/* Sidebar Actions */}
-                    {!isAffiliate && (
+                    {canManageArticle && (
                         <div>
                             <h2 className="my-2 text-lg font-medium">Aksi & Pengaturan</h2>
                             <div className="space-y-4 rounded-lg border p-4">
-                                {isAdmin && (article.status === 'draft' || article.status === 'archived') && (
+                                {(isAdmin || canManage('articles')) && (article.status === 'draft' || article.status === 'archived') && (
                                     <>
                                         {!article.thumbnail && (
                                             <div className="mb-4 rounded-lg bg-red-50 p-3 text-center text-sm text-red-700">
@@ -207,7 +227,7 @@ export default function ShowArticle({ article, flash }: ShowProps) {
                                     </>
                                 )}
 
-                                {isAdmin && article.status === 'published' && (
+                                {(isAdmin || canManage('articles')) && article.status === 'published' && (
                                     <Button asChild className="w-full">
                                         <Link method="post" href={route('articles.archive', article.id)}>
                                             <CircleX />

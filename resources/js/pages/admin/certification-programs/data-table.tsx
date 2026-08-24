@@ -21,7 +21,7 @@ import { PaginatedData } from '@/types/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertCircle, Archive, CheckCircle2, Eye, EyeOff, FileEdit, HelpCircle, X } from 'lucide-react';
+import { AlertCircle, Archive, BookMarked, CheckCircle2, Eye, EyeOff, FileEdit, GraduationCap, HelpCircle, X } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
