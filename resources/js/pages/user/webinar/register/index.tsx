@@ -71,7 +71,8 @@ interface PendingInvoice {
     invoice_code: string;
     status: string;
     amount: number;
-    payment_method: string;
+    payment_method?: string;
+    invoice_url?: string | null;
     va_number?: string;
     qr_code_url?: string;
     bank_name?: string;
@@ -137,6 +138,7 @@ export default function RegisterWebinar({
     const [emailExists, setEmailExists] = useState(false);
     const [checkingEmail, setCheckingEmail] = useState(false);
 
+    const [cancellingInvoice, setCancellingInvoice] = useState(false);
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [codeType, setCodeType] = useState<'voucher' | 'referral'>('voucher');
@@ -352,43 +354,24 @@ export default function RegisterWebinar({
         return payload;
     };
 
-    const submitPayment = async (payload: InvoiceData, retryCount = 0): Promise<void> => {
-        const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+    const submitPayment = async (payload: InvoiceData): Promise<void> => {
+        try {
+            const res = await axios.post(route('invoice.store'), payload);
 
-        const res = await fetch(route('invoice.store'), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify(payload),
-        });
-
-        if (res.status === 419 && retryCount < 2) {
-            await refreshCSRFToken();
-            return submitPayment(payload, retryCount + 1);
+            if (res.data && res.data.success) {
+                if (res.data.payment_url) {
+                    sessionStorage.removeItem('pendingCheckout');
+                    window.location.href = res.data.payment_url;
+                } else {
+                    throw new Error('Payment URL tidak diterima dari server.');
+                }
+            } else {
+                throw new Error(res.data?.message || 'Gagal membuat invoice.');
+            }
+        } catch (error: any) {
+            console.error('Payment error:', error);
+            throw error;
         }
-
-        if (res.status === 401 && retryCount < 2) {
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            return submitPayment(payload, retryCount + 1);
-        }
-
-        const dataRes = await res.json().catch(() => ({}));
-
-        if (!res.ok || !dataRes.success) {
-            throw new Error(dataRes.message || 'Gagal membuat invoice.');
-        }
-
-        if (!dataRes.payment_url) {
-            throw new Error('Payment URL not received');
-        }
-
-        sessionStorage.removeItem('pendingCheckout');
-        window.location.href = dataRes.payment_url;
     };
 
     const handleFreeCheckout = (e: React.FormEvent) => {
@@ -427,9 +410,15 @@ export default function RegisterWebinar({
     const handleCheckout = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // 1. Jika belum login, lakukan registrasi / login terlebih dahulu
         if (!isLoggedIn) {
             if (!data.email || !data.name || !data.phone_number || !data.instance || !data.city) {
                 toast.error('Lengkapi data terlebih dahulu');
+                return;
+            }
+
+            if (!termsAccepted && !isFree) {
+                toast.error('Anda harus menyetujui syarat dan ketentuan!');
                 return;
             }
 
@@ -446,20 +435,6 @@ export default function RegisterWebinar({
                     if (!response.data.success) {
                         throw new Error(response.data.message || 'Login gagal. Pastikan nomor telepon sesuai.');
                     }
-
-                    toast.success('Login berhasil! Menyiapkan pembayaran...');
-                    sessionStorage.setItem(
-                        'pendingCheckout',
-                        JSON.stringify({
-                            webinarId: webinar.id,
-                            productType: 'webinar',
-                            termsAccepted,
-                            promoCode,
-                            discountData,
-                            timestamp: Date.now(),
-                            source: 'login',
-                        } satisfies PendingCheckoutData),
-                    );
                 } else {
                     const response = await axios.post('/register', {
                         name: data.name,
@@ -469,45 +444,30 @@ export default function RegisterWebinar({
                         city: data.city,
                         password: data.phone_number,
                         password_confirmation: data.phone_number,
+                        affiliate_code: sessionStorage.getItem('affiliate_code') || '',
                     });
 
-                    if (!(response.data.success || response.status === 200 || response.status === 201)) {
-                        throw new Error('Registrasi gagal');
+                    if (!(response.data?.success || response.status === 200 || response.status === 201)) {
+                        throw new Error('Registrasi gagal.');
                     }
-
-                    toast.success('Registrasi berhasil! Menyiapkan pembayaran...');
-                    sessionStorage.setItem(
-                        'pendingCheckout',
-                        JSON.stringify({
-                            webinarId: webinar.id,
-                            productType: 'webinar',
-                            termsAccepted,
-                            promoCode,
-                            discountData,
-                            timestamp: Date.now(),
-                            source: 'register',
-                        } satisfies PendingCheckoutData),
-                    );
                 }
 
-                await new Promise((resolve) => setTimeout(resolve, 900));
-                window.location.reload();
-                return;
+                if (isFree) {
+                    setShowFreeForm(true);
+                    setLoading(false);
+                    return;
+                }
+
+                // Langsung jalankan submitPayment tanpa reload!
+                await submitPayment(createInvoicePayload());
             } catch (error: any) {
                 setLoading(false);
                 toast.error(error.response?.data?.message || error.message || 'Gagal login/registrasi');
-                return;
             }
-        }
-
-        if (!isProfileComplete) {
-            toast.error('Profil Anda belum lengkap! Harap lengkapi nomor telepon, instansi, dan kota domisili terlebih dahulu.');
-            setTimeout(() => {
-                window.location.href = route('profile.edit');
-            }, 1500);
             return;
         }
 
+        // 2. Jika sudah login
         if (!termsAccepted && !isFree) {
             toast.error('Anda harus menyetujui syarat dan ketentuan!');
             return;
@@ -527,7 +487,7 @@ export default function RegisterWebinar({
         try {
             await submitPayment(createInvoicePayload());
         } catch (error: any) {
-            toast.error(error.message || 'Terjadi kesalahan saat proses pembayaran.');
+            toast.error(error.response?.data?.message || error.message || 'Terjadi kesalahan saat proses pembayaran.');
             setLoading(false);
             submitInFlightRef.current = false;
         }
@@ -1046,71 +1006,61 @@ export default function RegisterWebinar({
                                             </div>
                                         </div>
 
-                                        {pendingInvoice.va_number && (
-                                            <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-950/20">
-                                                <div className="mb-3 flex items-center gap-2">
-                                                    <CreditCard className="h-5 w-5 text-blue-600" />
-                                                    <h3 className="font-semibold text-blue-800 dark:text-blue-200">Virtual Account</h3>
-                                                </div>
-                                                <div className="flex items-center justify-between rounded border bg-white p-3 dark:bg-gray-800">
-                                                    <span className="font-mono text-lg font-bold">{pendingInvoice.va_number}</span>
-                                                    <Button size="sm" variant="outline" onClick={() => copyToClipboard(pendingInvoice.va_number!)}>
-                                                        Copy
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const expiryInfo = formatExpiryTime(pendingInvoice.expires_at);
+                                            const isExpired = expiryInfo.status === 'expired' && pendingInvoice.status === 'pending';
 
-                                        {pendingInvoice.qr_code_url && (
-                                            <div className="rounded-lg bg-purple-50 p-4 text-center dark:bg-purple-950/20">
-                                                <h3 className="mb-2 font-semibold text-purple-800 dark:text-purple-200">QR Code</h3>
-                                                <div className="mx-auto w-fit rounded-lg bg-white p-4">
-                                                    <img src={pendingInvoice.qr_code_url} alt="QR Code Payment" className="mx-auto h-32 w-32" />
-                                                </div>
-                                            </div>
-                                        )}
+                                            if (isExpired) {
+                                                return (
+                                                    <div className="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+                                                        <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+                                                            Waktu pembayaran telah habis. Silakan batalkan transaksi untuk membuat pesanan baru.
+                                                        </p>
+                                                    </div>
+                                                );
+                                            }
 
-                                        {transactionDetail?.instructions && transactionDetail.instructions.length > 0 && (
-                                            <div className="space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
-                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">Langkah Pembayaran</p>
-                                                <div className="space-y-4">
-                                                    {transactionDetail.instructions.map((instruction, idx) => (
-                                                        <details
-                                                            key={idx}
-                                                            className="group rounded-lg border border-gray-200 dark:border-gray-600"
-                                                            open={idx === 0}
-                                                        >
-                                                            <summary className="flex cursor-pointer items-center justify-between bg-gray-100 px-4 py-3 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500">
-                                                                <span className="font-semibold text-gray-900 dark:text-white">
-                                                                    {instruction.title}
-                                                                </span>
-                                                                <span className="text-gray-600 transition-transform group-open:rotate-180 dark:text-gray-300">
-                                                                    ▼
-                                                                </span>
-                                                            </summary>
-                                                            <div className="space-y-3 bg-white px-4 py-4 dark:bg-gray-700">
-                                                                <ol className="space-y-2">
-                                                                    {instruction.steps.map((step, stepIdx) => (
-                                                                        <li key={stepIdx} className="flex gap-3">
-                                                                            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-xs font-bold text-white">
-                                                                                {stepIdx + 1}
-                                                                            </span>
-                                                                            <span className="flex-1 pt-0.5 text-sm text-gray-700 dark:text-gray-300">
-                                                                                <div dangerouslySetInnerHTML={{ __html: step }} />
-                                                                            </span>
-                                                                        </li>
-                                                                    ))}
-                                                                </ol>
-                                                            </div>
-                                                        </details>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                            return null;
+                                        })()}
 
-                                        <Button onClick={() => window.location.reload()} variant="outline" className="w-full" size="lg">
-                                            Cek Status Pembayaran
-                                        </Button>
+                                        <div className="space-y-2 pt-2">
+                                            {pendingInvoice.invoice_url && formatExpiryTime(pendingInvoice.expires_at).status !== 'expired' && (
+                                                <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold" size="lg">
+                                                    <a href={pendingInvoice.invoice_url}>
+                                                        Lanjutkan Pembayaran
+                                                    </a>
+                                                </Button>
+                                            )}
+
+                                            <div className="flex gap-2">
+                                                <Button onClick={() => window.location.reload()} variant="outline" className="flex-1" size="lg">
+                                                    Cek Status
+                                                </Button>
+
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="flex-1 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                                                    size="lg"
+                                                    disabled={cancellingInvoice}
+                                                    onClick={async () => {
+                                                        if (confirm('Apakah Anda yakin ingin membatalkan transaksi ini dan membuat pesanan baru?')) {
+                                                            setCancellingInvoice(true);
+                                                            try {
+                                                                await axios.post(route('invoice.cancel', pendingInvoice.id));
+                                                                toast.success('Pesanan berhasil dibatalkan.');
+                                                                window.location.reload();
+                                                            } catch (err: any) {
+                                                                toast.error(err.response?.data?.message || 'Gagal membatalkan pesanan.');
+                                                                setCancellingInvoice(false);
+                                                            }
+                                                        }
+                                                    }}
+                                                >
+                                                    {cancellingInvoice ? 'Membatalkan...' : 'Batalkan Pesanan'}
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </Card>
                             ) : !showFreeForm ? (

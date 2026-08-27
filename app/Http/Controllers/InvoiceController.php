@@ -424,7 +424,7 @@ class InvoiceController extends Controller
                 'field' => 'invoice_code',
                 'length' => 11,
                 'reset_on_prefix_change' => true,
-                'prefix' => 'SPK-' . date('y')
+                'prefix' => 'LUC-' . date('y')
             ]);
 
             $expiresAt = Carbon::now()->addHours(24);
@@ -524,6 +524,7 @@ class InvoiceController extends Controller
                 // 'va_number' => $transaction->pay_code ?? null,
                 // 'qr_code_url' => $transaction->qr_url ?? null,
                 'payment_reference' => $invoice_code,
+                'invoice_url' => $midtransResponse['redirect_url'] ?? null,
             ]);
 
             $enrollmentData = [
@@ -696,7 +697,7 @@ class InvoiceController extends Controller
                 'field' => 'invoice_code',
                 'length' => 11,
                 'reset_on_prefix_change' => true,
-                'prefix' => 'SPK-' . date('y')
+                'prefix' => 'LUC-' . date('y')
             ]);
 
             $expiresAt = Carbon::now()->addHours(24);
@@ -816,6 +817,7 @@ class InvoiceController extends Controller
                 // 'va_number' => $transaction->pay_code ?? null,
                 // 'qr_code_url' => $transaction->qr_url ?? null,
                 'payment_reference' => $invoice_code,
+                'invoice_url' => $midtransResponse['redirect_url'] ?? null,
             ]);
 
             DB::commit();
@@ -939,7 +941,7 @@ class InvoiceController extends Controller
                 'field' => 'invoice_code',
                 'length' => 11,
                 'reset_on_prefix_change' => true,
-                'prefix' => 'SPK-' . date('y')
+                'prefix' => 'LUC-' . date('y')
             ]);
 
             $invoice = Invoice::create([
@@ -947,6 +949,7 @@ class InvoiceController extends Controller
                 'referred_by_user_id' => $referredByUserId,
                 'referral_user_id' => $referralUserId,
                 'invoice_code' => $invoice_code,
+                'invoice_url' => config('app.url') . '/invoice/' . $invoice_code,
                 'discount_amount' => 0,
                 'amount' => 0,
                 'nett_amount' => 0,
@@ -1122,12 +1125,19 @@ class InvoiceController extends Controller
 
             DB::commit();
 
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Transaksi berhasil dibatalkan.'
+                ]);
+            }
+
             return redirect()->back()->with('success', 'Invoice berhasil dibatalkan.');
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'Gagal membatalkan invoice. ' . $e->getMessage(),
-                'success' => false
+                'success' => false,
+                'message' => 'Gagal membatalkan invoice. ' . $e->getMessage()
             ], 400);
         }
     }

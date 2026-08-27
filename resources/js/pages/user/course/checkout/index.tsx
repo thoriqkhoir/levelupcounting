@@ -78,8 +78,8 @@ interface PendingInvoice {
     invoice_code: string;
     status: string;
     amount: number;
-    payment_method: string;
-    // payment_channel: string;
+    payment_method?: string;
+    invoice_url?: string | null;
     va_number?: string;
     qr_code_url?: string;
     bank_name?: string;
@@ -169,6 +169,7 @@ export default function CheckoutCourse({
     const isProfileComplete = isLoggedIn && auth.user?.phone_number;
 
     const firstVideoLesson = course.modules?.flatMap((module) => module.lessons || []).find((lesson) => lesson.type === 'video' && lesson.video_url);
+    const [cancellingInvoice, setCancellingInvoice] = useState(false);
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [codeType, setCodeType] = useState<'voucher' | 'referral'>('voucher');
@@ -364,7 +365,7 @@ export default function CheckoutCourse({
             return handleFreeCheckout(e);
         }
 
-        const submitPayment = async (retryCount = 0): Promise<void> => {
+        const submitPayment = async (): Promise<void> => {
             const originalDiscountAmount = course.strikethrough_price > 0 ? course.strikethrough_price - course.price : 0;
             const promoDiscountAmount = discountData?.discount_amount || 0;
 
@@ -374,7 +375,6 @@ export default function CheckoutCourse({
                 discount_amount: originalDiscountAmount + promoDiscountAmount,
                 nett_amount: finalCoursePrice,
                 total_amount: totalPrice,
-                // payment_channel: selectedChannel?.code,
             };
 
             if (discountData?.valid && codeType === 'voucher') {
@@ -392,37 +392,18 @@ export default function CheckoutCourse({
             }
 
             try {
-                const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
+                const res = await axios.post(route('invoice.store'), invoiceData);
 
-                const res = await fetch(route('invoice.store'), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken || '',
-                        Accept: 'application/json',
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(invoiceData),
-                });
-
-                if (res.status === 419 && retryCount < 2) {
-                    console.log(`CSRF token expired, refreshing... (attempt ${retryCount + 1})`);
-                    await refreshCSRFToken();
-                    return submitPayment(retryCount + 1);
-                }
-
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    if (data.payment_url) {
-                        window.location.href = data.payment_url;
+                if (res.data && res.data.success) {
+                    if (res.data.payment_url) {
+                        window.location.href = res.data.payment_url;
                     } else {
-                        throw new Error('Payment URL not received');
+                        throw new Error('Payment URL tidak diterima dari server.');
                     }
                 } else {
-                    throw new Error(data.message || 'Gagal membuat invoice.');
+                    throw new Error(res.data?.message || 'Gagal membuat invoice.');
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Payment error:', error);
                 throw error;
             }
@@ -431,7 +412,7 @@ export default function CheckoutCourse({
         try {
             await submitPayment();
         } catch (error: any) {
-            alert(error.message || 'Terjadi kesalahan saat proses pembayaran.');
+            toast.error(error.response?.data?.message || error.message || 'Terjadi kesalahan saat proses pembayaran.');
             setLoading(false);
         }
     };
@@ -921,19 +902,6 @@ export default function CheckoutCourse({
                                                 <span className="text-sm text-gray-600 dark:text-gray-400">No. Invoice</span>
                                                 <span className="font-semibold text-gray-900 dark:text-white">{pendingInvoice.invoice_code}</span>
                                             </div>
-                                            {/* <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-600 dark:text-gray-400">Metode Pembayaran</span>
-                                                <div className="flex items-center gap-2">
-                                                    <img
-                                                        src={getPaymentGroupIcon(pendingInvoice.payment_channel)}
-                                                        alt={pendingInvoice.payment_channel}
-                                                        className="h-5 w-5 object-contain"
-                                                    />
-                                                    <span className="font-semibold text-gray-900 dark:text-white">
-                                                        {transactionDetail?.payment_name || getPaymentChannelName(pendingInvoice.payment_channel)}
-                                                    </span>
-                                                </div>
-                                            </div> */}
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Pembayaran</span>
                                                 <span className="text-xl font-bold text-orange-600">
@@ -950,107 +918,53 @@ export default function CheckoutCourse({
                                                 return (
                                                     <div className="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
                                                         <p className="text-sm font-semibold text-red-700 dark:text-red-300">
-                                                            Waktu pembayaran telah habis. Jika Anda sudah membayar atau butuh bantuan, silakan hubungi
-                                                            admin melalui&nbsp;
-                                                            <a
-                                                                href="https://wa.me/6289528514480"
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="font-bold text-orange-600 underline"
-                                                            >
-                                                                WhatsApp Admin
-                                                            </a>
-                                                            .
+                                                            Waktu pembayaran telah habis. Silakan batalkan transaksi untuk membuat pesanan baru.
                                                         </p>
                                                     </div>
                                                 );
                                             }
 
-                                            return (
-                                                <>
-                                                    {pendingInvoice.va_number && (
-                                                        <div className="space-y-3 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-                                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                                                Nomor Virtual Account
-                                                            </p>
-                                                            <div className="flex items-center justify-between rounded-lg bg-white p-3 dark:bg-gray-700">
-                                                                <span className="font-mono text-lg font-bold text-gray-900 dark:text-white">
-                                                                    {pendingInvoice.va_number}
-                                                                </span>
-                                                                <button
-                                                                    onClick={() => copyToClipboard(pendingInvoice.va_number!)}
-                                                                    className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:cursor-pointer hover:bg-blue-700"
-                                                                >
-                                                                    Salin
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {pendingInvoice.qr_code_url && (
-                                                        <div className="space-y-3 rounded-lg bg-purple-50 p-4 dark:bg-purple-900/20">
-                                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Kode QR Pembayaran</p>
-                                                            <div className="flex justify-center rounded-lg bg-white p-4 dark:bg-gray-700">
-                                                                <img
-                                                                    src={pendingInvoice.qr_code_url}
-                                                                    alt="QR Code"
-                                                                    className="h-48 w-48 object-contain"
-                                                                />
-                                                            </div>
-                                                            <a
-                                                                href={pendingInvoice.qr_code_url}
-                                                                download
-                                                                className="block rounded-lg bg-purple-600 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-purple-700"
-                                                            >
-                                                                Download QR Code
-                                                            </a>
-                                                        </div>
-                                                    )}
-
-                                                    {transactionDetail?.instructions && transactionDetail.instructions.length > 0 && (
-                                                        <div className="space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
-                                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Langkah Pembayaran</p>
-                                                            <div className="space-y-4">
-                                                                {transactionDetail.instructions.map((instruction, idx) => (
-                                                                    <details
-                                                                        key={idx}
-                                                                        className="group rounded-lg border border-gray-200 dark:border-gray-600"
-                                                                        open={idx === 0}
-                                                                    >
-                                                                        <summary className="flex cursor-pointer items-center justify-between bg-gray-100 px-4 py-3 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500">
-                                                                            <span className="font-semibold text-gray-900 dark:text-white">
-                                                                                {instruction.title}
-                                                                            </span>
-                                                                            <span className="text-gray-600 transition-transform group-open:rotate-180 dark:text-gray-300">
-                                                                                ▼
-                                                                            </span>
-                                                                        </summary>
-                                                                        <div className="space-y-3 bg-white px-4 py-4 dark:bg-gray-700">
-                                                                            <ol className="space-y-2">
-                                                                                {instruction.steps.map((step, stepIdx) => (
-                                                                                    <li key={stepIdx} className="flex gap-3">
-                                                                                        <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-xs font-bold text-white">
-                                                                                            {stepIdx + 1}
-                                                                                        </span>
-                                                                                        <span className="flex-1 pt-0.5 text-sm text-gray-700 dark:text-gray-300">
-                                                                                            <div dangerouslySetInnerHTML={{ __html: step }} />
-                                                                                        </span>
-                                                                                    </li>
-                                                                                ))}
-                                                                            </ol>
-                                                                        </div>
-                                                                    </details>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            );
+                                            return null;
                                         })()}
 
-                                        <Button onClick={() => window.location.reload()} variant="outline" className="w-full" size="lg">
-                                            Cek Status Pembayaran
-                                        </Button>
+                                        <div className="space-y-2 pt-2">
+                                            {pendingInvoice.invoice_url && formatExpiryTime(pendingInvoice.expires_at).status !== 'expired' && (
+                                                <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold" size="lg">
+                                                    <a href={pendingInvoice.invoice_url}>
+                                                        Lanjutkan Pembayaran
+                                                    </a>
+                                                </Button>
+                                            )}
+
+                                            <div className="flex gap-2">
+                                                <Button onClick={() => window.location.reload()} variant="outline" className="flex-1" size="lg">
+                                                    Cek Status
+                                                </Button>
+
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="flex-1 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                                                    size="lg"
+                                                    disabled={cancellingInvoice}
+                                                    onClick={async () => {
+                                                        if (confirm('Apakah Anda yakin ingin membatalkan transaksi ini dan membuat pesanan baru?')) {
+                                                            setCancellingInvoice(true);
+                                                            try {
+                                                                await axios.post(route('invoice.cancel', pendingInvoice.id));
+                                                                toast.success('Pesanan berhasil dibatalkan.');
+                                                                window.location.reload();
+                                                            } catch (err: any) {
+                                                                toast.error(err.response?.data?.message || 'Gagal membatalkan pesanan.');
+                                                                setCancellingInvoice(false);
+                                                            }
+                                                        }
+                                                    }}
+                                                >
+                                                    {cancellingInvoice ? 'Membatalkan...' : 'Batalkan Pesanan'}
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </Card>
                             ) : (

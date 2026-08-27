@@ -169,6 +169,7 @@ class CertificationProgramController extends Controller
 
         $hasAccess = false;
         $pendingInvoiceUrl = null;
+        $pendingInvoiceData = null;
         $regularApplication = null;
         $scholarshipApplication = null;
 
@@ -196,8 +197,18 @@ class CertificationProgramController extends Controller
                     ->latest()
                     ->first();
 
-                if ($pendingInvoice && $pendingInvoice->invoice_url) {
+                if ($pendingInvoice) {
                     $pendingInvoiceUrl = $pendingInvoice->invoice_url;
+                    $pendingInvoiceData = [
+                        'id' => $pendingInvoice->id,
+                        'invoice_code' => $pendingInvoice->invoice_code,
+                        'status' => $pendingInvoice->status,
+                        'amount' => $pendingInvoice->amount,
+                        'payment_method' => $pendingInvoice->payment_method,
+                        'invoice_url' => $pendingInvoice->invoice_url,
+                        'created_at' => $pendingInvoice->created_at,
+                        'expires_at' => $pendingInvoice->expires_at,
+                    ];
                 }
             }
 
@@ -219,6 +230,7 @@ class CertificationProgramController extends Controller
         return Inertia::render('user/certification-program/register/index', [
             'program' => $program,
             'hasAccess' => $hasAccess,
+            'pendingInvoice' => $pendingInvoiceData,
             'pendingInvoiceUrl' => $pendingInvoiceUrl,
             'regularApplication' => $regularApplication,
             'scholarshipApplication' => $scholarshipApplication,

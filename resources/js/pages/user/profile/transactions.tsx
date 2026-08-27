@@ -21,6 +21,11 @@ interface Webinar {
     title: string;
     slug: string;
 }
+interface Bundle {
+    id: string;
+    title: string;
+    slug: string;
+}
 
 interface EnrollmentCourse {
     id: string;
@@ -37,6 +42,11 @@ interface EnrollmentWebinar {
     webinar: Webinar;
     price: number;
 }
+interface BundleEnrollment {
+    id: string;
+    bundle: Bundle;
+    price: number;
+}
 
 interface Invoice {
     id: string;
@@ -47,9 +57,14 @@ interface Invoice {
     paid_at: string | null;
     payment_channel: string | null;
     payment_method: string | null;
-    course_items: EnrollmentCourse[];
-    bootcamp_items: EnrollmentBootcamp[];
-    webinar_items: EnrollmentWebinar[];
+    course_items?: EnrollmentCourse[];
+    courseItems?: EnrollmentCourse[];
+    bootcamp_items?: EnrollmentBootcamp[];
+    bootcampItems?: EnrollmentBootcamp[];
+    webinar_items?: EnrollmentWebinar[];
+    webinarItems?: EnrollmentWebinar[];
+    bundle_enrollments?: BundleEnrollment[];
+    bundleEnrollments?: BundleEnrollment[];
     created_at: string;
 }
 
@@ -60,12 +75,31 @@ interface Props {
 export default function Transactions({ myTransactions }: Props) {
     const [search, setSearch] = useState('');
 
+    const getItemHref = (type: string, slug: string, status: Invoice['status']) => {
+        const isPaid = status === 'paid' || status === 'completed';
+
+        if (type === 'Course') {
+            return isPaid ? `/profile/my-courses/${slug}` : route('course.detail', { slug });
+        }
+        if (type === 'Bootcamp') {
+            return isPaid ? `/profile/my-bootcamps/${slug}` : route('bootcamp.detail', { slug });
+        }
+        if (type === 'Webinar') {
+            return isPaid ? `/profile/my-webinars/${slug}` : route('webinar.detail', { slug });
+        }
+        if (type === 'Bundle') {
+            return route('bundle.detail', { slug });
+        }
+
+        return '#';
+    };
+
     // Gabungkan semua items dari semua invoice menjadi satu array
     const allItems = myTransactions.flatMap((invoice) => [
-        ...(invoice.course_items || []).map((item) => ({
+        ...(invoice.course_items || invoice.courseItems || []).map((item) => ({
             type: 'Course',
-            title: item.course.title,
-            slug: item.course.slug,
+            title: item.course?.title || '',
+            slug: item.course?.slug || '',
             price: item.price,
             invoice_id: invoice.id,
             invoice_status: invoice.status,
@@ -76,10 +110,10 @@ export default function Transactions({ myTransactions }: Props) {
             payment_method: invoice.payment_method,
             created_at: invoice.created_at,
         })),
-        ...(invoice.bootcamp_items || []).map((item) => ({
+        ...(invoice.bootcamp_items || invoice.bootcampItems || []).map((item) => ({
             type: 'Bootcamp',
-            title: item.bootcamp.title,
-            slug: item.bootcamp.slug,
+            title: item.bootcamp?.title || '',
+            slug: item.bootcamp?.slug || '',
             price: item.price,
             invoice_id: invoice.id,
             invoice_status: invoice.status,
@@ -90,10 +124,24 @@ export default function Transactions({ myTransactions }: Props) {
             payment_method: invoice.payment_method,
             created_at: invoice.created_at,
         })),
-        ...(invoice.webinar_items || []).map((item) => ({
+        ...(invoice.webinar_items || invoice.webinarItems || []).map((item) => ({
             type: 'Webinar',
-            title: item.webinar.title,
-            slug: item.webinar.slug,
+            title: item.webinar?.title || '',
+            slug: item.webinar?.slug || '',
+            price: item.price,
+            invoice_id: invoice.id,
+            invoice_status: invoice.status,
+            invoice_code: invoice.invoice_code,
+            invoice_url: invoice.invoice_url,
+            paid_at: invoice.paid_at,
+            payment_channel: invoice.payment_channel,
+            payment_method: invoice.payment_method,
+            created_at: invoice.created_at,
+        })),
+        ...(invoice.bundle_enrollments || invoice.bundleEnrollments || []).map((item) => ({
+            type: 'Bundle',
+            title: item.bundle?.title || 'Bundling Program',
+            slug: item.bundle?.slug || '',
             price: item.price,
             invoice_id: invoice.id,
             invoice_status: invoice.status,
@@ -150,13 +198,19 @@ export default function Transactions({ myTransactions }: Props) {
                                     <tr key={idx} className="border-t dark:border-zinc-800">
                                         <td className="p-2">
                                             <Link
-                                                href={`/profile/my-${item.type.toLowerCase()}s/${item.slug}`}
+                                                href={getItemHref(item.type, item.slug, item.invoice_status)}
                                                 className="text-primary hover:underline"
                                             >
                                                 {item.title}
                                             </Link>
                                         </td>
-                                        <td className="p-2">{item.type === 'Course' ? 'Kelas Online' : item.type}</td>
+                                        <td className="p-2">
+                                            {item.type === 'Course'
+                                                ? 'Kelas Online'
+                                                : item.type === 'Bundle'
+                                                  ? 'Bundling'
+                                                  : item.type}
+                                        </td>
                                         <td className="p-2">{getStatusComponent(item.invoice_status)}</td>
                                         <td className="p-2">
                                             {item.price === 0 ? (

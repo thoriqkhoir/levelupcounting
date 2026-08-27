@@ -112,9 +112,21 @@ function getErrorMessage(error: unknown, fallback: string): string {
     return fallback;
 }
 
+interface PendingInvoice {
+    id: string;
+    invoice_code: string;
+    status: string;
+    amount: number;
+    payment_method?: string;
+    invoice_url?: string | null;
+    created_at: string;
+    expires_at: string;
+}
+
 interface RegisterProps {
     program: Program;
     hasAccess: boolean;
+    pendingInvoice?: PendingInvoice | null;
     pendingInvoiceUrl?: string | null;
     regularApplication?: Application | null;
     scholarshipApplication?: Application | null;
@@ -124,6 +136,7 @@ interface RegisterProps {
 export default function Register({
     program,
     hasAccess,
+    pendingInvoice,
     pendingInvoiceUrl,
     regularApplication,
     scholarshipApplication,
@@ -144,6 +157,7 @@ export default function Register({
     const isProfileComplete = !!(isLoggedIn && user?.phone_number && user?.instance && user?.city);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [cancellingInvoice, setCancellingInvoice] = useState(false);
     const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
     const [documentAttachment, setDocumentAttachment] = useState<File | null>(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
@@ -408,6 +422,7 @@ export default function Register({
                 }
 
                 toast.success('Login berhasil. Melanjutkan pendaftaran...');
+                return true;
             } else {
                 if (!guestFormData.name) {
                     toast.error('Nama wajib diisi.');
@@ -415,7 +430,7 @@ export default function Register({
                     return false;
                 }
 
-                await axios.post(route('register'), {
+                const regResponse = await axios.post(route('register'), {
                     name: guestFormData.name,
                     email: guestFormData.email,
                     phone_number: guestFormData.phone_number,
@@ -423,14 +438,16 @@ export default function Register({
                     city: guestFormData.city,
                     password: guestFormData.phone_number,
                     password_confirmation: guestFormData.phone_number,
+                    affiliate_code: sessionStorage.getItem('affiliate_code') || '',
                 });
 
-                toast.success('Registrasi berhasil. Melanjutkan pendaftaran...');
-            }
+                if (!(regResponse.data?.success || regResponse.status === 200 || regResponse.status === 201)) {
+                    throw new Error('Registrasi gagal.');
+                }
 
-            savePendingCheckout();
-            window.location.reload();
-            return false;
+                toast.success('Registrasi berhasil. Melanjutkan pendaftaran...');
+                return true;
+            }
         } catch (error: unknown) {
             setIsLoading(false);
             if (axios.isAxiosError(error)) {
@@ -440,7 +457,7 @@ export default function Register({
             }
             return false;
         }
-    }, [emailExists, guestFormData.email, guestFormData.instance, guestFormData.name, guestFormData.phone_number, isLoggedIn, savePendingCheckout]);
+    }, [emailExists, guestFormData.email, guestFormData.instance, guestFormData.name, guestFormData.phone_number, isLoggedIn]);
 
     // Show scholarship prompt only when the user hasn't applied yet or their application was rejected.
     // For guests, consider `guestScholarshipStatus` returned by `/api/check-email`.
@@ -481,7 +498,7 @@ export default function Register({
     };
 
     const submitPayment = useCallback(
-        async (retryCount = 0): Promise<void> => {
+        async (): Promise<void> => {
             const originalDiscountAmount =
                 program.strikethrough_price && program.strikethrough_price > 0 ? program.strikethrough_price - program.price : 0;
             const promoDiscountAmount = discountData?.valid ? discountData.discount_amount : 0;
@@ -495,6 +512,7 @@ export default function Register({
                 transaction_fee: adminFee,
                 total_amount: activeFinalPrice + adminFee,
                 isScholarship: isScholarship ? 1 : 0,
+                is_scholarship: isScholarship ? 1 : 0,
             };
 
             if (discountData?.valid && codeType === 'voucher') {
@@ -503,7 +521,7 @@ export default function Register({
             }
 
             if (codeType === 'referral' && referralData?.valid) {
-                (invoiceData as any).referral_code = promoCode;
+                invoiceData.referral_code = promoCode;
             }
 
             const storedAffiliate = sessionStorage.getItem('affiliate_code') || new URLSearchParams(window.location.search).get('ref');
@@ -512,42 +530,24 @@ export default function Register({
             }
 
             try {
-                const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
+                const res = await axios.post(route('invoice.store'), invoiceData);
 
-                const res = await fetch(route('invoice.store'), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken || '',
-                        Accept: 'application/json',
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(invoiceData),
-                });
-
-                if (res.status === 419 && retryCount < 2) {
-                    await refreshCSRFToken();
-                    return submitPayment(retryCount + 1);
-                }
-
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    if (data.payment_url) {
+                if (res.data && res.data.success) {
+                    if (res.data.payment_url) {
                         sessionStorage.removeItem('pendingCertificationCheckout');
-                        window.location.href = data.payment_url;
+                        window.location.href = res.data.payment_url;
                     } else {
-                        throw new Error('Payment URL not received');
+                        throw new Error('Payment URL tidak diterima dari server.');
                     }
                 } else {
-                    throw new Error(data.message || 'Gagal membuat invoice.');
+                    throw new Error(res.data?.message || 'Gagal membuat invoice.');
                 }
             } catch (error) {
                 console.error('Payment error:', error);
                 throw error;
             }
         },
-        [displayPrice, discountData, program.id, program.price, program.strikethrough_price, isScholarship, refreshCSRFToken],
+        [displayPrice, discountData, program.id, program.price, program.strikethrough_price, isScholarship, codeType, promoCode, referralData],
     );
 
     const handleCheckout = useCallback(async () => {
@@ -1205,12 +1205,97 @@ export default function Register({
                     </motion.div>
 
                     {/* Right Column - Checkout Card */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-1">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-1">
                         <div className="sticky top-4">
+                            {hasAccess ? (
+                                <Card className="overflow-hidden border-2 border-green-500/20">
+                                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 dark:from-green-950/20 dark:to-emerald-950/20">
+                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+                                            <BadgeCheck className="h-8 w-8 text-white" />
+                                        </div>
+
+                                        <h2 className="mb-2 text-center text-xl font-bold">Anda Sudah Memiliki Akses</h2>
+                                        <p className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                                            Anda sudah terdaftar di program sertifikasi ini.
+                                        </p>
+
+                                        <Button asChild size="lg" className="w-full bg-green-600 hover:bg-green-700">
+                                            <Link href={route('profile.certification-program.detail', program.slug)}>
+                                                Buka Pembelajaran
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ) : pendingInvoice ? (
+                                <Card className="overflow-hidden border-2">
+                                    <div className="border-b p-4 bg-yellow-50/50 dark:bg-yellow-950/20">
+                                        <div className="flex items-center gap-2">
+                                            <Hourglass className="h-5 w-5 text-yellow-600" />
+                                            <h2 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100">
+                                                Transaksi Menunggu Pembayaran
+                                            </h2>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6 p-6">
+                                        <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">No. Invoice</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">{pendingInvoice.invoice_code}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-600 dark:text-gray-400">Total Pembayaran</span>
+                                                <span className="text-xl font-bold text-orange-600">
+                                                    {formatRupiah(pendingInvoice.amount)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 pt-2">
+                                            {pendingInvoice.invoice_url && (
+                                                <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold" size="lg">
+                                                    <a href={pendingInvoice.invoice_url}>
+                                                        Lanjutkan Pembayaran
+                                                    </a>
+                                                </Button>
+                                            )}
+
+                                            <div className="flex gap-2">
+                                                <Button onClick={() => window.location.reload()} variant="outline" className="flex-1" size="lg">
+                                                    Cek Status
+                                                </Button>
+
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="flex-1 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                                                    size="lg"
+                                                    disabled={cancellingInvoice}
+                                                    onClick={async () => {
+                                                        if (confirm('Apakah Anda yakin ingin membatalkan transaksi ini dan membuat pesanan baru?')) {
+                                                            setCancellingInvoice(true);
+                                                            try {
+                                                                await axios.post(route('invoice.cancel', pendingInvoice.id));
+                                                                toast.success('Pesanan berhasil dibatalkan.');
+                                                                window.location.reload();
+                                                            } catch (err: any) {
+                                                                toast.error(err.response?.data?.message || 'Gagal membatalkan pesanan.');
+                                                                setCancellingInvoice(false);
+                                                            }
+                                                        }
+                                                    }}
+                                                >
+                                                    {cancellingInvoice ? 'Membatalkan...' : 'Batalkan Pesanan'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ) : (
                             <Card className="overflow-hidden border-2">
                                 <div className="bg-primary border-b p-4">
                                     <h2 className="text-center text-lg font-bold text-white">
-                                        {displayPrice === 0 ? 'Pendaftaran Gratis' : 'Detail Pembayaran'}
+                                        {isScholarship ? 'Detail Pendaftaran Beasiswa' : 'Detail Pembayaran'}
                                     </h2>
                                 </div>
 
@@ -1450,8 +1535,9 @@ export default function Register({
                                     </div>
                                 </div>
                             </Card>
-                        </div>
-                    </motion.div>
+                        )}
+                    </div>
+                </motion.div>
                 </div>
             </section>
 
