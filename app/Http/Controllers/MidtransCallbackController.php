@@ -35,6 +35,12 @@ class MidtransCallbackController extends Controller
             $hashed = hash('sha512', $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
 
             if ($hashed !== $request->signature_key) {
+                Log::warning('Midtrans callback invalid signature', [
+                    'order_id' => $request->order_id,
+                    'status_code' => $request->status_code,
+                    'gross_amount' => $request->gross_amount,
+                ]);
+
                 return Response::json([
                     'success' => false,
                     'message' => 'Invalid signature',
@@ -54,24 +60,29 @@ class MidtransCallbackController extends Controller
 
             DB::beginTransaction();
             try {
-                $invoice = Invoice::where('invoice_code', $orderId)
-                    ->where('status', 'pending')
-                    ->first();
+                $invoice = Invoice::where('invoice_code', $orderId)->first();
 
                 if (!$invoice) {
                     DB::rollBack();
-                    Log::warning('Invoice not found or already processed', [
-                        'order_id' => $orderId
+                    Log::warning('Invoice not found for Midtrans callback', [
+                        'order_id' => $orderId,
+                        'transaction_status' => $transactionStatus,
                     ]);
+
+                    // Return 200 OK so Midtrans acknowledges receipt and does not send error email alerts
                     return Response::json([
-                        'success' => false,
-                        'message' => 'Invoice not found or already processed',
-                    ], 404);
+                        'success' => true,
+                        'message' => 'Invoice not found, callback acknowledged',
+                    ], 200);
                 }
 
                 if ($transactionStatus == 'capture') {
                     if ($fraudStatus == 'accept') {
-                        $this->processPaymentSuccess($invoice, $request);
+                        if ($invoice->status !== 'paid') {
+                            $this->processPaymentSuccess($invoice, $request);
+                        } else {
+                            Log::info('Midtrans callback: Invoice already paid (capture)', ['order_id' => $orderId]);
+                        }
                     } else {
                         Log::warning('Payment captured but fraud status not accepted', [
                             'order_id' => $orderId,
@@ -79,27 +90,44 @@ class MidtransCallbackController extends Controller
                         ]);
                     }
                 } else if ($transactionStatus == 'settlement') {
-                    $this->processPaymentSuccess($invoice, $request);
+                    if ($invoice->status !== 'paid') {
+                        $this->processPaymentSuccess($invoice, $request);
+                    } else {
+                        Log::info('Midtrans callback: Invoice already paid (settlement)', ['order_id' => $orderId]);
+                    }
                 } else if ($transactionStatus == 'pending') {
                     Log::info('Payment pending', ['invoice_code' => $orderId]);
+                    $this->updatePendingDetails($invoice, $request);
                 } else if ($transactionStatus == 'deny' || $transactionStatus == 'expire' || $transactionStatus == 'cancel') {
-                    $invoice->update([
-                        'status' => 'failed',
-                    ]);
-                    Log::info('Payment failed/expired/cancelled', [
-                        'invoice_code' => $orderId,
-                        'status' => $transactionStatus
-                    ]);
+                    if ($invoice->status === 'paid') {
+                        Log::warning('Midtrans callback received failed/expired status for already paid invoice', [
+                            'invoice_code' => $orderId,
+                            'transaction_status' => $transactionStatus
+                        ]);
+                    } else if ($invoice->status === 'failed') {
+                        Log::info('Midtrans callback: Invoice already marked as failed', [
+                            'invoice_code' => $orderId,
+                            'transaction_status' => $transactionStatus
+                        ]);
+                    } else {
+                        $invoice->update([
+                            'status' => 'failed',
+                        ]);
+                        Log::info('Payment failed/expired/cancelled', [
+                            'invoice_code' => $orderId,
+                            'status' => $transactionStatus
+                        ]);
 
-                    // Refund poin jika invoice ini menggunakan redeem poin
-                    try {
-                        app(\App\Services\PointService::class)->refundPoints($invoice);
-                    } catch (\Exception $e) {
-                        Log::error('Gagal refund poin untuk invoice: ' . $invoice->invoice_code, ['error' => $e->getMessage()]);
+                        // Refund poin jika invoice ini menggunakan redeem poin
+                        try {
+                            app(\App\Services\PointService::class)->refundPoints($invoice);
+                        } catch (\Exception $e) {
+                            Log::error('Gagal refund poin untuk invoice: ' . $invoice->invoice_code, ['error' => $e->getMessage()]);
+                        }
+
+                        // Kirim WhatsApp untuk pembayaran gagal
+                        $this->sendWhatsAppPaymentFailed($invoice, $transactionStatus);
                     }
-
-                    // Kirim WhatsApp untuk pembayaran gagal
-                    $this->sendWhatsAppPaymentFailed($invoice, $transactionStatus);
                 }
 
                 DB::commit();
@@ -107,7 +135,7 @@ class MidtransCallbackController extends Controller
                 return Response::json([
                     'success' => true,
                     'message' => 'Callback processed successfully',
-                ]);
+                ], 200);
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Midtrans callback processing error', [
@@ -119,7 +147,7 @@ class MidtransCallbackController extends Controller
                 return Response::json([
                     'success' => false,
                     'message' => $e->getMessage(),
-                ], 500);
+                ], 200);
             }
         } catch (\Exception $e) {
             Log::error('Midtrans callback validation error', [
@@ -131,6 +159,32 @@ class MidtransCallbackController extends Controller
                 'success' => false,
                 'message' => 'Invalid request',
             ], 400);
+        }
+    }
+
+    /**
+     * Update payment details for pending transaction if available
+     */
+    private function updatePendingDetails($invoice, Request $request): void
+    {
+        $updateData = [];
+
+        if (!$invoice->payment_channel && $request->filled('payment_type')) {
+            $updateData['payment_channel'] = $request->payment_type;
+        }
+
+        if (!$invoice->va_number) {
+            if ($request->has('va_numbers') && is_array($request->va_numbers) && count($request->va_numbers) > 0) {
+                $updateData['va_number'] = $request->va_numbers[0]['va_number'] ?? null;
+            } elseif ($request->filled('bill_key')) {
+                $updateData['va_number'] = $request->bill_key;
+            } elseif ($request->filled('permata_va_number')) {
+                $updateData['va_number'] = $request->permata_va_number;
+            }
+        }
+
+        if (!empty($updateData)) {
+            $invoice->update($updateData);
         }
     }
 
@@ -310,7 +364,7 @@ class MidtransCallbackController extends Controller
             'courseItems.course',
             'bootcampItems.bootcamp',
             'webinarItems.webinar',
-            'bundleEnrollments.bundle',
+            'bundleEnrollments.bundle.bundleItems.bundleable',
             'certificationProgramItems.certificationProgram',
             'discountUsage.discountCode',
         ]);
@@ -416,6 +470,24 @@ class MidtransCallbackController extends Controller
         if ($itemType === 'bundle') {
             $message .= "3. Semua program sudah bisa diakses dari menu masing-masing\n";
             $message .= "4. Mulai belajar dan raih sertifikat untuk setiap program! 🎓\n\n";
+
+            // Tampilkan link grup dari tiap program di dalam bundle
+            if ($typeInfo['item'] && $typeInfo['item']->relationLoaded('bundleItems')) {
+                $groupLinks = [];
+                foreach ($typeInfo['item']->bundleItems as $bundleItem) {
+                    $program = $bundleItem->bundleable;
+                    if ($program && !empty($program->group_url)) {
+                        $programTitle = $program->title ?? 'Program';
+                        $groupLinks[] = "👥 *{$programTitle}*: {$program->group_url}";
+                    }
+                }
+
+                if (!empty($groupLinks)) {
+                    $message .= "*Link Grup Program:*\n";
+                    $message .= implode("\n", $groupLinks) . "\n";
+                    $message .= "⚠️ *Penting:* Segera bergabung ke grup untuk mendapatkan info dan update terbaru!\n\n";
+                }
+            }
         } else {
             $message .= "3. Pilih menu '{$typeInfo['menu']}'\n";
             $message .= "4. Mulai belajar dan raih sertifikat! 🎓\n\n";
@@ -494,6 +566,7 @@ class MidtransCallbackController extends Controller
             'courseItems',
             'bootcampItems',
             'webinarItems',
+            'certificationProgramItems',
             'bundleEnrollments.bundle.bundleItems.bundleable'
         ]);
 
@@ -526,6 +599,14 @@ class MidtransCallbackController extends Controller
                 ]);
 
                 $this->addToCertificateParticipants('webinar', $item->webinar_id, $userId);
+            }
+        }
+
+        if ($invoice->certificationProgramItems->count() > 0) {
+            foreach ($invoice->certificationProgramItems as $item) {
+                $item->update([
+                    'completed_at' => Carbon::now('Asia/Jakarta')
+                ]);
             }
         }
 
@@ -667,6 +748,9 @@ class MidtransCallbackController extends Controller
             } elseif ($invoice->bundleEnrollments->count() > 0) {
                 $productType = 'Bundle';
                 $productTitle = $invoice->bundleEnrollments->first()->bundle->title ?? '';
+            } elseif ($invoice->certificationProgramItems->count() > 0) {
+                $productType = 'Program Sertifikasi';
+                $productTitle = $invoice->certificationProgramItems->first()->certificationProgram->title ?? '';
             }
 
             $user = $invoice->user;
