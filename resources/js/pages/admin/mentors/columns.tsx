@@ -6,13 +6,27 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { rupiahFormatter } from '@/lib/utils';
-import { Link, router } from '@inertiajs/react';
+import { SharedData } from '@/types';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { BookText, FileText, Folder, MonitorPlay, Presentation, Trash } from 'lucide-react';
 
 import { usePermission } from '@/hooks/use-permission';
+
+function MentorEarningsCell({ row }: { row: { original: Mentor } }) {
+    const { auth } = usePage<SharedData>().props;
+    const { roles, isAdmin } = usePermission();
+    const isStaff = (roles?.includes('staff') || auth?.role?.includes('staff')) && !isAdmin && !auth?.role?.includes('admin');
+
+    if (isStaff) {
+        return <div className="font-medium text-muted-foreground">Rp ***</div>;
+    }
+
+    const totalEarnings = row.original.total_earnings || 0;
+    return <div className="font-medium text-green-600">{rupiahFormatter.format(totalEarnings)}</div>;
+}
 
 export default function MentorActions({ mentor }: { mentor: Mentor }) {
     const { canManage } = usePermission();
@@ -68,8 +82,6 @@ export type Mentor = {
     name: string;
     bio?: string;
     email: string;
-    photo_url?: string;
-    avatar?: string;
     phone_number: string;
     commission: number;
     created_at: string;
@@ -78,6 +90,7 @@ export type Mentor = {
     total_webinars: number;
     total_bootcamps: number;
     total_earnings: number;
+    avatar?: string;
 };
 
 export const columns: ColumnDef<Mentor>[] = [
@@ -103,6 +116,28 @@ export const columns: ColumnDef<Mentor>[] = [
             const index = row.index + 1;
             return <div className="font-medium">{index}</div>;
         },
+    },
+    {
+        accessorKey: 'avatar',
+        header: 'Avatar',
+        cell: ({ row }) => {
+            const getInitials = (name: string) => {
+                return name
+                    .split(' ')
+                    .map((word) => word.charAt(0).toUpperCase())
+                    .slice(0, 2)
+                    .join('');
+            };
+
+            return row.original.avatar ? (
+                <img src={`/storage/${row.original.avatar}`} alt={row.original.name} className="h-10 w-10 rounded-full object-cover" />
+            ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 text-xs font-bold text-gray-700">
+                    {getInitials(row.original.name)}
+                </div>
+            );
+        },
+        enableSorting: false,
     },
     {
         accessorKey: 'name',
@@ -183,10 +218,7 @@ export const columns: ColumnDef<Mentor>[] = [
     {
         accessorKey: 'total_earnings',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Total Pendapatan" />,
-        cell: ({ row }) => {
-            const totalEarnings = row.original.total_earnings || 0;
-            return <div className="font-medium text-green-600">{rupiahFormatter.format(totalEarnings)}</div>;
-        },
+        cell: ({ row }) => <MentorEarningsCell row={row} />,
     },
     {
         accessorKey: 'created_at',
