@@ -567,10 +567,7 @@ export default function Register({
             return;
         }
 
-        if (!isProfileComplete) {
-            window.location.href = route('profile.edit');
-            return;
-        }
+
 
         if (requiresDocumentUpload && !hasApprovedDocument) {
             if (isDocumentPending || isDocumentRejected) {
@@ -595,7 +592,6 @@ export default function Register({
         hasApprovedDocument,
         isDocumentPending,
         isDocumentRejected,
-        isProfileComplete,
         requiresDocumentUpload,
         submitPayment,
         termsAccepted,
@@ -736,27 +732,71 @@ export default function Register({
     if (isLoggedIn && !isProfileComplete) {
         return (
             <UserLayout>
-                <Head title={`Daftar - ${program.title}`} />
-                <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-zinc-900 dark:to-zinc-800">
-                    <div className="to-primary relative overflow-hidden bg-gradient-to-tl from-black px-4 py-8 md:py-12">
-                        <div className="absolute inset-0 opacity-10">
-                            <div className="absolute top-0 left-0 size-96 rounded-full bg-white blur-3xl" />
-                            <div className="absolute right-0 bottom-0 size-96 rounded-full bg-white blur-3xl" />
-                        </div>
-                        <div className="relative mx-auto w-full max-w-3xl text-center">
-                            <User className="mx-auto mb-4 h-16 w-16 text-amber-300" />
-                            <h1 className="text-3xl font-bold text-white md:text-4xl">Profil Belum Lengkap</h1>
-                            <p className="mt-2 text-blue-100 md:text-lg">
-                                Silakan lengkapi nomor telepon, instansi, dan kota domisili terlebih dahulu sebelum melanjutkan pendaftaran.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="mx-auto flex w-full max-w-md flex-col gap-3 px-4 py-8">
-                        <Button asChild className="w-full">
-                            <Link href={route('profile.edit', { redirect: window.location.href })}>Lengkapi Profil</Link>
-                        </Button>
-                    </div>
-                </div>
+                <Head title="Lengkapi Profil" />
+
+                <section className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-700 to-red-700 px-4 py-16">
+                    <div className="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]" />
+                    <div className="absolute top-0 left-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-400/30 blur-3xl" />
+                    <div className="absolute right-0 bottom-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-red-400/30 blur-3xl" />
+
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-4xl text-center">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm"
+                        >
+                            <User className="h-4 w-4 text-white" />
+                            <span className="text-sm font-medium text-white">Profil Belum Lengkap</span>
+                        </motion.div>
+
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="mb-4 text-3xl font-bold text-white sm:text-4xl lg:text-5xl"
+                        >
+                            {program.title}
+                        </motion.h1>
+
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-lg text-orange-100"
+                        >
+                            Lengkapi profil Anda terlebih dahulu untuk melanjutkan
+                        </motion.p>
+                    </motion.div>
+                </section>
+
+                <section className="mx-auto my-8 w-full max-w-2xl px-4">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                        <Card className="overflow-hidden border-2">
+                            <div className="bg-gradient-to-br from-orange-50 to-red-50 p-8 dark:from-orange-950/20 dark:to-red-950/20">
+                                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-red-600 shadow-lg">
+                                    <User className="h-10 w-10 text-white" />
+                                </div>
+
+                                <h2 className="mb-3 text-center text-2xl font-bold">Lengkapi Profil Anda</h2>
+                                <p className="mb-6 text-center text-gray-600 dark:text-gray-400">
+                                    Kami memerlukan nomor telepon, instansi, dan kota domisili Anda untuk melanjutkan pendaftaran program sertifikasi ini.
+                                </p>
+
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                                >
+                                    <Link href={route('profile.edit', { redirect: window.location.href })}>
+                                        <User className="mr-2 h-4 w-4" />
+                                        Lengkapi Profil Sekarang
+                                    </Link>
+                                </Button>
+                            </div>
+                        </Card>
+                    </motion.div>
+                </section>
             </UserLayout>
         );
     }
