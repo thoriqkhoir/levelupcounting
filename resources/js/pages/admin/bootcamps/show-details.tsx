@@ -1,3 +1,4 @@
+import InstallmentConfig, { InstallmentTerm } from '@/components/admin/installment-config';
 import DeleteConfirmDialog from '@/components/delete-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,9 @@ interface Bootcamp {
     status: string;
     bootcamp_url: string;
     registration_url: string;
+    installment_enabled?: boolean;
+    installment_terms?: InstallmentTerm[];
+    installmentTerms?: InstallmentTerm[];
     thumbnail?: string | null;
     description?: string | null;
     benefits?: string | null;
@@ -515,6 +519,19 @@ export default function BootcampDetail({ bootcamp }: { bootcamp: Bootcamp }) {
                 />
                 {bootcamp.thumbnail ? null : <span className="text-muted-foreground text-sm">Thumbnail belum diunggah.</span>}
             </div>
+
+            {!isAffiliate && !isStaff && (
+                <div className="pt-2">
+                    <InstallmentConfig
+                        productType="bootcamp"
+                        productId={bootcamp.id}
+                        productPrice={bootcamp.price}
+                        installmentEnabled={bootcamp.installment_enabled || false}
+                        initialTerms={bootcamp.installment_terms || bootcamp.installmentTerms || []}
+                        registrationDeadline={bootcamp.registration_deadline}
+                    />
+                </div>
+            )}
         </div>
     );
 }

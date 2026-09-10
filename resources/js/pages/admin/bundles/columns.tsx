@@ -35,6 +35,7 @@ export type Bundle = {
     status: 'draft' | 'published' | 'archived';
     bundle_items?: BundleItem[];
     enrollments_count?: number;
+    installment_enabled?: boolean;
     created_at: string;
 };
 
@@ -106,6 +107,11 @@ function BundlePriceCell({ bundle }: { bundle: Bundle }) {
         <div>
             {strikethroughPrice > 0 && <div className="text-xs text-gray-500 line-through">{rupiahFormatter.format(strikethroughPrice)}</div>}
             <div className="text-base font-semibold">{rupiahFormatter.format(price)}</div>
+            {bundle.installment_enabled && (
+                <Badge variant="outline" className="mt-1 border-primary/30 bg-primary/10 text-primary text-[10px] px-1.5 py-0 font-medium">
+                    Bisa Dicicil
+                </Badge>
+            )}
         </div>
     );
 }

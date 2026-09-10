@@ -68,7 +68,7 @@ interface Invoice {
     invoice_code: string;
     invoice_url: string;
     amount: number;
-    status: 'paid' | 'pending' | 'expired' | 'failed' | 'completed';
+    status: 'paid' | 'pending' | 'expired' | 'failed' | 'completed' | 'installment_pending';
     paid_at: string | null;
     payment_channel: string | null;
     payment_method: string | null;
@@ -100,19 +100,19 @@ export default function Transactions({ myTransactions }: Props) {
     };
 
     const getItemHref = (type: string, slug: string, status: Invoice['status']) => {
-        const isPaid = status === 'paid' || status === 'completed';
+        const hasAccess = status === 'paid' || status === 'completed' || status === 'installment_pending';
 
         if (type === 'Course') {
-            return isPaid ? `/profile/my-courses/${slug}` : route('course.detail', { slug });
+            return hasAccess ? `/profile/my-courses/${slug}` : route('course.detail', { slug });
         }
         if (type === 'Bootcamp') {
-            return isPaid ? `/profile/my-bootcamps/${slug}` : route('bootcamp.detail', { slug });
+            return hasAccess ? `/profile/my-bootcamps/${slug}` : route('bootcamp.detail', { slug });
         }
         if (type === 'Webinar') {
-            return isPaid ? `/profile/my-webinars/${slug}` : route('webinar.detail', { slug });
+            return hasAccess ? `/profile/my-webinars/${slug}` : route('webinar.detail', { slug });
         }
         if (type === 'Certification Program') {
-            return isPaid
+            return hasAccess
                 ? route('profile.certification-program.detail', { program: slug })
                 : route('certification-programs.detail', { slug });
         }
@@ -240,6 +240,9 @@ export default function Transactions({ myTransactions }: Props) {
     const getStatusComponent = (status: Invoice['status']) => {
         if (status === 'paid' || status === 'completed') {
             return <span className="font-medium text-green-600">Sudah Dibayar</span>;
+        }
+        if (status === 'installment_pending') {
+            return <span className="font-medium text-blue-600">Cicilan Aktif</span>;
         }
         if (status === 'pending') {
             return <span className="font-medium text-yellow-600">Menunggu Pembayaran</span>;

@@ -1,3 +1,4 @@
+import InstallmentConfig, { InstallmentTerm } from '@/components/admin/installment-config';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,9 @@ interface Course {
     key_points?: string | null;
     strikethrough_price: number;
     price: number;
+    installment_enabled?: boolean;
+    installment_terms?: InstallmentTerm[];
+    installmentTerms?: InstallmentTerm[];
     thumbnail?: string | null;
     course_url: string;
     registration_url: string;
@@ -319,6 +323,18 @@ export default function CourseDetail({ course, averageRating }: { course: Course
                     <span className="text-muted-foreground text-sm">Belum ada gambar sneak peek yang ditentukan.</span>
                 )}
             </div>
+
+            {!isAffiliate && !isStaff && (
+                <div className="pt-2">
+                    <InstallmentConfig
+                        productType="course"
+                        productId={course.id}
+                        productPrice={course.price}
+                        installmentEnabled={course.installment_enabled || false}
+                        initialTerms={course.installment_terms || course.installmentTerms || []}
+                    />
+                </div>
+            )}
         </div>
     );
 }

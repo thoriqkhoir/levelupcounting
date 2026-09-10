@@ -197,7 +197,7 @@ export default function CertificationProgramSection({ categories, programs, myPr
                                             <p className="line-clamp-2 text-sm text-muted-foreground leading-relaxed">{program.short_description}</p>
                                         )}
                                         <div>
-                                            {!isScholarshipNotApproved && program.strikethrough_price && program.strikethrough_price > 0 && (
+                                            {!isScholarshipNotApproved && (program.strikethrough_price ?? 0) > 0 && (program.strikethrough_price ?? 0) > displayPrice && (
                                                 <p className="text-base text-red-500 line-through">Rp. {(program.strikethrough_price ?? 0).toLocaleString('id-ID')}</p>
                                             )}
                                             {displayPrice === 0 ? (

@@ -8,9 +8,9 @@ interface Bootcamp {
 
 function parseList(items?: string | null): string[] {
     if (!items) return [];
-    const matches = items.match(/<li>(.*?)<\/li>/g);
+    const matches = items.match(/<li[^>]*>([\s\S]*?)<\/li>/gi);
     if (!matches) return [];
-    return matches.map((li) => li.replace(/<\/?li>/g, '').trim());
+    return matches.map((li) => li.replace(/<\/?li[^>]*>/gi, '').trim());
 }
 
 export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp }) {
@@ -89,7 +89,10 @@ export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp })
                                             <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-800/50">
                                                 <CheckCircle className="h-3.5 w-3.5 text-blue-600" />
                                             </div>
-                                            <span className="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100">{req}</span>
+                                            <span
+                                                className="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100 [&_strong]:font-semibold [&_strong]:text-gray-900 dark:[&_strong]:text-white"
+                                                dangerouslySetInnerHTML={{ __html: req }}
+                                            />
                                         </motion.li>
                                     ))}
                                 </ul>
@@ -139,7 +142,10 @@ export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp })
                                             <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-800/50">
                                                 <CheckCircle className="h-3.5 w-3.5 text-green-600" />
                                             </div>
-                                            <span className="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100">{benefit}</span>
+                                            <span
+                                                className="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100 [&_strong]:font-semibold [&_strong]:text-gray-900 dark:[&_strong]:text-white"
+                                                dangerouslySetInnerHTML={{ __html: benefit }}
+                                            />
                                         </motion.li>
                                     ))}
                                 </ul>

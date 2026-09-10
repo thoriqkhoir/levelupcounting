@@ -64,8 +64,8 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
 
     const displayPrice = isScholarshipNotApproved ? 0 : (program.type === 'scholarship' ? (program.scholarship_price ?? program.price) : program.price);
 
-    const discount = program.strikethrough_price && program.strikethrough_price > 0 && displayPrice > 0
-        ? Math.round(((program.strikethrough_price - displayPrice) / program.strikethrough_price) * 100)
+    const discount = (program.strikethrough_price ?? 0) > 0 && displayPrice > 0 && (program.strikethrough_price ?? 0) > displayPrice
+        ? Math.round((((program.strikethrough_price ?? 0) - displayPrice) / (program.strikethrough_price ?? 0)) * 100)
         : 0;
 
     const getDate = (s: Schedule) => s.schedule_date || s.start_date || '';
@@ -129,7 +129,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                     </p>
                                     {displayPrice > 0 ? (
                                         <>
-                                            {!isScholarshipNotApproved && program.strikethrough_price && program.strikethrough_price > 0 && (
+                                            {!isScholarshipNotApproved && typeof program.strikethrough_price === 'number' && program.strikethrough_price > 0 && program.strikethrough_price > displayPrice && (
                                                 <span className="block text-xl text-red-500 line-through">
                                                     Rp {program.strikethrough_price.toLocaleString('id-ID')}
                                                 </span>

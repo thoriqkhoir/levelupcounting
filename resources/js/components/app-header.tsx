@@ -361,7 +361,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                     </ul>
                                                     <ul className="mt-3 space-y-1">
                                                         <ListItem
-                                                            href="/certification-programs"
+                                                            href="/certification-program"
                                                             title="Sertifikasi"
                                                             icon={BriefcaseBusiness}
                                                             iconBg="bg-amber-50 dark:bg-amber-900/30"
@@ -611,11 +611,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     </Link>
                                     {/* Sertifikasi di Mobile */}
                                     <Link
-                                        href="/certification-programs"
+                                        href="/certification-program"
                                         onClick={() => setServicesOpen(false)}
                                         className={cn(
                                             'flex items-start gap-3 rounded-lg p-3 transition-colors duration-200',
-                                            page.url.startsWith('/certification-programs')
+                                            page.url.startsWith('/certification-program')
                                                 ? 'bg-primary/10 text-primary'
                                                 : 'hover:bg-muted/50 hover:text-foreground',
                                         )}
@@ -624,7 +624,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             iconNode={BriefcaseBusiness}
                                             className={cn(
                                                 'mt-0.5 h-5 w-5 flex-shrink-0',
-                                                page.url.startsWith('/certification-programs') ? 'text-primary' : 'text-muted-foreground',
+                                                page.url.startsWith('/certification-program') ? 'text-primary' : 'text-muted-foreground',
                                             )}
                                         />
                                         <div className="min-w-0 flex-1">

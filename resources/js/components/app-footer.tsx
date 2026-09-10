@@ -21,7 +21,7 @@ const productItems: ProductItem[] = [
     },
     {
         title: 'Sertifikasi',
-        href: '/certification-programs',
+        href: '/certification-program',
     },
 ];
 

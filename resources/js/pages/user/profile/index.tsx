@@ -124,6 +124,11 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
         return '-';
     };
 
+    const getProductDetailUrl = (product: Product): string => {
+        const paramKey = product.routeParam || (product.type === 'certification-program' ? 'program' : product.type);
+        return route(`profile.${product.type}.detail`, { [paramKey]: product.slug });
+    };
+
     const statsCards = [
         {
             title: 'Total Produk',
@@ -250,7 +255,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
 
                                             {/* Title */}
                                             <CardTitle className="line-clamp-2 text-base group-hover:text-primary">
-                                                <Link href={route(`profile.${product.type}.detail`, { [product.type]: product.slug })}>
+                                                <Link href={getProductDetailUrl(product)}>
                                                     {product.title}
                                                 </Link>
                                             </CardTitle>
@@ -291,11 +296,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                 ) : (
                                                     <>
                                                         <Button asChild size="sm" variant="outline" className="flex-1">
-                                                            <Link
-                                                                href={route(`profile.${product.type}.detail`, {
-                                                                    [product.type]: product.slug,
-                                                                })}
-                                                            >
+                                                            <Link href={getProductDetailUrl(product)}>
                                                                 <ExternalLink className="mr-1 h-4 w-4" />
                                                                 Detail
                                                             </Link>

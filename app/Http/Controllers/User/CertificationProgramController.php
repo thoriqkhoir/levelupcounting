@@ -24,7 +24,7 @@ class CertificationProgramController extends Controller
     public function index()
     {
         $categories = Category::all();
-        $programs = CertificationProgram::with(['category'])
+        $programs = CertificationProgram::with(['category', 'mentors'])
             ->where('status', 'published')
             ->where(function ($query) {
                 $query->where(function ($q) {
@@ -49,8 +49,7 @@ class CertificationProgramController extends Controller
         if (Auth::check()) {
             $userId = Auth::id();
             $myProgramIds = Invoice::with('certificationProgramItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(function ($invoice) {
                     return $invoice->certificationProgramItems->pluck('certification_program_id');
@@ -118,8 +117,7 @@ class CertificationProgramController extends Controller
         if (Auth::check()) {
             $userId = Auth::id();
             $myProgramIds = Invoice::with('certificationProgramItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(function ($invoice) {
                     return $invoice->certificationProgramItems->pluck('certification_program_id');
@@ -178,19 +176,30 @@ class CertificationProgramController extends Controller
             $isScholarship = true;
         }
 
+        $activeInstallment = null;
+
         if (Auth::check()) {
             $userId = Auth::id();
 
-            $hasAccess = Invoice::where('user_id', $userId)
-                ->where('status', 'paid')
+            $activeInstallment = Invoice::getActiveInstallmentForUser($userId, 'certification_program', $program->id);
+
+            // Access: paid normally or installment with DP/term 1 paid
+            $hasRegularPaid = Invoice::where('user_id', $userId)
+                ->whereNull('parent_invoice_id')
+                ->where('is_installment', false)
+                ->whereIn('status', ['paid', 'completed'])
                 ->whereHas('certificationProgramItems', function ($query) use ($program) {
                     $query->where('certification_program_id', $program->id);
                 })
                 ->exists();
 
-            if (!$hasAccess) {
+            $hasInstallmentAccess = $activeInstallment && ($activeInstallment['paid_terms'] > 0 || $activeInstallment['is_fully_paid']);
+            $hasAccess = $hasRegularPaid || $hasInstallmentAccess;
+
+            if (!$hasAccess && !$activeInstallment) {
                 $pendingInvoice = Invoice::where('user_id', $userId)
                     ->where('status', 'pending')
+                    ->where('is_installment', false)
                     ->whereHas('certificationProgramItems', function ($query) use ($program) {
                         $query->where('certification_program_id', $program->id);
                     })
@@ -230,12 +239,14 @@ class CertificationProgramController extends Controller
         return Inertia::render('user/certification-program/register/index', [
             'program' => $program,
             'hasAccess' => $hasAccess,
+            'activeInstallment' => $activeInstallment,
             'pendingInvoice' => $pendingInvoiceData,
             'pendingInvoiceUrl' => $pendingInvoiceUrl,
             'regularApplication' => $regularApplication,
             'scholarshipApplication' => $scholarshipApplication,
             'isScholarship' => $isScholarship,
             'referralInfo' => $this->getReferralInfo(),
+            'installmentTerms' => $program->installmentTerms()->get(['term_number', 'amount', 'due_date']),
         ]);
     }
 
@@ -432,7 +443,7 @@ class CertificationProgramController extends Controller
 
         $message .= "Jika ada kendala, silakan balas pesan ini atau hubungi admin.\n\n";
         $message .= "Terima kasih dan selamat bergabung! 🚀\n\n";
-        $message .= "*Araska - Customer Support*";
+        $message .= "*Level Up Accounting*";
 
         self::sendText([
             [

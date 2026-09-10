@@ -1,3 +1,4 @@
+import InstallmentConfig, { InstallmentTerm } from '@/components/admin/installment-config';
 import DeleteConfirmDialog from '@/components/delete-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,9 @@ interface Bundle {
     registration_deadline?: string | null;
     registration_url: string;
     bundle_url: string;
+    installment_enabled?: boolean;
+    installment_terms?: InstallmentTerm[];
+    installmentTerms?: InstallmentTerm[];
     status: 'draft' | 'published' | 'archived';
     bundle_items: BundleItem[];
     enrollments: EnrollmentBundle[];
@@ -545,6 +549,19 @@ export default function ShowBundle({ bundle, groupedItems, totalOriginalPrice, d
                                             >
                                                 {bundle.registration_url}
                                             </a>
+                                        </div>
+                                    )}
+
+                                    {!isAffiliate && !isStaff && (
+                                        <div className="pt-4 border-t border-border">
+                                            <InstallmentConfig
+                                                productType="bundle"
+                                                productId={bundle.id}
+                                                productPrice={bundle.price}
+                                                installmentEnabled={bundle.installment_enabled || false}
+                                                initialTerms={bundle.installment_terms || bundle.installmentTerms || []}
+                                                registrationDeadline={bundle.registration_deadline}
+                                            />
                                         </div>
                                     )}
                                 </CardContent>

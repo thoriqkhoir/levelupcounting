@@ -27,7 +27,7 @@ class BootcampController extends Controller
     {
         $userId = Auth::id();
         $myBootcamps = Invoice::with('bootcampItems.bootcamp.category')
-            ->where('user_id', $userId)
+            ->purchasedByUser($userId)
             ->orderBy('created_at', 'desc')
             ->get();
         return Inertia::render('user/profile/bootcamp/index', ['myBootcamps' => $myBootcamps]);
@@ -47,8 +47,7 @@ class BootcampController extends Controller
             'bootcampItems.bootcamp.schedules',
             'bootcampItems.attendances.bootcampSchedule'
         ])
-            ->where('user_id', $userId)
-            ->where('status', 'paid')
+            ->purchasedByUser($userId)
             ->whereHas('bootcampItems.bootcamp', function ($query) use ($slug) {
                 $query->where('slug', $slug);
             })
@@ -57,6 +56,11 @@ class BootcampController extends Controller
 
         if (!$bootcamp || $bootcamp->bootcampItems->isEmpty()) {
             abort(404, 'Bootcamp tidak ditemukan atau Anda belum terdaftar.');
+        }
+
+        if ($bootcamp->is_installment && $bootcamp->isAccessSuspended()) {
+            return redirect()->route('profile.installments')
+                ->with('error', 'Akses bootcamp ini dibekukan karena terdapat cicilan yang melewati jatuh tempo. Silakan bayar cicilan Anda.');
         }
 
         $certificate = null;

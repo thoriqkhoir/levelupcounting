@@ -47,6 +47,7 @@ interface Product {
     end_date?: string;
     start_time?: string;
     registration_deadline?: string;
+    socialization_registration_deadline?: string;
     duration_days?: number;
     bundle_url?: string;
     category?: Category;
@@ -54,6 +55,7 @@ interface Product {
     mentor?: Mentor | null;
     mentors?: Mentor[];
     type: 'course' | 'bootcamp' | 'webinar' | 'bundle' | 'certification-program';
+    program_type?: 'regular' | 'scholarship';
     created_at: string;
 }
 

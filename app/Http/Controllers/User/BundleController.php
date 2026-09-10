@@ -117,24 +117,21 @@ class BundleController extends Controller
             $userId = Auth::id();
 
             $ownedCourseIds = Invoice::with('courseItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(fn($invoice) => $invoice->courseItems->pluck('course_id'))
                 ->unique()
                 ->toArray();
 
             $ownedBootcampIds = Invoice::with('bootcampItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(fn($invoice) => $invoice->bootcampItems->pluck('bootcamp_id'))
                 ->unique()
                 ->toArray();
 
             $ownedWebinarIds = Invoice::with('webinarItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(fn($invoice) => $invoice->webinarItems->pluck('webinar_id'))
                 ->unique()
@@ -246,76 +243,66 @@ class BundleController extends Controller
         $bundle->strikethrough_price = $totalOriginalPrice;
 
         $hasAccess = false;
+        $activeInstallment = null;
         $pendingInvoice = null;
         $transactionDetail = null;
         $userId = Auth::id();
 
-        $hasAccess = EnrollmentBundle::whereHas('invoice', function ($query) use ($userId) {
-            $query->where('user_id', $userId)
-                ->where('status', 'paid');
-        })
-            ->where('bundle_id', $bundle->id)
-            ->exists();
+        if ($userId) {
+            $activeInstallment = Invoice::getActiveInstallmentForUser($userId, 'bundle', $bundle->id);
 
-        if (!$hasAccess) {
-            $invoice = Invoice::where('user_id', $userId)
-                ->where('status', 'pending')
-                ->whereHas('bundleEnrollments', function ($query) use ($bundle) {
-                    $query->where('bundle_id', $bundle->id);
-                })
-                ->where(function ($query) {
-                    $query->whereNull('expires_at')
-                        ->orWhere('expires_at', '>', now());
-                })
-                ->latest()
-                ->first();
+            $hasRegularPaid = EnrollmentBundle::whereHas('invoice', function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->whereNull('parent_invoice_id')
+                    ->where('is_installment', false)
+                    ->whereIn('status', ['paid', 'completed']);
+            })
+                ->where('bundle_id', $bundle->id)
+                ->exists();
 
-            if ($invoice) {
-                $pendingInvoice = [
-                    'id' => $invoice->id,
-                    'invoice_code' => $invoice->invoice_code,
-                    'status' => $invoice->status,
-                    'amount' => $invoice->amount,
-                    'payment_method' => $invoice->payment_method,
-                    'invoice_url' => $invoice->invoice_url,
-                    // 'payment_channel' => $invoice->payment_channel,
-                    'va_number' => $invoice->va_number,
-                    'qr_code_url' => $invoice->qr_code_url,
-                    'bank_name' => $invoice->bank_name ?? null,
-                    'created_at' => $invoice->created_at,
-                    'expires_at' => $invoice->expires_at,
-                ];
+            $hasInstallmentAccess = $activeInstallment && ($activeInstallment['paid_terms'] > 0 || $activeInstallment['is_fully_paid']);
+            $hasAccess = $hasRegularPaid || $hasInstallmentAccess;
 
-                // if ($invoice->payment_reference) {
-                //     try {
-                //         $tripayDetail = $this->tripayService->detailTransaction($invoice->payment_reference);
-                //         if (isset($tripayDetail->data)) {
-                //             $transactionDetail = [
-                //                 'reference' => $tripayDetail->data->reference ?? null,
-                //                 'payment_name' => $tripayDetail->data->payment_name ?? null,
-                //                 'pay_code' => $tripayDetail->data->pay_code ?? null,
-                //                 'instructions' => $tripayDetail->data->instructions ?? [],
-                //                 'status' => $tripayDetail->data->status ?? 'PENDING',
-                //                 'paid_at' => $tripayDetail->data->paid_at ?? null,
-                //             ];
-                //         }
-                //     } catch (\Exception $e) {
-                //         \Illuminate\Support\Facades\Log::warning('Failed to fetch Tripay details', [
-                //             'invoice_code' => $invoice->invoice_code,
-                //             'error' => $e->getMessage()
-                //         ]);
-                //     }
-                // }
+            if (!$hasAccess && !$activeInstallment) {
+                $invoice = Invoice::where('user_id', $userId)
+                    ->where('status', 'pending')
+                    ->where('is_installment', false)
+                    ->whereHas('bundleEnrollments', function ($query) use ($bundle) {
+                        $query->where('bundle_id', $bundle->id);
+                    })
+                    ->where(function ($query) {
+                        $query->whereNull('expires_at')
+                            ->orWhere('expires_at', '>', now());
+                    })
+                    ->latest()
+                    ->first();
+
+                if ($invoice) {
+                    $pendingInvoice = [
+                        'id' => $invoice->id,
+                        'invoice_code' => $invoice->invoice_code,
+                        'status' => $invoice->status,
+                        'amount' => $invoice->amount,
+                        'payment_method' => $invoice->payment_method,
+                        'invoice_url' => $invoice->invoice_url,
+                        'va_number' => $invoice->va_number,
+                        'qr_code_url' => $invoice->qr_code_url,
+                        'bank_name' => $invoice->bank_name ?? null,
+                        'created_at' => $invoice->created_at,
+                        'expires_at' => $invoice->expires_at,
+                    ];
+                }
             }
         }
 
         return Inertia::render('user/bundling/checkout/index', [
             'bundle' => $bundle,
             'hasAccess' => $hasAccess,
+            'activeInstallment' => $activeInstallment,
             'pendingInvoice' => $pendingInvoice,
             'transactionDetail' => $transactionDetail,
-            // 'channels' => $this->tripayService->getPaymentChannels(),
             'referralInfo' => $this->getReferralInfo(),
+            'installmentTerms' => $bundle->installmentTerms()->get(['term_number', 'amount', 'due_date']),
         ]);
     }
 

@@ -1,3 +1,4 @@
+import InstallmentConfig, { InstallmentTerm } from '@/components/admin/installment-config';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,9 @@ interface CertificationProgram {
     scholarship_flow?: string | null;
     registration_deadline?: string | null;
     socialization_registration_deadline?: string | null;
+    installment_enabled?: boolean;
+    installment_terms?: InstallmentTerm[];
+    installmentTerms?: InstallmentTerm[];
     short_description?: string | null;
     description?: string | null;
     benefits?: string | null;
@@ -454,6 +458,19 @@ export default function CertificationProgramDetail({ program }: { program: Certi
                 {renderSchedules(program.schedules ?? [], 'Jadwal Pelaksanaan')}
                 {program.type === 'scholarship' && renderSchedules(socializationSchedules, 'Jadwal Sosialisasi')}
             </div>
+
+            {!isAffiliate && !isStaff && (
+                <div className="pt-2">
+                    <InstallmentConfig
+                        productType="certification_program"
+                        productId={program.id}
+                        productPrice={program.price}
+                        installmentEnabled={program.installment_enabled || false}
+                        initialTerms={program.installment_terms || program.installmentTerms || []}
+                        registrationDeadline={program.registration_deadline}
+                    />
+                </div>
+            )}
         </div>
     );
 }

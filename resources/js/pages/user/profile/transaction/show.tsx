@@ -64,11 +64,12 @@ interface Invoice {
     amount: number;
     nett_amount: number;
     discount_amount: number;
-    status: 'paid' | 'pending' | 'failed';
+    status: 'paid' | 'pending' | 'failed' | 'completed' | 'installment_pending';
     paid_at: string | null;
     expires_at: string | null;
     payment_method: string | null;
     payment_channel: string | null;
+    is_installment?: boolean;
     course_items?: CourseItem[];
     bootcamp_items?: BootcampItem[];
     webinar_items?: WebinarItem[];
@@ -93,6 +94,7 @@ export default function TransactionShow({ invoice }: Props) {
             const course = invoice.course_items[0].course;
             return {
                 type: 'course',
+                routeParam: 'course',
                 name: course.title,
                 slug: course.slug,
                 thumbnail: course.thumbnail,
@@ -103,6 +105,7 @@ export default function TransactionShow({ invoice }: Props) {
             const bootcamp = invoice.bootcamp_items[0].bootcamp;
             return {
                 type: 'bootcamp',
+                routeParam: 'bootcamp',
                 name: bootcamp.title,
                 slug: bootcamp.slug,
                 thumbnail: bootcamp.thumbnail,
@@ -113,6 +116,7 @@ export default function TransactionShow({ invoice }: Props) {
             const webinar = invoice.webinar_items[0].webinar;
             return {
                 type: 'webinar',
+                routeParam: 'webinar',
                 name: webinar.title,
                 slug: webinar.slug,
                 thumbnail: webinar.thumbnail,
@@ -168,7 +172,10 @@ export default function TransactionShow({ invoice }: Props) {
     const getStatusIcon = () => {
         switch (invoice.status) {
             case 'paid':
+            case 'completed':
                 return <CheckCircle className="mt-1 h-6 w-6 text-green-500" />;
+            case 'installment_pending':
+                return <Clock className="mt-1 h-6 w-6 text-blue-500" />;
             case 'pending':
                 return <Clock className="mt-1 h-6 w-6 text-yellow-500" />;
             case 'failed':
@@ -181,7 +188,10 @@ export default function TransactionShow({ invoice }: Props) {
     const getStatusText = () => {
         switch (invoice.status) {
             case 'paid':
+            case 'completed':
                 return 'Pembayaran Berhasil';
+            case 'installment_pending':
+                return 'Cicilan Aktif';
             case 'pending':
                 return isExpired ? 'Pembayaran Kedaluwarsa' : 'Menunggu Pembayaran';
             case 'failed':
@@ -194,7 +204,10 @@ export default function TransactionShow({ invoice }: Props) {
     const getStatusColor = () => {
         switch (invoice.status) {
             case 'paid':
+            case 'completed':
                 return 'text-green-600';
+            case 'installment_pending':
+                return 'text-blue-600';
             case 'pending':
                 return isExpired ? 'text-red-600' : 'text-yellow-600';
             case 'failed':
@@ -236,19 +249,21 @@ export default function TransactionShow({ invoice }: Props) {
                                                     ? 'Kelas Online'
                                                     : productInfo.type === 'bootcamp'
                                                       ? 'Bootcamp'
-                                                      : 'Webinar'}
+                                                      : productInfo.type === 'certification-program'
+                                                        ? 'Sertifikasi Program'
+                                                        : 'Webinar'}
                                             </p>
                                             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                                                {invoice.status === 'paid' ? (
+                                                {invoice.status === 'paid' || invoice.status === 'completed' || invoice.status === 'installment_pending' ? (
                                                     <Button asChild size="sm" variant="outline">
-                                                        <Link href={route(productInfo.profileRoute, { [productInfo.type]: productInfo.slug })}>
+                                                        <Link href={route(productInfo.profileRoute, { [productInfo.routeParam]: productInfo.slug })}>
                                                             <ExternalLink className="mr-2 h-4 w-4" />
                                                             Buka di Profile
                                                         </Link>
                                                     </Button>
                                                 ) : (
                                                     <Button asChild size="sm" variant="ghost">
-                                                        <Link href={route(productInfo.publicRoute, { [productInfo.type]: productInfo.slug })}>
+                                                        <Link href={route(productInfo.publicRoute, { [productInfo.routeParam]: productInfo.slug })}>
                                                             <ExternalLink className="mr-2 h-4 w-4" />
                                                             Lihat Detail Produk
                                                         </Link>
@@ -405,11 +420,16 @@ export default function TransactionShow({ invoice }: Props) {
                                     </>
                                 )}
 
-                                {invoice.status === 'paid' && (
+                                {(invoice.status === 'paid' || invoice.status === 'completed' || invoice.status === 'installment_pending') && (
                                     <>
                                         <Button asChild className="w-full sm:w-auto" variant="outline">
                                             <Link href={route('profile.transactions')}>Lihat Riwayat Transaksi</Link>
                                         </Button>
+                                        {invoice.is_installment && (
+                                            <Button asChild className="w-full sm:w-auto" variant="outline">
+                                                <Link href={route('profile.installments')}>Kelola Cicilan</Link>
+                                            </Button>
+                                        )}
                                         <Button asChild>
                                             <a href={route('invoice.pdf', { id: invoice.id })} target="_blank" rel="noopener noreferrer">
                                                 <FileText className="size-4" />

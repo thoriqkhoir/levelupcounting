@@ -93,7 +93,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                 );
             case 'certification-program':
                 return (
-                    <span className="absolute top-2 left-2 rounded-full bg-cyan-100 px-2 py-1 text-xs font-medium text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300">
+                    <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-2 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
                         Sertifikasi
                     </span>
                 );
@@ -129,79 +129,18 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
         const hasProductAccess = hasAccess(product);
         switch (product.type) {
             case 'course':
-                return hasProductAccess ? `profile/my-courses/${product.slug}` : `/course/${product.slug}`;
+                return hasProductAccess ? `/profile/my-courses/${product.slug}` : `/course/${product.slug}`;
             case 'bootcamp':
-                return hasProductAccess ? `profile/my-bootcamps/${product.slug}` : `/bootcamp/${product.slug}`;
+                return hasProductAccess ? `/profile/my-bootcamps/${product.slug}` : `/bootcamp/${product.slug}`;
             case 'webinar':
-                return hasProductAccess ? `profile/my-webinars/${product.slug}` : `/webinar/${product.slug}`;
+                return hasProductAccess ? `/profile/my-webinars/${product.slug}` : `/webinar/${product.slug}`;
             case 'bundle':
                 return `/bundle/${product.slug}`;
             case 'certification-program':
-                return hasProductAccess ? `profile/my-certification-programs/${product.slug}` : `/certification-program/${product.slug}`;
+                return hasProductAccess ? `/profile/my-certification-programs/${product.slug}` : `/certification-program/${product.slug}`;
             default:
                 return '#';
         }
-    };
-
-    const getDateDisplay = (product: Product) => {
-        let content = null;
-
-        if (product.type === 'bootcamp') {
-            content = (
-                <div className="flex items-center gap-2">
-                    <Calendar size="12" />
-                    <p className="text-xs font-semibold text-black dark:text-gray-400">
-                        {new Date(product.start_date!).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                        })}{' '}
-                        -{' '}
-                        {new Date(product.end_date!).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                        })}
-                    </p>
-                </div>
-            );
-        } else if (product.type === 'webinar') {
-            content = (
-                <div className="flex items-center gap-2">
-                    <Calendar size="18" />
-                    <p className="text-xs font-semibold text-black dark:text-gray-400">
-                        {new Date(product.start_time!).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                        })}
-                    </p>
-                </div>
-            );
-        } else if (product.type === 'bundle' && product.registration_deadline) {
-            const deadline = new Date(product.registration_deadline);
-            const now = new Date();
-            const daysLeft = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-            content = (
-                <div className="flex items-center gap-2">
-                    <Clock size="18" className={daysLeft <= 3 ? 'text-red-500' : 'text-gray-600 dark:text-gray-400'} />
-                    <p className={`text-xs font-semibold ${daysLeft <= 3 ? 'text-red-500' : 'text-black dark:text-gray-400'}`}>
-                        {daysLeft > 0 ? `Daftar sebelum ${daysLeft} hari lagi` : 'Pendaftaran ditutup'}
-                    </p>
-                </div>
-            );
-
-            return null;
-        }
-
-        if (!content) return null;
-
-        return (
-            <div className="absolute right-2 bottom-2 z-20 rounded-lg border border-white/40 bg-white/30 px-2 py-1 shadow backdrop-blur-md dark:bg-gray-800/30">
-                {content}
-            </div>
-        );
     };
 
     const getCategoryDisplay = (product: Product) => {
@@ -210,7 +149,11 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
         }
 
         if (product.category) {
-            return <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-semibold">{product.category.name}</span>;
+            return (
+                <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-md dark:bg-zinc-800/80 dark:text-zinc-200">
+                    {product.category.name}
+                </span>
+            );
         }
 
         return null;
@@ -229,7 +172,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
     };
 
     const getProductPresenter = (product: Product) => {
-        if (product.type === 'bootcamp') {
+        if (product.type === 'bootcamp' || product.type === 'certification-program') {
             const primaryMentor = product.mentor ?? product.mentors?.[0];
             const mentorCount = product.mentors?.length ?? (primaryMentor ? 1 : 0);
 
@@ -249,7 +192,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
         };
     };
 
-    const getBootcampMentorSummary = (product: Product) => {
+    const getMentorSummary = (product: Product) => {
         const mentors = product.mentors ?? (product.mentor ? [product.mentor] : []);
         const names = mentors.map((mentor) => mentor.name).filter(Boolean);
 
@@ -297,7 +240,8 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                             const productUrl = getProductUrl(product);
                             const discount = calculateDiscount(product.strikethrough_price, product.price);
                             const presenter = getProductPresenter(product);
-                            const bootcampMentors = product.type === 'bootcamp' ? (product.mentors ?? (product.mentor ? [product.mentor] : [])) : [];
+                            const isMentorProduct = product.type === 'bootcamp' || product.type === 'certification-program';
+                            const productMentors = isMentorProduct ? (product.mentors ?? (product.mentor ? [product.mentor] : [])) : [];
                             const certDeadline =
                                 product.type === 'certification-program'
                                     ? product.program_type === 'scholarship'
@@ -318,16 +262,10 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
 
                                             {/* Type Badge - Top Left */}
                                             {getProductBadge(product.type)}
-                                            {product.type === 'certification-program' && certDeadline && (
-                                                <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                                                    <Calendar className="h-3 w-3" />
-                                                    <span>Daftar s/d {new Date(certDeadline).toLocaleDateString('id-ID')}</span>
-                                                </div>
-                                            )}
 
                                             {/* Discount Badge - Top Right */}
                                             {discount > 0 && (
-                                                <div className="absolute top-2 right-2">
+                                                <div className="absolute top-2 right-2 z-20">
                                                     <Badge className="bg-red-500 text-white shadow-lg">
                                                         <Percent size={12} className="mr-1" />
                                                         Hemat {discount}%
@@ -367,13 +305,13 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                 </div>
                                             )}
 
-                                            {/* Category Badge - Bottom Left (non-course types) */}
-                                            {product.type !== 'course' && getCategoryDisplay(product) && (
+                                            {/* Category Badge - Bottom Left (or Bottom Right if course has level) */}
+                                            {((product.type !== 'course') || (!product.level)) && getCategoryDisplay(product) && (
                                                 <div className="absolute bottom-2 left-2 z-20">{getCategoryDisplay(product)}</div>
                                             )}
-
-                                            {/* Date Display - Bottom Right */}
-                                            {getDateDisplay(product)}
+                                            {product.type === 'course' && product.level && getCategoryDisplay(product) && (
+                                                <div className="absolute bottom-2 right-2 z-20">{getCategoryDisplay(product)}</div>
+                                            )}
                                         </div>
 
                                         {/* Content Section */}
@@ -399,11 +337,70 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                 )}
                                             </div>
 
+                                            {/* Date/Time Info (reference from talenta) */}
+                                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                <Calendar size={16} className="text-primary flex-shrink-0" />
+                                                <span className="line-clamp-1">
+                                                    {product.type === 'bootcamp' && product.start_date && (
+                                                        <>
+                                                            {new Date(product.start_date).toLocaleDateString('id-ID', {
+                                                                day: 'numeric',
+                                                                month: 'short',
+                                                                year: 'numeric',
+                                                            })}
+                                                            {product.end_date && (
+                                                                <>
+                                                                    {' - '}
+                                                                    {new Date(product.end_date).toLocaleDateString('id-ID', {
+                                                                        day: 'numeric',
+                                                                        month: 'short',
+                                                                        year: 'numeric',
+                                                                    })}
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    {product.type === 'webinar' && product.start_time && (
+                                                        <>
+                                                            {new Date(product.start_time).toLocaleDateString('id-ID', {
+                                                                day: 'numeric',
+                                                                month: 'long',
+                                                                year: 'numeric',
+                                                            })}
+                                                        </>
+                                                    )}
+                                                    {product.type === 'certification-program' && (
+                                                        <>
+                                                            {certDeadline ? (
+                                                                `Daftar s/d ${new Date(certDeadline).toLocaleDateString('id-ID', {
+                                                                    day: 'numeric',
+                                                                    month: 'short',
+                                                                    year: 'numeric',
+                                                                })}`
+                                                            ) : (
+                                                                'Pendaftaran Terbuka'
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    {product.type === 'course' && 'Akses Selamanya'}
+                                                    {product.type === 'bundle' && (
+                                                        <>
+                                                            {product.registration_deadline ? (() => {
+                                                                const deadline = new Date(product.registration_deadline);
+                                                                const now = new Date();
+                                                                const daysLeft = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                                                                return daysLeft > 0 ? `Daftar sebelum ${daysLeft} hari lagi` : 'Pendaftaran ditutup';
+                                                            })() : 'Akses Selamanya'}
+                                                        </>
+                                                    )}
+                                                </span>
+                                            </div>
+
                                             {/* Mentor / Presenter Info */}
                                             <div className="flex items-center gap-3">
-                                                {product.type === 'bootcamp' && bootcampMentors.length > 0 ? (
+                                                {isMentorProduct && productMentors.length > 0 ? (
                                                     <div className="flex -space-x-2">
-                                                        {bootcampMentors.slice(0, 3).map((mentor, index) =>
+                                                        {productMentors.slice(0, 3).map((mentor, index) =>
                                                             getAvatarSrc(mentor.avatar) ? (
                                                                 <img
                                                                     key={`${mentor.name}-${index}`}
@@ -445,8 +442,8 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                     </div>
                                                 )}
                                                 <span className="text-base font-medium text-gray-700 dark:text-gray-300">
-                                                    {product.type === 'bootcamp'
-                                                        ? getBootcampMentorSummary(product)
+                                                    {isMentorProduct
+                                                        ? getMentorSummary(product)
                                                         : `${presenter.name}${presenter.extraLabel}`}
                                                 </span>
                                             </div>

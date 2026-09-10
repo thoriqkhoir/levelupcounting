@@ -26,8 +26,7 @@ class WebinarController extends Controller
     {
         $userId = Auth::id();
         $myWebinars = Invoice::with('webinarItems.webinar.category')
-            ->where('user_id', $userId)
-            ->where('status', 'paid')
+            ->purchasedByUser($userId)
             ->orderBy('created_at', 'desc')
             ->get();
         return Inertia::render('user/profile/webinar/index', ['myWebinars' => $myWebinars]);
@@ -45,8 +44,7 @@ class WebinarController extends Controller
             },
             'webinarItems.webinar.category'
         ])
-            ->where('user_id', $userId)
-            ->where('status', 'paid')
+            ->purchasedByUser($userId)
             ->whereHas('webinarItems.webinar', function ($query) use ($slug) {
                 $query->where('slug', $slug);
             })
@@ -55,6 +53,11 @@ class WebinarController extends Controller
 
         if (!$webinar || $webinar->webinarItems->isEmpty()) {
             abort(404, 'Webinar tidak ditemukan atau Anda belum terdaftar.');
+        }
+
+        if ($webinar->is_installment && $webinar->isAccessSuspended()) {
+            return redirect()->route('profile.installments')
+                ->with('error', 'Akses webinar ini dibekukan karena terdapat cicilan yang melewati jatuh tempo. Silakan bayar cicilan Anda.');
         }
 
         $certificate = null;

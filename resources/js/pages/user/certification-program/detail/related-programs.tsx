@@ -86,11 +86,6 @@ export default function RelatedPrograms({
                                     </div>
 
                                     <div className="mt-auto w-full p-2 text-left">
-                                        {program.strikethrough_price && program.strikethrough_price > 0 && program.strikethrough_price > program.price && (
-                                            <p className="mb-0.5 px-2 text-xs text-red-600 line-through dark:text-gray-400">
-                                                Rp {program.strikethrough_price.toLocaleString('id-ID')}
-                                            </p>
-                                        )}
                                         <div className="mb-2 flex items-center justify-between gap-2 px-2">
                                             {(() => {
                                                 const isApprovedScholarship = program.type === 'scholarship' && approvedScholarshipProgramIds?.includes(program.id);
@@ -101,8 +96,8 @@ export default function RelatedPrograms({
                                                     <p className="text-lg font-semibold text-green-600 dark:text-green-400">Gratis</p>
                                                 ) : (
                                                     <div className="mb-2">
-                                                        {!isScholarshipNotApproved && program.strikethrough_price && program.strikethrough_price > 0 && (
-                                                            <p className="text-sm text-red-500 line-through">{program.strikethrough_price.toLocaleString('id-ID')}</p>
+                                                        {!isScholarshipNotApproved && (program.strikethrough_price ?? 0) > 0 && (program.strikethrough_price ?? 0) > displayPrice && (
+                                                            <p className="text-sm text-red-500 line-through">Rp. {(program.strikethrough_price ?? 0).toLocaleString('id-ID')}</p>
                                                         )}
                                                         <p className="text-primary text-base font-bold dark:text-gray-200">
                                                             Rp {displayPrice.toLocaleString('id-ID')}

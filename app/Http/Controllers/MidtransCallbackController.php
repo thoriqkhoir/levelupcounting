@@ -60,7 +60,14 @@ class MidtransCallbackController extends Controller
 
             DB::beginTransaction();
             try {
-                $invoice = Invoice::where('invoice_code', $orderId)->first();
+                $invoice = Invoice::where('invoice_code', $orderId)
+                    ->orWhere('payment_reference', $orderId)
+                    ->first();
+
+                if (!$invoice && str_contains($orderId, '-')) {
+                    $baseOrderId = preg_replace('/-\d{8,}$/', '', $orderId);
+                    $invoice = Invoice::where('invoice_code', $baseOrderId)->first();
+                }
 
                 if (!$invoice) {
                     DB::rollBack();
@@ -207,6 +214,51 @@ class MidtransCallbackController extends Controller
         // Ambil payment channel
         $paymentChannel = $request->payment_type ?? $invoice->payment_channel;
 
+        // ====== INSTALLMENT CHILD HANDLER ======
+        if ($invoice->isInstallmentChild()) {
+            $invoice->update([
+                'status' => 'paid',
+                'paid_at' => Carbon::now('Asia/Jakarta'),
+                'payment_reference' => $request->transaction_id ?? $request->order_id,
+                'payment_channel' => $paymentChannel,
+                'va_number' => $vaNumber,
+            ]);
+
+            $parentInvoice = Invoice::with([
+                'user',
+                'courseItems.course',
+                'bootcampItems.bootcamp',
+                'webinarItems.webinar',
+                'certificationProgramItems.certificationProgram',
+                'bundleEnrollments.bundle',
+            ])->find($invoice->parent_invoice_id);
+
+            if ($parentInvoice) {
+                // Jika termin ke-1 (DP): aktifkan akses
+                if ($invoice->installment_number === 1) {
+                    $this->activateInstallmentEnrollments($parentInvoice);
+                }
+
+                // Pulihkan akses jika sebelumnya dibekukan
+                $parentInvoice->update(['access_suspended_at' => null]);
+
+                // Catat komisi affiliate untuk termin ini
+                $this->recordAffiliateCommission($invoice);
+
+                // Cek apakah semua termin lunas
+                if ($parentInvoice->isFullyPaid()) {
+                    $parentInvoice->update(['status' => 'paid', 'paid_at' => Carbon::now('Asia/Jakarta')]);
+                    event(new \App\Events\TransactionPaid($parentInvoice));
+                    $this->sendWhatsAppInstallmentComplete($parentInvoice);
+                } else {
+                    $this->sendWhatsAppTermPaid($invoice, $parentInvoice);
+                }
+            }
+
+            return;
+        }
+        // ====== END INSTALLMENT CHILD HANDLER ======
+
         $invoice->update([
             'status' => 'paid',
             'paid_at' => Carbon::now('Asia/Jakarta'),
@@ -231,6 +283,77 @@ class MidtransCallbackController extends Controller
 
         // Kirim WhatsApp setelah pembayaran berhasil
         $this->sendWhatsAppNotification($invoice);
+    }
+
+    /**
+     * Aktifkan akses enrollment pada invoice induk cicilan setelah DP dibayar
+     */
+    private function activateInstallmentEnrollments(Invoice $parentInvoice): void
+    {
+        if ($parentInvoice->bundleEnrollments && $parentInvoice->bundleEnrollments->count() > 0) {
+            foreach ($parentInvoice->bundleEnrollments as $bundleEnrollment) {
+                if (method_exists($bundleEnrollment, 'createIndividualEnrollments')) {
+                    $bundleEnrollment->createIndividualEnrollments();
+                }
+            }
+        }
+
+        Log::info('Installment DP paid - access activated', [
+            'parent_invoice_code' => $parentInvoice->invoice_code,
+            'user_id' => $parentInvoice->user_id,
+        ]);
+    }
+
+    /**
+     * Kirim WhatsApp saat satu termin cicilan berhasil dibayar (belum lunas)
+     */
+    private function sendWhatsAppTermPaid(Invoice $childInvoice, Invoice $parentInvoice): void
+    {
+        try {
+            $user = $parentInvoice->user;
+            if (!$user?->phone_number) return;
+
+            $phoneNumber = $this->formatPhoneNumber($user->phone_number);
+            $termNumber = $childInvoice->installment_number;
+            $totalTerms = $parentInvoice->installmentTerms()->count();
+            $nextTerm = $parentInvoice->nextUnpaidTerm();
+            $nextDue = $nextTerm ? Carbon::parse($nextTerm->installment_due_date)->translatedFormat('d F Y') : '-';
+
+            $message = "*[Level Up Counting - Cicilan Berhasil]*\n\n";
+            $message .= "Hai *{$user->name}*,\n\n";
+            $message .= "Cicilan ke-*{$termNumber}/{$totalTerms}* sebesar *Rp " . number_format($childInvoice->amount, 0, ',', '.') . "* berhasil dibayar.\n\n";
+            if ($nextTerm) {
+                $message .= "Cicilan ke-*" . ($termNumber + 1) . "/{$totalTerms}* jatuh tempo pada *{$nextDue}*.\n\n";
+            }
+            $message .= "Terima kasih!\n\n*Level Up Counting - Customer Support*";
+
+            self::sendText([['phone' => $phoneNumber, 'message' => $message, 'isGroup' => 'false']]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to send WhatsApp term paid', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Kirim WhatsApp saat semua termin cicilan lunas
+     */
+    private function sendWhatsAppInstallmentComplete(Invoice $parentInvoice): void
+    {
+        try {
+            $user = $parentInvoice->user;
+            if (!$user?->phone_number) return;
+
+            $phoneNumber = $this->formatPhoneNumber($user->phone_number);
+
+            $message = "*[Level Up Counting - Cicilan Lunas]*\n\n";
+            $message .= "Hai *{$user->name}*,\n\n";
+            $message .= "Selamat! Semua cicilan untuk invoice *{$parentInvoice->invoice_code}* telah lunas.\n\n";
+            $message .= "Sertifikat tersedia untuk diunduh melalui profil Anda.\n\n";
+            $message .= "Terima kasih!\n\n*Level Up Counting - Customer Support*";
+
+            self::sendText([['phone' => $phoneNumber, 'message' => $message, 'isGroup' => 'false']]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to send WhatsApp installment complete', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

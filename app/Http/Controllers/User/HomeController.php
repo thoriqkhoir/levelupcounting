@@ -153,7 +153,7 @@ class HomeController extends Controller
                 ];
             });
 
-        $certificationPrograms = CertificationProgram::with(['category'])
+        $certificationPrograms = CertificationProgram::with(['category', 'mentors'])
             ->where('status', 'published')
             ->where(function ($query) {
                 $query->where(function ($q) {
@@ -174,6 +174,8 @@ class HomeController extends Controller
             ->take(6)
             ->get()
             ->map(function ($cp) {
+                $firstMentor = $cp->mentors->first();
+
                 return [
                     'id' => $cp->id,
                     'title' => $cp->title,
@@ -186,6 +188,18 @@ class HomeController extends Controller
                     'registration_deadline' => $cp->registration_deadline,
                     'socialization_registration_deadline' => $cp->socialization_registration_deadline,
                     'category' => $cp->category,
+                    'mentor' => $firstMentor ? [
+                        'name' => $firstMentor->name,
+                        'bio' => $firstMentor->bio,
+                        'avatar' => $firstMentor->avatar,
+                    ] : null,
+                    'mentors' => $cp->mentors->map(function ($mentor) {
+                        return [
+                            'name' => $mentor->name,
+                            'bio' => $mentor->bio,
+                            'avatar' => $mentor->avatar,
+                        ];
+                    })->values(),
                     'type' => 'certification-program',
                     'created_at' => $cp->created_at,
                 ];
@@ -250,8 +264,7 @@ class HomeController extends Controller
             $userId = Auth::id();
 
             $myCourseIds = Invoice::with('courseItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(function ($invoice) {
                     return $invoice->courseItems->pluck('course_id');
@@ -261,8 +274,7 @@ class HomeController extends Controller
                 ->all();
 
             $myBootcampIds = Invoice::with('bootcampItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(function ($invoice) {
                     return $invoice->bootcampItems->pluck('bootcamp_id');
@@ -272,8 +284,7 @@ class HomeController extends Controller
                 ->all();
 
             $myWebinarIds = Invoice::with('webinarItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(function ($invoice) {
                     return $invoice->webinarItems->pluck('webinar_id');
@@ -283,8 +294,7 @@ class HomeController extends Controller
                 ->all();
 
             $myBundleIds = Invoice::with('bundleEnrollments')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(function ($invoice) {
                     return $invoice->bundleEnrollments->pluck('bundle_id');
@@ -294,8 +304,7 @@ class HomeController extends Controller
                 ->all();
 
             $myCertificationProgramIds = Invoice::with('certificationProgramItems')
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->get()
                 ->flatMap(function ($invoice) {
                     return $invoice->certificationProgramItems->pluck('certification_program_id');

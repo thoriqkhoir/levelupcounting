@@ -1,3 +1,4 @@
+import InstallmentOptions, { ActiveInstallmentData, InstallmentTermOption } from '@/components/installment-options';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -131,9 +132,9 @@ interface InvoiceData {
 
 function parseList(items?: string | null): string[] {
     if (!items) return [];
-    const matches = items.match(/<li>(.*?)<\/li>/g);
+    const matches = items.match(/<li[^>]*>([\s\S]*?)<\/li>/gi);
     if (!matches) return [];
-    return matches.map((li) => li.replace(/<\/?li>/g, '').trim());
+    return matches.map((li) => li.replace(/<\/?li[^>]*>/gi, '').trim());
 }
 
 export default function RegisterBootcamp({
@@ -143,6 +144,8 @@ export default function RegisterBootcamp({
     transactionDetail,
     // channels,
     referralInfo,
+    installmentTerms = [],
+    activeInstallment: initialActiveInstallment = null,
 }: {
     bootcamp: Bootcamp;
     hasAccess: boolean;
@@ -150,12 +153,24 @@ export default function RegisterBootcamp({
     transactionDetail?: TransactionDetail | null;
     // channels: PaymentChannel[];
     referralInfo: ReferralInfo;
+    installmentTerms?: InstallmentTermOption[];
+    activeInstallment?: ActiveInstallmentData | null;
 }) {
     const [emailExists, setEmailExists] = useState(false);
     const [checkingEmail, setCheckingEmail] = useState(false);
     const { auth } = usePage<SharedData>().props;
     const isLoggedIn = !!auth.user;
     const isProfileComplete = isLoggedIn && auth.user?.phone_number && auth.user?.instance && auth.user?.city;
+
+    const [activeInstallment, setActiveInstallment] = useState<ActiveInstallmentData | null>(initialActiveInstallment);
+    const [paymentTab, setPaymentTab] = useState<'full' | 'installment'>(initialActiveInstallment ? 'installment' : 'full');
+
+    useEffect(() => {
+        if (initialActiveInstallment) {
+            setActiveInstallment(initialActiveInstallment);
+            setPaymentTab('installment');
+        }
+    }, [initialActiveInstallment]);
 
     const [cancellingInvoice, setCancellingInvoice] = useState(false);
     const [termsAccepted, setTermsAccepted] = useState(false);
@@ -221,6 +236,7 @@ export default function RegisterBootcamp({
             try {
                 const response = await axios.post('/api/check-email', {
                     email: data.email,
+                    bootcamp_id: bootcamp.id,
                 });
 
                 if (response.data.exists) {
@@ -229,19 +245,28 @@ export default function RegisterBootcamp({
                     setData('phone_number', response.data.phone_number || '');
                     setData('instance', response.data.instance || '');
                     setData('city', response.data.city || '');
+
+                    if (response.data.active_installment) {
+                        setActiveInstallment(response.data.active_installment);
+                        setPaymentTab('installment');
+                    } else {
+                        setActiveInstallment(null);
+                    }
                 } else {
                     setEmailExists(false);
+                    setActiveInstallment(null);
                 }
             } catch (error) {
                 console.error('Error checking email:', error);
                 setEmailExists(false);
+                setActiveInstallment(null);
             } finally {
                 setCheckingEmail(false);
             }
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [data.email]);
+    }, [data.email, bootcamp.id]);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -394,16 +419,61 @@ export default function RegisterBootcamp({
         });
     };
 
+    const ensureAuth = async (): Promise<boolean> => {
+        if (isLoggedIn) return true;
+
+        if (!data.email || !data.name || !data.phone_number || !data.instance || !data.city) {
+            toast.error('Lengkapi data terlebih dahulu');
+            return false;
+        }
+
+        try {
+            if (emailExists) {
+                const response = await axios.post('/auto-login', {
+                    email: data.email,
+                    phone_number: data.phone_number,
+                    instance: data.instance,
+                    city: data.city,
+                });
+
+                if (!response.data.success) {
+                    throw new Error(response.data.message || 'Login gagal. Pastikan nomor telepon sesuai dengan yang terdaftar.');
+                }
+            } else {
+                const response = await axios.post('/register', {
+                    name: data.name,
+                    email: data.email,
+                    phone_number: data.phone_number,
+                    instance: data.instance,
+                    city: data.city,
+                    password: data.phone_number,
+                    password_confirmation: data.phone_number,
+                    affiliate_code: sessionStorage.getItem('affiliate_code') || '',
+                });
+
+                if (!(response.data?.success || response.status === 200 || response.status === 201)) {
+                    throw new Error('Registrasi gagal.');
+                }
+            }
+            return true;
+        } catch (error: any) {
+            console.error('Login/Register error:', error);
+            toast.error(error.response?.data?.message || error.message || 'Gagal memproses pendaftaran.');
+            return false;
+        }
+    };
+
     const handleCheckout = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (activeInstallment && !activeInstallment.is_fully_paid) {
+            toast.error('Anda memiliki transaksi cicilan yang sedang aktif. Silakan lanjutkan pembayaran termin cicilan Anda.');
+            setPaymentTab('installment');
+            return;
+        }
+
         // 1. Jika belum login, lakukan registrasi / login terlebih dahulu
         if (!isLoggedIn) {
-            if (!data.email || !data.name || !data.phone_number || !data.instance || !data.city) {
-                toast.error('Lengkapi data terlebih dahulu');
-                return;
-            }
-
             if (!termsAccepted && !isFree) {
                 toast.error('Anda harus menyetujui syarat dan ketentuan!');
                 return;
@@ -411,35 +481,13 @@ export default function RegisterBootcamp({
 
             setLoading(true);
 
+            const authed = await ensureAuth();
+            if (!authed) {
+                setLoading(false);
+                return;
+            }
+
             try {
-                if (emailExists) {
-                    const response = await axios.post('/auto-login', {
-                        email: data.email,
-                        phone_number: data.phone_number,
-                        instance: data.instance,
-                        city: data.city,
-                    });
-
-                    if (!response.data.success) {
-                        throw new Error(response.data.message || 'Login gagal. Pastikan nomor telepon sesuai dengan yang terdaftar.');
-                    }
-                } else {
-                    const response = await axios.post('/register', {
-                        name: data.name,
-                        email: data.email,
-                        phone_number: data.phone_number,
-                        instance: data.instance,
-                        city: data.city,
-                        password: data.phone_number,
-                        password_confirmation: data.phone_number,
-                        affiliate_code: sessionStorage.getItem('affiliate_code') || '',
-                    });
-
-                    if (!(response.data?.success || response.status === 200 || response.status === 201)) {
-                        throw new Error('Registrasi gagal.');
-                    }
-                }
-
                 if (isFree) {
                     setShowFreeForm(true);
                     setLoading(false);
@@ -449,9 +497,9 @@ export default function RegisterBootcamp({
                 // Langsung jalankan submitPayment tanpa reload halaman!
                 await submitPayment();
             } catch (error: any) {
-                console.error('Login/Register error:', error);
+                console.error('Payment error:', error);
                 setLoading(false);
-                toast.error(error.response?.data?.message || error.message || 'Gagal memproses pendaftaran.');
+                toast.error(error.response?.data?.message || error.message || 'Gagal memproses pembayaran.');
             }
             return;
         }
@@ -970,7 +1018,10 @@ export default function RegisterBootcamp({
                                                 <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-transform group-hover:scale-110">
                                                     <Check className="h-4 w-4" />
                                                 </div>
-                                                <p className="text-sm leading-relaxed font-medium text-gray-700 dark:text-gray-300">{benefit}</p>
+                                                <div
+                                                    className="text-sm leading-relaxed font-medium text-gray-700 dark:text-gray-300 [&_strong]:font-semibold [&_strong]:text-gray-900 dark:[&_strong]:text-white"
+                                                    dangerouslySetInnerHTML={{ __html: benefit }}
+                                                />
                                             </motion.div>
                                         ))}
                                     </div>
@@ -984,7 +1035,10 @@ export default function RegisterBootcamp({
                                                     className="flex items-start gap-3 rounded-lg border bg-gray-50 p-3 dark:bg-gray-900/50"
                                                 >
                                                     <BadgeCheck size={18} className="mt-1 min-w-6 flex-shrink-0 text-blue-600" />
-                                                    <p className="text-sm text-gray-700 dark:text-gray-300">{requirement}</p>
+                                                    <div
+                                                    className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 [&_strong]:font-semibold [&_strong]:text-gray-900 dark:[&_strong]:text-white"
+                                                    dangerouslySetInnerHTML={{ __html: requirement }}
+                                                />
                                                 </div>
                                             ))}
                                         </div>
@@ -1011,7 +1065,10 @@ export default function RegisterBootcamp({
                                                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 font-bold text-white shadow-lg">
                                                     {idx + 1}
                                                 </div>
-                                                <p className="text-sm leading-relaxed font-medium text-gray-700 dark:text-gray-300">{curriculum}</p>
+                                                <div
+                                                    className="text-sm leading-relaxed font-medium text-gray-700 dark:text-gray-300 [&_strong]:font-semibold [&_strong]:text-gray-900 dark:[&_strong]:text-white"
+                                                    dangerouslySetInnerHTML={{ __html: curriculum }}
+                                                />
                                             </motion.div>
                                         ))}
                                     </div>
@@ -1228,7 +1285,7 @@ export default function RegisterBootcamp({
                     {/* Right Column - Checkout Card */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-1">
                         <div className="sticky top-4">
-                            {hasAccess ? (
+                            {hasAccess && (!activeInstallment || activeInstallment.is_fully_paid) ? (
                                 <Card className="overflow-hidden border-2 border-green-500/20">
                                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 text-center dark:from-green-950/20 dark:to-emerald-950/20">
                                         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
@@ -1380,19 +1437,357 @@ export default function RegisterBootcamp({
 
                                     <form onSubmit={handleCheckout} className="p-6">
                                         {isFree ? (
-                                            <div className="mb-6 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-6 text-center dark:from-green-950/20 dark:to-emerald-950/20">
-                                                <Gift className="mx-auto mb-3 h-12 w-12 text-green-600" />
-                                                <p className="mb-2 text-2xl font-bold text-green-600">BOOTCAMP GRATIS</p>
-                                                <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">Dapatkan akses penuh tanpa biaya</p>
-                                                <div className="space-y-2 text-left text-sm text-gray-700 dark:text-gray-300">
-                                                    <p className="font-semibold">Untuk mendapatkan akses gratis:</p>
-                                                    <ul className="space-y-1">
-                                                        {bootcamp.requirement_1 && <li>• {bootcamp.requirement_1}</li>}
-                                                        {bootcamp.requirement_2 && <li>• {bootcamp.requirement_2}</li>}
-                                                        {bootcamp.requirement_3 && <li>• {bootcamp.requirement_3}</li>}
-                                                    </ul>
+                                            <>
+                                                <div className="mb-6 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-6 text-center dark:from-green-950/20 dark:to-emerald-950/20">
+                                                    <Gift className="mx-auto mb-3 h-12 w-12 text-green-600" />
+                                                    <p className="mb-2 text-2xl font-bold text-green-600">BOOTCAMP GRATIS</p>
+                                                    <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">Dapatkan akses penuh tanpa biaya</p>
+                                                    <div className="space-y-2 text-left text-sm text-gray-700 dark:text-gray-300">
+                                                        <p className="font-semibold">Untuk mendapatkan akses gratis:</p>
+                                                        <ul className="space-y-1">
+                                                            {bootcamp.requirement_1 && <li>• {bootcamp.requirement_1}</li>}
+                                                            {bootcamp.requirement_2 && <li>• {bootcamp.requirement_2}</li>}
+                                                            {bootcamp.requirement_3 && <li>• {bootcamp.requirement_3}</li>}
+                                                        </ul>
+                                                    </div>
                                                 </div>
-                                            </div>
+
+                                                {/* Submit Button */}
+                                                <Button
+                                                    type="submit"
+                                                    size="lg"
+                                                    disabled={loading}
+                                                    className="w-full disabled:opacity-50"
+                                                >
+                                                    {loading ? (
+                                                        <>
+                                                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                                            Memproses...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Upload className="mr-2 h-5 w-5" />
+                                                            Upload Bukti Follow
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </>
+                                        ) : installmentTerms && installmentTerms.length > 0 ? (
+                                            <Tabs
+                                                value={paymentTab}
+                                                onValueChange={(val) => {
+                                                    if (val === 'full' && activeInstallment && !activeInstallment.is_fully_paid) {
+                                                        toast.error('Anda memiliki cicilan aktif. Pembayaran penuh dinonaktifkan.');
+                                                        return;
+                                                    }
+                                                    setPaymentTab(val as 'full' | 'installment');
+                                                }}
+                                                className="w-full space-y-4 pt-2"
+                                            >
+                                                <TabsList className="grid w-full grid-cols-2 h-10 mb-4">
+                                                    <TabsTrigger
+                                                        value="full"
+                                                        disabled={!!activeInstallment && !activeInstallment.is_fully_paid}
+                                                        className="text-xs sm:text-sm"
+                                                    >
+                                                        Bayar Penuh
+                                                    </TabsTrigger>
+                                                    <TabsTrigger value="installment" className="text-xs sm:text-sm">
+                                                        Cicilan ({installmentTerms.length}x)
+                                                    </TabsTrigger>
+                                                </TabsList>
+
+                                                <TabsContent value="full" className="m-0 space-y-4">
+                                                    {/* Bootcamp Thumbnail */}
+                                                    {bootcamp.thumbnail && (
+                                                        <div className="mb-6 overflow-hidden rounded-lg border">
+                                                            <img
+                                                                src={
+                                                                    bootcamp.thumbnail.startsWith('http') || bootcamp.thumbnail.startsWith('/storage')
+                                                                        ? bootcamp.thumbnail
+                                                                        : `/storage/${bootcamp.thumbnail}`
+                                                                }
+                                                                alt={bootcamp.title}
+                                                                className="h-40 w-full object-cover"
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Promo / Referral Code Section */}
+                                                    <div className="mb-6 space-y-4">
+                                                        {/* Jenis Kode */}
+                                                        <div className="space-y-2">
+                                                            <Label className="flex items-center gap-2 text-sm font-medium">
+                                                                <Tag className="h-4 w-4" />
+                                                                Jenis Kode
+                                                            </Label>
+                                                            <RadioGroup
+                                                                value={codeType}
+                                                                onValueChange={(val: 'voucher' | 'referral') => {
+                                                                    setCodeType(val);
+                                                                    setPromoCode('');
+                                                                    setDiscountData(null);
+                                                                    setReferralData(null);
+                                                                    setPromoError('');
+                                                                    setReferralError('');
+                                                                }}
+                                                                className="flex gap-4"
+                                                            >
+                                                                <div className="flex items-center space-x-2">
+                                                                    <RadioGroupItem value="voucher" id="boot-code-voucher" />
+                                                                    <Label htmlFor="boot-code-voucher" className="cursor-pointer text-sm">Voucher</Label>
+                                                                </div>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <RadioGroupItem value="referral" id="boot-code-referral" />
+                                                                    <Label htmlFor="boot-code-referral" className="cursor-pointer text-sm">Referral</Label>
+                                                                </div>
+                                                            </RadioGroup>
+                                                        </div>
+
+                                                        {/* Input Kode */}
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="promo-code" className="text-sm font-medium">
+                                                                {codeType === 'voucher' ? 'Kode Voucher / Promo' : 'Kode Referral'}
+                                                            </Label>
+                                                            <div className="flex gap-2">
+                                                                <div className="relative flex-1">
+                                                                    <Input
+                                                                        id="promo-code"
+                                                                        type="text"
+                                                                        placeholder={codeType === 'voucher' ? 'Masukkan kode promo' : 'Masukkan kode referral'}
+                                                                        value={promoCode}
+                                                                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                                                        className="pr-10"
+                                                                    />
+                                                                    {(promoLoading || referralLoading) && (
+                                                                        <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                                                                            <LoaderCircle className="h-4 w-4 animate-spin text-gray-400" />
+                                                                        </div>
+                                                                    )}
+                                                                    {!(promoLoading || referralLoading) && promoCode && (
+                                                                        <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                                                                            {codeType === 'voucher' ? (
+                                                                                discountData?.valid ? (
+                                                                                    <Check className="h-5 w-5 text-green-600" />
+                                                                                ) : promoError ? (
+                                                                                    <X className="h-5 w-5 text-red-600" />
+                                                                                ) : null
+                                                                            ) : (
+                                                                                referralData?.valid ? (
+                                                                                    <Check className="h-5 w-5 text-green-600" />
+                                                                                ) : referralError ? (
+                                                                                    <X className="h-5 w-5 text-red-600" />
+                                                                                ) : null
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    size="icon"
+                                                                    onClick={async () => {
+                                                                        if (!promoCode.trim()) {
+                                                                            toast.error(`Masukkan kode ${codeType === 'voucher' ? 'promo' : 'referral'} terlebih dahulu`);
+                                                                            return;
+                                                                        }
+                                                                        if (codeType === 'voucher') await validatePromoCode();
+                                                                        else await validateReferralCode();
+                                                                    }}
+                                                                    disabled={promoLoading || referralLoading || !promoCode.trim()}
+                                                                    className="flex-shrink-0"
+                                                                >
+                                                                    <RefreshCw className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+
+                                                            {/* Voucher feedback */}
+                                                            {codeType === 'voucher' && promoError && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: -10 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/20"
+                                                                >
+                                                                    <X className="h-4 w-4 flex-shrink-0 text-red-600" />
+                                                                    <p className="text-sm text-red-600 dark:text-red-400">{promoError}</p>
+                                                                </motion.div>
+                                                            )}
+                                                            {codeType === 'voucher' && discountData?.valid && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, scale: 1 }}
+                                                                    className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-green-950/20 dark:to-emerald-950/20"
+                                                                >
+                                                                    <div className="mb-2 flex items-center gap-2">
+                                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+                                                                            <Check className="h-4 w-4 text-white" />
+                                                                        </div>
+                                                                        <p className="font-semibold text-green-800 dark:text-green-200">Kode Promo Diterapkan!</p>
+                                                                    </div>
+                                                                    <p className="text-sm text-green-700 dark:text-green-300">
+                                                                        <span className="font-mono font-bold">{discountData.discount_code.code}</span> -{' '}
+                                                                        {discountData.discount_code.name}
+                                                                    </p>
+                                                                    <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                                                                        Hemat {discountData.discount_code.formatted_value}
+                                                                    </p>
+                                                                </motion.div>
+                                                            )}
+
+                                                            {/* Referral feedback */}
+                                                            {codeType === 'referral' && referralError && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: -10 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/20"
+                                                                >
+                                                                    <X className="h-4 w-4 flex-shrink-0 text-red-600" />
+                                                                    <p className="text-sm text-red-600 dark:text-red-400">{referralError}</p>
+                                                                </motion.div>
+                                                            )}
+                                                            {codeType === 'referral' && referralData?.valid && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, scale: 1 }}
+                                                                    className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-green-950/20 dark:to-emerald-950/20"
+                                                                >
+                                                                    <div className="mb-2 flex items-center gap-2">
+                                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+                                                                            <Check className="h-4 w-4 text-white" />
+                                                                        </div>
+                                                                        <p className="font-semibold text-green-800 dark:text-green-200">Kode Referral Valid!</p>
+                                                                    </div>
+                                                                    <p className="text-sm text-green-700 dark:text-green-300">
+                                                                        Pembelian Anda dirujuk oleh <span className="font-bold">{referralData.referrer?.name}</span>. Reward poin akan masuk setelah pembayaran sukses.
+                                                                    </p>
+                                                                </motion.div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Price Breakdown */}
+                                                    <div className="mb-6 space-y-3 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">
+                                                        {bootcamp.strikethrough_price > 0 && (
+                                                            <>
+                                                                <div className="flex items-center justify-between text-sm">
+                                                                    <span className="text-gray-600 dark:text-gray-400">Harga Asli</span>
+                                                                    <span className="font-medium text-gray-500 line-through">
+                                                                        Rp {bootcamp.strikethrough_price.toLocaleString('id-ID')}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center justify-between text-sm">
+                                                                    <span className="text-gray-600 dark:text-gray-400">Diskon</span>
+                                                                    <span className="font-semibold text-red-600">
+                                                                        -Rp {(bootcamp.strikethrough_price - bootcamp.price).toLocaleString('id-ID')}
+                                                                    </span>
+                                                                </div>
+                                                                <Separator />
+                                                            </>
+                                                        )}
+
+                                                        <div className="flex items-center justify-between text-sm">
+                                                            <span className="text-gray-600 dark:text-gray-400">Harga Bootcamp</span>
+                                                            <span className="font-semibold">Rp {bootcamp.price.toLocaleString('id-ID')}</span>
+                                                        </div>
+
+                                                        {discountData?.valid && (
+                                                            <div className="flex items-center justify-between text-sm">
+                                                                <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                                                                    <Gift className="h-3.5 w-3.5" />
+                                                                    Promo ({discountData.discount_code.code})
+                                                                </span>
+                                                                <span className="font-semibold text-green-600">
+                                                                    -Rp {discountData.discount_amount.toLocaleString('id-ID')}
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="flex items-center justify-between text-sm">
+                                                            <span className="text-gray-600 dark:text-gray-400">Biaya Transaksi</span>
+                                                            <span className="font-semibold">Rp {adminFee.toLocaleString('id-ID')}</span>
+                                                        </div>
+
+                                                        <Separator />
+
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="font-bold">Total Pembayaran</span>
+                                                            <span className="text-2xl font-bold text-orange-600">
+                                                                Rp {totalPrice.toLocaleString('id-ID')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Security Note */}
+                                                    <div className="mb-4 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/20">
+                                                        <Shield className="h-5 w-5 flex-shrink-0 text-blue-600" />
+                                                        <div className="text-xs text-blue-700 dark:text-blue-300">
+                                                            <p className="mb-1 font-semibold">Pembayaran Aman & Terpercaya</p>
+                                                            <p>Transaksi Anda dilindungi dengan enkripsi SSL</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Terms Checkbox */}
+                                                    <div className="mb-4 flex items-start gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-900/50">
+                                                        <Checkbox
+                                                            id="terms"
+                                                            checked={termsAccepted}
+                                                            onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                                                            className="mt-0.5"
+                                                        />
+                                                        <Label htmlFor="terms" className="cursor-pointer text-sm leading-relaxed">
+                                                            Saya menyetujui{' '}
+                                                            <a
+                                                                href="/terms-and-conditions"
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="font-medium text-blue-600 hover:underline"
+                                                            >
+                                                                syarat dan ketentuan
+                                                            </a>{' '}
+                                                            yang berlaku
+                                                        </Label>
+                                                    </div>
+
+                                                    {/* Submit Button */}
+                                                    <Button
+                                                        type="submit"
+                                                        size="lg"
+                                                        disabled={!termsAccepted || loading}
+                                                        className="w-full disabled:opacity-50"
+                                                    >
+                                                        {loading ? (
+                                                            <>
+                                                                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                                                Memproses...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <CreditCard className="mr-2 h-5 w-5" />
+                                                                Lanjutkan Pembayaran
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </TabsContent>
+
+                                                <TabsContent value="installment" className="m-0 space-y-4">
+                                                    <InstallmentOptions
+                                                        productType="bootcamp"
+                                                        productId={bootcamp.id}
+                                                        productPrice={bootcamp.price}
+                                                        terms={installmentTerms}
+                                                        activeInstallment={activeInstallment}
+                                                        termsAccepted={termsAccepted}
+                                                        onTermsAcceptedChange={setTermsAccepted}
+                                                        onBeforePay={async () => {
+                                                            if (!activeInstallment && !termsAccepted) {
+                                                                toast.error('Anda harus menyetujui syarat dan ketentuan!');
+                                                                return false;
+                                                            }
+                                                            return await ensureAuth();
+                                                        }}
+                                                    />
+                                                </TabsContent>
+                                            </Tabs>
                                         ) : (
                                             <>
                                                 {/* Bootcamp Thumbnail */}
@@ -1646,33 +2041,28 @@ export default function RegisterBootcamp({
                                                         yang berlaku
                                                     </Label>
                                                 </div>
+
+                                                {/* Submit Button */}
+                                                <Button
+                                                    type="submit"
+                                                    size="lg"
+                                                    disabled={!termsAccepted || loading}
+                                                    className="w-full disabled:opacity-50"
+                                                >
+                                                    {loading ? (
+                                                        <>
+                                                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                                            Memproses...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <CreditCard className="mr-2 h-5 w-5" />
+                                                            Lanjutkan Pembayaran
+                                                        </>
+                                                    )}
+                                                </Button>
                                             </>
                                         )}
-
-                                        {/* Submit Button */}
-                                        <Button
-                                            type="submit"
-                                            size="lg"
-                                            disabled={(isFree ? false : !termsAccepted) || loading}
-                                            className="w-full disabled:opacity-50"
-                                        >
-                                            {loading ? (
-                                                <>
-                                                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                                    Memproses...
-                                                </>
-                                            ) : isFree ? (
-                                                <>
-                                                    <Upload className="mr-2 h-5 w-5" />
-                                                    Upload Bukti Follow
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <CreditCard className="mr-2 h-5 w-5" />
-                                                    Lanjutkan Pembayaran
-                                                </>
-                                            )}
-                                        </Button>
                                     </form>
                                 </Card>
                             ) : (

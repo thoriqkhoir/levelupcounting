@@ -25,8 +25,7 @@ class CourseController extends Controller
     {
         $userId = Auth::id();
         $myCourses = Invoice::with('courseItems.course.category')
-            ->where('user_id', $userId)
-            ->where('status', 'paid')
+            ->purchasedByUser($userId)
             ->orderBy('created_at', 'desc')
             ->get();
         return Inertia::render('user/profile/course/index', ['myCourses' => $myCourses]);
@@ -41,8 +40,7 @@ class CourseController extends Controller
                 $q->where('slug', $slug);
             })->with('course.category');
         }])
-            ->where('user_id', $userId)
-            ->where('status', 'paid')
+            ->purchasedByUser($userId)
             ->whereHas('courseItems.course', function ($query) use ($slug) {
                 $query->where('slug', $slug);
             })
@@ -51,6 +49,11 @@ class CourseController extends Controller
 
         if (!$course || $course->courseItems->isEmpty()) {
             abort(404, 'Kelas tidak ditemukan atau Anda belum terdaftar.');
+        }
+
+        if ($course->is_installment && $course->isAccessSuspended()) {
+            return redirect()->route('profile.installments')
+                ->with('error', 'Akses kelas ini dibekukan karena terdapat cicilan yang melewati jatuh tempo. Silakan bayar cicilan Anda.');
         }
 
         $courseRating = null;
