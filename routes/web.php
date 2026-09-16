@@ -47,6 +47,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\User\QuizController as UserQuizController;
 use App\Http\Controllers\BiinsightImportController;
+use App\Http\Controllers\ReferralController;
+use App\Http\Controllers\StorageFallbackController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -206,7 +208,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile/transactions', [ProfileTransactionController::class, 'index'])->name('profile.transactions');
     Route::get('/profile/transactions/{invoice}', [ProfileTransactionController::class, 'show'])->name('profile.transaction.detail');
     Route::get('/profile/referral', [ProfileController::class, 'referral'])->name('profile.referral');
-    Route::get('/api/user/points', [App\Http\Controllers\ReferralController::class, 'getPoints'])->name('api.user.points');
+    Route::get('/api/user/points', [ReferralController::class, 'getPoints'])->name('api.user.points');
 
     Route::redirect('learn', 'profile/my-courses');
     Route::redirect('learn/course', 'profile/my-courses');
@@ -537,11 +539,15 @@ Route::middleware(['auth', 'verified', 'role:admin|mentor|affiliate|staff'])->pr
 });
 
 Route::post('/api/discount-codes/validate', [DiscountCodeController::class, 'validate'])->name('api.discount-codes.validate');
-Route::post('/api/referral/validate', [App\Http\Controllers\ReferralController::class, 'validateCode'])->name('api.referral.validate');
+Route::post('/api/referral/validate', [ReferralController::class, 'validateCode'])->name('api.referral.validate');
 
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
+
+Route::get('/storage/{path}', [StorageFallbackController::class, 'show'])
+    ->where('path', '.*')
+    ->name('storage.fallback');
 
 Route::get('/csrf-token', function () {
     return response()->json(['token' => csrf_token()]);
