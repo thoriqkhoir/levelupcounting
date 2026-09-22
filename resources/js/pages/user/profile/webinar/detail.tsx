@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import UserLayout from '@/layouts/user-layout';
+import { formatExternalUrl } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Award, BadgeCheck, Calendar, CheckCircle, Clock, Download, Eye, MessageSquare, Upload, Users, X, Youtube, Star } from 'lucide-react';
@@ -62,6 +63,11 @@ interface WebinarProps {
     webinar_items: EnrollmentWebinarItem[];
     created_at: string;
     updated_at: string;
+    is_installment?: boolean;
+    installment_terms?: any[];
+    access_suspended_at?: string | null;
+    has_active_access?: boolean;
+    is_fully_paid?: boolean;
 }
 
 interface Certificate {
@@ -129,6 +135,27 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
     const webinarItem = webinar.webinar_items?.[0];
     const webinarData = webinarItem?.webinar;
     const webinarInvoiceStatus = webinar.status;
+    const isInstallment = !!webinar.is_installment;
+    const isSuspended = !!webinar.access_suspended_at;
+    const terms = webinar.installment_terms || (webinar as any).installmentTerms || [];
+    const firstTermPaid = terms.some((t: any) => t.installment_number === 1 && t.status === 'paid');
+
+    const hasActiveAccess = Boolean(
+        webinar.has_active_access ?? (
+            isInstallment
+                ? (!isSuspended && firstTermPaid)
+                : (webinarInvoiceStatus === 'paid' || webinarInvoiceStatus === 'completed')
+        )
+    );
+
+    const isFullyPaid = Boolean(
+        webinar.is_fully_paid ?? (
+            isInstallment
+                ? (terms.length > 0 && terms.every((t: any) => t.status === 'paid'))
+                : (webinarInvoiceStatus === 'paid' || webinarInvoiceStatus === 'completed')
+        )
+    );
+
     const benefitList = parseList(webinarData?.benefits);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -167,6 +194,11 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
     };
 
     const handleSubmitForm = async () => {
+        if (!hasActiveAccess) {
+            alert('Akses webinar tidak aktif.');
+            return;
+        }
+
         if (!selectedFile || !reviewText.trim() || rating === 0 || !webinarItem) {
             alert('Mohon lengkapi semua field: upload bukti kehadiran, review, dan rating');
             return;
@@ -228,13 +260,13 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
     const isAttendanceVerified = webinarItem.attendance_verified;
     const hasReview = webinarItem.review && webinarItem.rating;
 
-    const hasCertificate = certificate && isCompleted && webinarInvoiceStatus === 'paid' && isAttendanceVerified && hasReview;
+    const hasCertificate = certificate && isCompleted && isFullyPaid && isAttendanceVerified && hasReview;
 
     const renderCertificateSection = () => {
         if (!isCompleted) return null;
 
         // Need review to get certificate
-        if (!hasReview && webinarInvoiceStatus === 'paid') {
+        if (!hasReview && hasActiveAccess) {
             return (
                 <>
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
@@ -250,7 +282,9 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                                 🎉 Webinar Telah Selesai!
                                             </h3>
                                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                Upload bukti kehadiran dan berikan review untuk mendapatkan sertifikat
+                                                {!isFullyPaid && isInstallment
+                                                    ? 'Upload bukti kehadiran & berikan review, serta lunasi seluruh cicilan untuk mendapatkan sertifikat kelulusan!'
+                                                    : 'Upload bukti kehadiran dan berikan review untuk mendapatkan sertifikat'}
                                             </p>
                                         </div>
                                     </div>
@@ -351,7 +385,7 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                     </Button>
                                     <Button
                                         onClick={handleSubmitForm}
-                                        disabled={submittingForm || !selectedFile || !reviewText.trim() || rating === 0}
+                                        disabled={!hasActiveAccess || submittingForm || !selectedFile || !reviewText.trim() || rating === 0}
                                         className="flex-1"
                                     >
                                         {submittingForm ? 'Mengirim...' : 'Kirim Data'}
@@ -379,7 +413,15 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                         Terima kasih atas rating Anda!
                                     </h3>
                                     <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                        {!certificate ? 'Sertifikat belum dibuat untuk webinar ini.' : 'Sertifikat sedang diproses.'}
+                                        {!certificate
+                                            ? 'Sertifikat belum dibuat untuk webinar ini.'
+                                            : !isFullyPaid
+                                              ? (isInstallment ? 'Lunasi seluruh cicilan untuk membuka sertifikat.' : 'Selesaikan pembayaran untuk mendapatkan sertifikat.')
+                                              : !isAttendanceVerified
+                                                ? 'Upload bukti kehadiran untuk mendapatkan sertifikat.'
+                                                : !isCompleted
+                                                  ? 'Sertifikat akan tersedia setelah webinar selesai.'
+                                                  : 'Sertifikat sedang diproses.'}
                                     </p>
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Rating Anda:</span>
@@ -569,25 +611,59 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                         {webinarData.description}
                     </motion.p>
 
-                    {webinarInvoiceStatus !== 'paid' && (
+                    {isSuspended ? (
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                             <Card className="border-2 border-red-500/20 bg-red-50/50 p-4 backdrop-blur-sm dark:bg-red-950/50">
                                 <div className="flex items-start gap-3">
-                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500">
+                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500 text-white">
                                         <span className="text-lg">⚠️</span>
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-red-900 dark:text-red-100">
-                                            Status Pembayaran: {webinarInvoiceStatus}
-                                        </p>
+                                        <p className="font-semibold text-red-900 dark:text-red-100">⚠️ Akses Webinar Dibekukan</p>
                                         <p className="text-sm text-red-700 dark:text-red-300">
-                                            Selesaikan pembayaran untuk mengikuti webinar dan mendapatkan akses penuh.
+                                            Akses webinar dibekukan karena ada tagihan cicilan yang melewati jatuh tempo. Silakan lakukan pelunasan di menu Transaksi.
                                         </p>
                                     </div>
                                 </div>
                             </Card>
                         </motion.div>
-                    )}
+                    ) : !hasActiveAccess ? (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                            <Card className="border-2 border-red-500/20 bg-red-50/50 p-4 backdrop-blur-sm dark:bg-red-950/50">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500 text-white">
+                                        <span className="text-lg">⚠️</span>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-red-900 dark:text-red-100">
+                                            Status Pembayaran: {webinarInvoiceStatus ? webinarInvoiceStatus.toUpperCase() : 'BELUM DIBAYAR'}
+                                        </p>
+                                        <p className="text-sm text-red-700 dark:text-red-300">
+                                            {webinarInvoiceStatus === 'failed'
+                                                ? 'Pembayaran gagal atau dibatalkan. Silakan lakukan pembelian ulang.'
+                                                : 'Selesaikan Pembayaran Untuk Bergabung Webinar!!'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </Card>
+                        </motion.div>
+                    ) : isInstallment && !isFullyPaid ? (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                            <Card className="border-2 border-amber-500/20 bg-amber-50/50 p-4 backdrop-blur-sm dark:bg-amber-950/50">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-500 text-white">
+                                        <span className="text-lg">ℹ️</span>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-amber-900 dark:text-amber-100">ℹ️ Pembayaran Cicilan Aktif</p>
+                                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                                            Anda memiliki akses penuh ke webinar dan grup WhatsApp. Pastikan membayar termin berikutnya tepat waktu.
+                                        </p>
+                                    </div>
+                                </div>
+                            </Card>
+                        </motion.div>
+                    ) : null}
                 </div>
             </section>
 
@@ -680,96 +756,7 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                         </div>
                                     )}
 
-                                    {/* Combined Form for attendance proof + review */}
-                                    {!hasReview && webinarInvoiceStatus === 'paid' && showCombinedForm && (
-                                        <div className="mb-8 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-6 dark:border-purple-800 dark:from-purple-900/20 dark:to-pink-900/20">
-                                            <div className="mb-4 flex items-center justify-between">
-                                                <h2 className="text-xl font-bold text-purple-800 dark:text-purple-200">Lengkapi Data untuk Sertifikat</h2>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setShowCombinedForm(false)}
-                                                    className="text-purple-600 hover:text-purple-800"
-                                                >
-                                                    <X size={20} />
-                                                </Button>
-                                            </div>
 
-                                            <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-                                                {/* File Upload */}
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="attendance_proof" className="text-sm font-medium">
-                                                        Upload Bukti Kehadiran *
-                                                    </Label>
-                                                    <Input
-                                                        id="attendance_proof"
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={handleFileSelect}
-                                                        className="file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-2 file:py-1 file:text-sm file:text-gray-700 hover:file:bg-gray-200"
-                                                    />
-                                                    <p className="text-xs text-gray-500">Format: JPG, PNG, WEBP (Maks. 5MB)</p>
-                                                </div>
-
-                                                {selectedFile && (
-                                                    <div className="text-center">
-                                                        <img
-                                                            src={URL.createObjectURL(selectedFile)}
-                                                            alt="Preview"
-                                                            className="mx-auto max-h-32 rounded-lg border shadow-sm"
-                                                        />
-                                                        <p className="mt-2 text-sm text-gray-600">Preview bukti kehadiran</p>
-                                                    </div>
-                                                )}
-
-                                                {/* Rating */}
-                                                <div className="space-y-2">
-                                                    <Label className="text-sm font-medium">
-                                                        Rating Webinar *
-                                                    </Label>
-                                                    <StarRating rating={rating} onRatingChange={setRating} />
-                                                    <p className="text-xs text-gray-500">Berikan rating 1-5 bintang</p>
-                                                </div>
-
-                                                {/* Review */}
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="review" className="text-sm font-medium">
-                                                        Review Webinar *
-                                                    </Label>
-                                                    <textarea
-                                                        id="review"
-                                                        value={reviewText}
-                                                        onChange={(e) => setReviewText(e.target.value)}
-                                                        placeholder="Bagikan pengalaman Anda mengikuti webinar ini..."
-                                                        className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                                        rows={4}
-                                                        maxLength={500}
-                                                    />
-                                                    <p className="text-xs text-gray-500">Maksimal 500 karakter</p>
-                                                </div>
-
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        onClick={() => {
-                                                            setShowCombinedForm(false);
-                                                            resetForm();
-                                                        }}
-                                                        className="flex-1"
-                                                    >
-                                                        Batal
-                                                    </Button>
-                                                    <Button
-                                                        onClick={handleSubmitForm}
-                                                        disabled={submittingForm || !selectedFile || !reviewText.trim() || rating === 0}
-                                                        className="flex-1"
-                                                    >
-                                                        {submittingForm ? 'Mengirim...' : 'Kirim Data'}
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
                                 </>
                             ) : (
                                 <>
@@ -860,8 +847,11 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                         <Button
                                             size="lg"
                                             className="mb-4 w-full"
-                                            disabled={webinarInvoiceStatus !== 'paid'}
-                                            onClick={() => window.open(webinarData.group_url ?? undefined, '_blank')}
+                                            disabled={!hasActiveAccess || !webinarData.group_url}
+                                            onClick={() => {
+                                                const url = formatExternalUrl(webinarData.group_url);
+                                                if (url) window.open(url, '_blank');
+                                            }}
                                         >
                                             <Users className="mr-2 h-5 w-5" />
                                             Gabung Grup WA
@@ -874,12 +864,21 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Status Pembayaran</span>
                                             <span
-                                                className={`rounded-full px-2 py-1 text-xs font-semibold ${webinarInvoiceStatus === 'paid'
-                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                                    }`}
+                                                className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                                    isSuspended
+                                                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                                        : isInstallment && !isFullyPaid && hasActiveAccess
+                                                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
+                                                          : hasActiveAccess
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                                }`}
                                             >
-                                                {webinarInvoiceStatus === 'paid' ? 'Lunas' : 'Belum Lunas'}
+                                                {isSuspended
+                                                    ? 'Dibekukan'
+                                                    : isInstallment
+                                                      ? (isFullyPaid ? 'Lunas (Cicilan)' : hasActiveAccess ? 'Cicilan Aktif' : 'Belum Bayar DP')
+                                                      : (hasActiveAccess ? 'Lunas' : 'Belum Lunas')}
                                             </span>
                                         </div>
 
@@ -962,14 +961,19 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                             </p>
                                             {certificateParticipant && (
                                                 <div className="mt-2 text-center">
-                                                    <p className="text-xs text-gray-500">Nomor Sertifikat:</p>
+                                                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                                                        No. Sertifikat:{' '}
+                                                        {certificateParticipant.certificate_number && certificate
+                                                            ? `${String(certificateParticipant.certificate_number).padStart(4, '0')}/${certificate.certificate_number}`
+                                                            : certificateParticipant.certificate_code}
+                                                    </p>
                                                     <Link
                                                         href={route('certificate.participant.detail', {
                                                             code: certificateParticipant.certificate_code,
                                                         })}
-                                                        className="font-mono text-sm font-semibold text-blue-600 underline hover:text-blue-800"
+                                                        className="text-xs text-green-600 underline hover:text-green-800"
                                                     >
-                                                        {certificateParticipant.certificate_code}
+                                                        Lihat Detail Sertifikat
                                                     </Link>
                                                 </div>
                                             )}
@@ -994,23 +998,27 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                     ) : (
                                         <>
                                             <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-                                                {!isCompleted
-                                                    ? 'Sertifikat akan tersedia setelah webinar selesai dan syarat terpenuhi.'
-                                                    : !isAttendanceVerified
-                                                        ? 'Upload bukti kehadiran untuk mendapatkan sertifikat.'
-                                                        : !hasReview
-                                                            ? 'Berikan rating dan review untuk mendapatkan sertifikat.'
-                                                            : 'Sertifikat sedang diproses.'}
+                                                {!certificate
+                                                    ? 'Sertifikat belum dibuat untuk webinar ini.'
+                                                    : !isFullyPaid
+                                                      ? (isInstallment ? 'Lunasi seluruh cicilan untuk membuka sertifikat.' : 'Selesaikan pembayaran untuk mendapatkan sertifikat.')
+                                                      : !hasReview
+                                                        ? 'Lengkapi bukti kehadiran dan review untuk mendapatkan sertifikat.'
+                                                        : !isCompleted
+                                                          ? 'Sertifikat akan tersedia setelah webinar selesai.'
+                                                          : 'Sertifikat sedang diproses.'}
                                             </p>
                                             <Button variant="outline" className="mt-3 w-full" disabled>
                                                 <Download size={16} className="mr-2" />
-                                                {!isCompleted
-                                                    ? 'Webinar Belum Selesai'
-                                                    : !isAttendanceVerified
-                                                        ? 'Bukti Kehadiran Diperlukan'
-                                                        : !hasReview
-                                                            ? 'Review Diperlukan'
-                                                            : 'Sertifikat Tidak Tersedia'}
+                                                {!certificate
+                                                    ? 'Sertifikat Belum Tersedia'
+                                                    : !isFullyPaid
+                                                      ? (isInstallment ? 'Lunasi Cicilan' : 'Selesaikan Pembayaran')
+                                                      : !hasReview
+                                                        ? 'Lengkapi Data Diperlukan'
+                                                        : !isCompleted
+                                                          ? 'Menunggu Webinar Selesai'
+                                                          : 'Sertifikat Tidak Tersedia'}
                                             </Button>
                                         </>
                                     )}

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import UserLayout from '@/layouts/user-layout';
+import { formatExternalUrl } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -14,6 +15,7 @@ import {
     CheckCircle,
     Clock,
     Download,
+    ExternalLink,
     Eye,
     LinkIcon,
     MessageSquare,
@@ -99,6 +101,11 @@ interface BootcampProps {
     bootcamp_items: EnrollmentBootcampItem[];
     created_at: string;
     updated_at: string;
+    is_installment?: boolean;
+    installment_terms?: any[];
+    access_suspended_at?: string | null;
+    has_active_access?: boolean;
+    is_fully_paid?: boolean;
 }
 
 interface Certificate {
@@ -165,6 +172,27 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
     const bootcampItem = bootcamp.bootcamp_items?.[0];
     const bootcampData = bootcampItem?.bootcamp;
     const bootcampInvoiceStatus = bootcamp.status;
+    const isInstallment = !!bootcamp.is_installment;
+    const isSuspended = !!bootcamp.access_suspended_at;
+    const terms = bootcamp.installment_terms || (bootcamp as any).installmentTerms || [];
+    const firstTermPaid = terms.some((t: any) => t.installment_number === 1 && t.status === 'paid');
+
+    const hasActiveAccess = Boolean(
+        bootcamp.has_active_access ?? (
+            isInstallment
+                ? (!isSuspended && firstTermPaid)
+                : (bootcampInvoiceStatus === 'paid' || bootcampInvoiceStatus === 'completed')
+        )
+    );
+
+    const isFullyPaid = Boolean(
+        bootcamp.is_fully_paid ?? (
+            isInstallment
+                ? (terms.length > 0 && terms.every((t: any) => t.status === 'paid'))
+                : (bootcampInvoiceStatus === 'paid' || bootcampInvoiceStatus === 'completed')
+        )
+    );
+
     const benefitList = parseList(bootcampData?.benefits);
     const curriculumList = parseList(bootcampData?.curriculum);
 
@@ -336,10 +364,35 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
     const hasReview = bootcampItem.rating && bootcampItem.review;
 
     const hasCertificate =
-        certificate && isCompleted && bootcampInvoiceStatus === 'paid' && allAttendanceVerified && (!needsSubmission || hasSubmission) && hasReview;
+        certificate && isCompleted && isFullyPaid && allAttendanceVerified && (!needsSubmission || hasSubmission) && hasReview;
 
     const renderCertificateSection = () => {
         if (!isCompleted) return null;
+
+        // Missing attendance or submission when completed
+        if (!allAttendanceVerified || (needsSubmission && !hasSubmission)) {
+            return (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
+                    <Card className="mb-6 overflow-hidden border-2 border-blue-500/20">
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:from-blue-950/20 dark:to-indigo-950/20">
+                            <div className="flex items-start gap-4">
+                                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+                                    <Award className="h-7 w-7 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">Bootcamp Selesai</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        {!allAttendanceVerified
+                                            ? `Lengkapi bukti kehadiran (${verifiedAttendances}/${totalSchedules} terverifikasi) untuk membuka akses sertifikat.`
+                                            : 'Upload link project akhir untuk membuka akses sertifikat.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                </motion.div>
+            );
+        }
 
         // Need review to get certificate
         if (!hasReview && allAttendanceVerified && (!needsSubmission || hasSubmission)) {
@@ -355,7 +408,9 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                     <div>
                                         <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">🎉 Selamat! Bootcamp Selesai</h3>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            Berikan rating dan review untuk mendapatkan sertifikat kelulusan
+                                            {!isFullyPaid && isInstallment
+                                                ? 'Berikan rating & review dan lunasi seluruh cicilan untuk mendapatkan sertifikat kelulusan'
+                                                : 'Berikan rating dan review untuk mendapatkan sertifikat kelulusan'}
                                         </p>
                                     </div>
                                 </div>
@@ -383,7 +438,11 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                 <div className="flex-1">
                                     <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">Terima kasih atas rating Anda!</h3>
                                     <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                        {!certificate ? 'Sertifikat belum dibuat untuk bootcamp ini.' : 'Sertifikat sedang diproses.'}
+                                        {!certificate
+                                            ? 'Sertifikat belum dibuat untuk bootcamp ini.'
+                                            : !isFullyPaid
+                                              ? (isInstallment ? 'Lunasi seluruh cicilan untuk membuka sertifikat.' : 'Selesaikan pembayaran untuk mendapatkan sertifikat.')
+                                              : 'Sertifikat sedang diproses.'}
                                     </p>
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Rating Anda:</span>
@@ -559,7 +618,25 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                         {bootcampData.description}
                     </motion.p>
 
-                    {bootcampInvoiceStatus !== 'paid' && (
+                    {isSuspended ? (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                            <Card className="border-2 border-red-500/20 bg-red-50/50 p-4 backdrop-blur-sm dark:bg-red-950/50">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500">
+                                        <span className="text-lg">⚠️</span>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-red-900 dark:text-red-100">
+                                            Akses Bootcamp Dibekukan
+                                        </p>
+                                        <p className="text-sm text-red-700 dark:text-red-300">
+                                            Akses bootcamp dibekukan karena ada tagihan cicilan yang melewati jatuh tempo. Silakan lakukan pelunasan di menu Transaksi.
+                                        </p>
+                                    </div>
+                                </div>
+                            </Card>
+                        </motion.div>
+                    ) : !hasActiveAccess ? (
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                             <Card className="border-2 border-red-500/20 bg-red-50/50 p-4 backdrop-blur-sm dark:bg-red-950/50">
                                 <div className="flex items-start gap-3">
@@ -573,13 +650,31 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                         <p className="text-sm text-red-700 dark:text-red-300">
                                             {bootcampInvoiceStatus === 'failed'
                                                 ? 'Pembayaran gagal atau dibatalkan. Silakan lakukan pembelian ulang.'
-                                                : 'Selesaikan pembayaran untuk mengakses bootcamp.'}
+                                                : 'Selesaikan Pembayaran Untuk Bergabung Bootcamp!!'}
                                         </p>
                                     </div>
                                 </div>
                             </Card>
                         </motion.div>
-                    )}
+                    ) : isInstallment && !isFullyPaid ? (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                            <Card className="border-2 border-amber-500/20 bg-amber-50/50 p-4 backdrop-blur-sm dark:bg-amber-950/50">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-500 text-white font-bold">
+                                        ℹ️
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-amber-900 dark:text-amber-100">
+                                            Pembayaran Cicilan Aktif
+                                        </p>
+                                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                                            Anda memiliki akses penuh ke materi dan grup WhatsApp. Pastikan membayar termin berikutnya tepat waktu.
+                                        </p>
+                                    </div>
+                                </div>
+                            </Card>
+                        </motion.div>
+                    ) : null}
                 </div>
             </section>
 
@@ -592,7 +687,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                             {renderCertificateSection()}
 
                             {/* Attendance Upload Section */}
-                            {bootcampInvoiceStatus === 'paid' && bootcampData.schedules && bootcampData.schedules.length > 0 && (
+                            {hasActiveAccess && bootcampData.schedules && bootcampData.schedules.length > 0 && (
                                 <div className="mb-8">
                                     <h2 className="mb-4 text-2xl font-bold">Jadwal & Kehadiran</h2>
                                     <div className="space-y-4">
@@ -659,33 +754,62 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                     </div>
 
                                                     {/* Recording */}
-                                                    {embedUrl && attendance?.verified && (
+                                                    {schedule.recording_url && embedUrl && (
                                                         <div className="mb-3 overflow-hidden rounded-lg">
                                                             <div className="aspect-video">
                                                                 <iframe
                                                                     src={embedUrl}
                                                                     title={`Recording ${schedule.day}`}
-                                                                    className="h-full w-full"
+                                                                    className="h-full w-full rounded-lg"
                                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                                     allowFullScreen
                                                                 />
+                                                            </div>
+                                                            <div className="mt-2">
+                                                                <a
+                                                                    href={schedule.recording_url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                                                >
+                                                                    <ExternalLink className="h-3 w-3" />
+                                                                    Buka di YouTube
+                                                                </a>
                                                             </div>
                                                         </div>
                                                     )}
 
                                                     {/* Upload Form */}
-                                                    {attendance ? (
+                                                    {attendance && !showForm ? (
                                                         <div className="mt-3 rounded-lg border border-gray-200 bg-white/50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
                                                             <div className="mb-2 flex items-center justify-between">
                                                                 <p className="text-sm font-medium">Bukti Kehadiran:</p>
-                                                                <a
-                                                                    href={`/storage/${attendance.attendance_proof}`}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="text-sm text-blue-600 hover:underline"
-                                                                >
-                                                                    Lihat Bukti →
-                                                                </a>
+                                                                <div className="flex items-center gap-2">
+                                                                    <a
+                                                                        href={`/storage/${attendance.attendance_proof}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-sm text-blue-600 hover:underline"
+                                                                    >
+                                                                        Lihat Bukti →
+                                                                    </a>
+                                                                    {!attendance.verified && (
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            className="h-7 px-2 text-xs"
+                                                                            onClick={() =>
+                                                                                setShowUploadForms((prev) => ({
+                                                                                    ...prev,
+                                                                                    [schedule.id]: true,
+                                                                                }))
+                                                                            }
+                                                                        >
+                                                                            <Upload className="mr-1 h-3 w-3" />
+                                                                            Edit Bukti
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                             {attendance.notes && (
                                                                 <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -693,7 +817,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                                 </p>
                                                             )}
                                                         </div>
-                                                    ) : isPast ? (
+                                                    ) : isPast || attendance ? (
                                                         !showForm ? (
                                                             <Button
                                                                 size="sm"
@@ -706,7 +830,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                         ) : (
                                                             <div className="mt-3 space-y-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800">
                                                                 <div className="flex items-center justify-between">
-                                                                    <Label className="text-sm font-medium">Upload Bukti</Label>
+                                                                    <Label className="text-sm font-medium">{attendance ? 'Edit Bukti Kehadiran' : 'Upload Bukti'}</Label>
                                                                     <Button
                                                                         size="sm"
                                                                         variant="ghost"
@@ -728,6 +852,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                                         onChange={(e) => handleFileSelect(schedule.id, e)}
                                                                         className="text-sm"
                                                                     />
+                                                                    <p className="text-xs text-gray-500">Format: JPG, PNG, WEBP. Maksimal 5MB.</p>
                                                                     {selectedFiles[schedule.id] && (
                                                                         <p className="text-xs text-green-600">✓ {selectedFiles[schedule.id]?.name}</p>
                                                                     )}
@@ -746,20 +871,39 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                                                 [schedule.id]: e.target.value,
                                                                             }))
                                                                         }
-                                                                        placeholder="Tambahkan catatan..."
+                                                                        placeholder="Tambahkan catatan jika diperlukan..."
                                                                         className="text-sm"
                                                                         rows={2}
+                                                                        maxLength={500}
                                                                     />
+                                                                    <p className="text-xs text-gray-500">
+                                                                        Maksimal 500 karakter ({(notes[schedule.id] || '').length}/500)
+                                                                    </p>
                                                                 </div>
 
-                                                                <Button
-                                                                    size="sm"
-                                                                    className="w-full bg-purple-600 hover:bg-purple-700"
-                                                                    onClick={() => handleUploadAttendance(schedule.id)}
-                                                                    disabled={!selectedFiles[schedule.id] || isUploading}
-                                                                >
-                                                                    {isUploading ? 'Mengupload...' : 'Upload'}
-                                                                </Button>
+                                                                <div className="flex gap-2">
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        className="flex-1"
+                                                                        onClick={() =>
+                                                                            setShowUploadForms((prev) => ({
+                                                                                ...prev,
+                                                                                [schedule.id]: false,
+                                                                            }))
+                                                                        }
+                                                                    >
+                                                                        Batal
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        className="flex-1 bg-purple-600 hover:bg-purple-700"
+                                                                        onClick={() => handleUploadAttendance(schedule.id)}
+                                                                        disabled={!selectedFiles[schedule.id] || isUploading}
+                                                                    >
+                                                                        {isUploading ? 'Mengupload...' : 'Upload'}
+                                                                    </Button>
+                                                                </div>
                                                             </div>
                                                         )
                                                     ) : null}
@@ -771,7 +915,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                             )}
 
                             {/* Submission Section */}
-                            {bootcampInvoiceStatus === 'paid' && needsSubmission && allAttendanceVerified && isCompleted && !hasSubmission && (
+                            {hasActiveAccess && needsSubmission && allAttendanceVerified && isCompleted && (
                                 <div className="mb-8">
                                     <h2 className="mb-4 text-2xl font-bold">Project Submission</h2>
                                     <Card className="border-2 border-blue-500/20 bg-gradient-to-br from-blue-50 to-cyan-50 p-6 dark:from-blue-950/20 dark:to-cyan-950/20">
@@ -780,14 +924,33 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                 <LinkIcon className="h-6 w-6 text-white" />
                                             </div>
                                             <div>
-                                                <h3 className="mb-1 text-lg font-bold">Upload Project Akhir</h3>
+                                                <h3 className="mb-1 text-lg font-bold">Project Submission</h3>
                                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                    Upload link project akhir untuk mendapatkan sertifikat
+                                                    {hasSubmission
+                                                        ? 'Project akhir Anda telah terverifikasi.'
+                                                        : 'Upload link project akhir untuk mendapatkan sertifikat'}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        {!showSubmissionForm ? (
+                                        {hasSubmission ? (
+                                            <div className="space-y-4">
+                                                <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+                                                    <div className="mb-2 flex items-center gap-2">
+                                                        <CheckCircle className="h-5 w-5 text-green-600" />
+                                                        <span className="font-medium text-green-800 dark:text-green-200">✅ Submission Terverifikasi</span>
+                                                    </div>
+                                                    <a
+                                                        href={bootcampItem.submission!}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm break-all text-blue-600 hover:underline"
+                                                    >
+                                                        {bootcampItem.submission}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ) : !showSubmissionForm ? (
                                             <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => setShowSubmissionForm(true)}>
                                                 <Upload className="mr-2 h-4 w-4" />
                                                 Upload Link Project
@@ -795,7 +958,14 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                         ) : (
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
-                                                    <Label htmlFor="submission_url">Link Project</Label>
+                                                    <div className="flex items-center justify-between">
+                                                        <Label htmlFor="submission_url">
+                                                            Link Project Akhir <span className="text-red-500">*</span>
+                                                        </Label>
+                                                        <Button variant="ghost" size="sm" onClick={() => setShowSubmissionForm(false)}>
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
                                                     <Input
                                                         id="submission_url"
                                                         type="url"
@@ -803,6 +973,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                         onChange={(e) => setSubmissionUrl(e.target.value)}
                                                         placeholder="https://link-project-anda"
                                                     />
+                                                    <p className="text-xs text-gray-500">Pastikan link dapat diakses secara publik</p>
                                                 </div>
 
                                                 <div className="flex gap-2">
@@ -811,7 +982,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                         onClick={handleSubmitSubmission}
                                                         disabled={submittingSubmission || !submissionUrl.trim()}
                                                     >
-                                                        {submittingSubmission ? 'Mengirim...' : 'Kirim'}
+                                                        {submittingSubmission ? 'Mengirim...' : 'Kirim Submission'}
                                                     </Button>
                                                     <Button variant="outline" onClick={() => setShowSubmissionForm(false)}>
                                                         Batal
@@ -928,8 +1099,11 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                         <Button
                                             size="lg"
                                             className="mb-6 w-full"
-                                            disabled={bootcampInvoiceStatus !== 'paid'}
-                                            onClick={() => window.open(bootcampData.group_url ?? undefined, '_blank')}
+                                            disabled={!hasActiveAccess}
+                                            onClick={() => {
+                                                const url = formatExternalUrl(bootcampData.group_url);
+                                                if (url) window.open(url, '_blank');
+                                            }}
                                         >
                                             <Users className="mr-2 h-5 w-5" />
                                             Gabung Grup WA
@@ -939,19 +1113,19 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                             </Card>
 
                             {/* Review Section */}
-                            {bootcampInvoiceStatus === 'paid' &&
+                            {hasActiveAccess &&
                                 isCompleted &&
                                 allAttendanceVerified &&
                                 (!needsSubmission || hasSubmission) &&
-                                hasReview &&
                                 !showReviewForm && (
                                     <Card className="p-6">
                                         <div className="mb-4 flex items-center gap-2">
                                             <MessageSquare className="text-amber-500" size={20} />
-                                            <h3 className="font-semibold">Review Anda</h3>
+                                            <h3 className="font-semibold">{hasReview ? 'Review Anda' : 'Rating & Review'}</h3>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        {hasReview ? (
+                                            <div className="space-y-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="flex gap-0.5">
                                                     {[1, 2, 3, 4, 5].map((star) => (
@@ -983,8 +1157,26 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                 </p>
                                             )}
                                         </div>
-                                    </Card>
-                                )}
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <div className="rounded-lg bg-amber-50 p-3 dark:bg-amber-950/30">
+                                                <p className="text-center text-sm text-amber-800 dark:text-amber-200">
+                                                    {!isFullyPaid && isInstallment
+                                                        ? '🎯 Berikan rating & review dan lunasi seluruh cicilan untuk mendapatkan sertifikat kelulusan!'
+                                                        : '🎯 Berikan rating dan review untuk mendapatkan sertifikat!'}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                onClick={() => setShowReviewForm(true)}
+                                                className="w-full bg-amber-500 hover:bg-amber-600"
+                                            >
+                                                <MessageSquare className="mr-2 h-4 w-4" />
+                                                Beri Rating & Review
+                                            </Button>
+                                        </div>
+                                    )}
+                                </Card>
+                            )}
 
                             {/* Review Form */}
                             {showReviewForm && (

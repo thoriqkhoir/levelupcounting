@@ -24,6 +24,7 @@ interface User {
     name: string;
     phone_number: string | null;
     email?: string | null;
+    referrer: Referrer | null;
 }
 
 interface Course {
@@ -64,7 +65,8 @@ interface CertificationProgram {
 }
 
 interface CertificationProgramItem {
-    certification_program: CertificationProgram;
+    certification_program?: CertificationProgram;
+    certificationProgram?: CertificationProgram;
 }
 
 export interface Invoice {
@@ -79,11 +81,16 @@ export interface Invoice {
     is_installment?: boolean;
     access_suspended_at?: string | null;
     paid_at: string | null;
-    course_items: EnrollmentCourse[];
-    bootcamp_items: EnrollmentBootcamp[];
-    webinar_items: EnrollmentWebinar[];
-    bundle_enrollments: BundleEnrollment[];
-    certification_program_items: CertificationProgramItem[];
+    course_items?: EnrollmentCourse[];
+    courseItems?: EnrollmentCourse[];
+    bootcamp_items?: EnrollmentBootcamp[];
+    bootcampItems?: EnrollmentBootcamp[];
+    webinar_items?: EnrollmentWebinar[];
+    webinarItems?: EnrollmentWebinar[];
+    bundle_enrollments?: BundleEnrollment[];
+    bundleEnrollments?: BundleEnrollment[];
+    certification_program_items?: CertificationProgramItem[];
+    certificationProgramItems?: CertificationProgramItem[];
     installment_terms?: InstallmentTermItem[];
     installmentTerms?: InstallmentTermItem[];
     created_at: string;
@@ -139,7 +146,7 @@ function ActionsCell({ row }: { row: Row<Invoice> }) {
     };
 
     return (
-        <div className="flex items-center justify-center gap-1">
+        <div className="flex items-center justify-center gap-2">
             {invoice.status === 'paid' && !isStaff && (
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -262,11 +269,13 @@ export const columns: ColumnDef<Invoice>[] = [
         header: 'Nama Produk',
         filterFn: (row, _columnId, filterValue) => {
             const invoice = row.original;
-            const courseTitles = invoice.course_items?.map((item) => item.course.title) || [];
-            const bootcampTitles = invoice.bootcamp_items?.map((item) => item.bootcamp.title) || [];
-            const webinarTitles = invoice.webinar_items?.map((item) => item.webinar.title) || [];
-            const bundleTitles = invoice.bundle_enrollments?.map((item) => item.bundle.title) || [];
-            const certTitles = invoice.certification_program_items?.map((item) => item.certification_program.title) || [];
+            const courseTitles = (invoice.courseItems || invoice.course_items || []).map((item) => item.course.title);
+            const bootcampTitles = (invoice.bootcampItems || invoice.bootcamp_items || []).map((item) => item.bootcamp.title);
+            const webinarTitles = (invoice.webinarItems || invoice.webinar_items || []).map((item) => item.webinar.title);
+            const bundleTitles = (invoice.bundleEnrollments || invoice.bundle_enrollments || []).map((item) => item.bundle.title);
+            const certTitles = (invoice.certificationProgramItems || invoice.certification_program_items || []).map(
+                (item) => item.certificationProgram?.title || item.certification_program?.title || '',
+            );
 
             const allTitles = [...courseTitles, ...bootcampTitles, ...webinarTitles, ...bundleTitles, ...certTitles];
             return allTitles.some((title) =>
@@ -275,14 +284,16 @@ export const columns: ColumnDef<Invoice>[] = [
         },
         cell: ({ row }) => {
             const invoice = row.original;
-            const courseTitles = invoice.course_items?.map((item) => item.course.title) || [];
-            const bootcampTitles = invoice.bootcamp_items?.map((item) => item.bootcamp.title) || [];
-            const webinarTitles = invoice.webinar_items?.map((item) => item.webinar.title) || [];
-            const bundleTitles = invoice.bundle_enrollments?.map((item) => item.bundle.title) || [];
-            const certTitles = invoice.certification_program_items?.map((item) => item.certification_program.title) || [];
+            const courseTitles = (invoice.courseItems || invoice.course_items || []).map((item) => item.course.title);
+            const bootcampTitles = (invoice.bootcampItems || invoice.bootcamp_items || []).map((item) => item.bootcamp.title);
+            const webinarTitles = (invoice.webinarItems || invoice.webinar_items || []).map((item) => item.webinar.title);
+            const bundleTitles = (invoice.bundleEnrollments || invoice.bundle_enrollments || []).map((item) => item.bundle.title);
+            const certTitles = (invoice.certificationProgramItems || invoice.certification_program_items || []).map(
+                (item) => item.certificationProgram?.title || item.certification_program?.title || '',
+            );
 
-            const allTitles = [...courseTitles, ...bootcampTitles, ...webinarTitles, ...bundleTitles, ...certTitles];
-            const fullTitleString = allTitles.join(', ');
+            const allTitles = [...courseTitles, ...bootcampTitles, ...webinarTitles, ...bundleTitles, ...certTitles].filter(Boolean);
+            const fullTitleString = allTitles.length > 0 ? allTitles.join(', ') : '-';
 
             return (
                 <Tooltip>
@@ -321,21 +332,26 @@ export const columns: ColumnDef<Invoice>[] = [
                 const isSuspended = !!invoice.access_suspended_at;
 
                 return (
-                    <div className="flex flex-col gap-1 items-start">
-                        {isFullyPaid ? (
-                            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300">
-                                Cicilan Lunas
-                            </Badge>
-                        ) : isSuspended ? (
-                            <Badge variant="destructive">
-                                Akses Dibekukan
-                            </Badge>
-                        ) : (
-                            <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-                                Cicilan ({paidCount}/{totalCount || '?'})
-                            </Badge>
-                        )}
-                    </div>
+                    <InstallmentMonitorModal
+                        invoice={invoice as any}
+                        trigger={
+                            <div className="flex flex-col gap-1 items-start cursor-pointer hover:opacity-80 transition-opacity" title="Klik untuk monitor cicilan">
+                                {isFullyPaid ? (
+                                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 cursor-pointer">
+                                        Cicilan Lunas
+                                    </Badge>
+                                ) : isSuspended ? (
+                                    <Badge variant="destructive" className="cursor-pointer">
+                                        Akses Dibekukan
+                                    </Badge>
+                                ) : (
+                                    <Badge className="bg-amber-100 text-amber-800 border-amber-300 cursor-pointer">
+                                        Cicilan ({paidCount}/{totalCount || '?'})
+                                    </Badge>
+                                )}
+                            </div>
+                        }
+                    />
                 );
             }
 
