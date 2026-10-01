@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import UserLayout from '@/layouts/user-layout';
+import { formatExternalUrl } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Award, BadgeCheck, BookOpen, Calendar, CheckCircle, Clock, Download, Eye, PlayCircle, Star, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Award, BadgeCheck, BookOpen, Calendar, CheckCircle, Clock, Download, Eye, MessageCircle, PlayCircle, Star, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 
 interface Category {
@@ -23,6 +24,7 @@ interface Course {
     category: Category;
     course_url: string;
     registration_url: string;
+    group_url?: string | null;
     key_points: string;
     description: string | null;
     short_description: string | null;
@@ -54,6 +56,11 @@ interface CourseProps {
     course_items: EnrollmentCourseItem[];
     created_at: string;
     updated_at: string;
+    is_installment?: boolean;
+    installment_terms?: any[];
+    access_suspended_at?: string | null;
+    has_active_access?: boolean;
+    is_fully_paid?: boolean;
 }
 
 interface CourseRating {
@@ -133,9 +140,30 @@ export default function DetailMyCourse({
     const courseItem = course.course_items?.[0];
     const courseData = courseItem?.course;
     const courseInvoiceStatus = course.status;
+    const isInstallment = !!course.is_installment;
+    const isSuspended = !!course.access_suspended_at;
+    const terms = course.installment_terms || (course as any).installmentTerms || [];
+    const firstTermPaid = terms.some((t: any) => t.installment_number === 1 && t.status === 'paid');
+
+    const hasActiveAccess = Boolean(
+        course.has_active_access ?? (
+            isInstallment
+                ? (!isSuspended && firstTermPaid)
+                : (courseInvoiceStatus === 'paid' || courseInvoiceStatus === 'completed')
+        )
+    );
+
+    const isFullyPaid = Boolean(
+        course.is_fully_paid ?? (
+            isInstallment
+                ? (terms.length > 0 && terms.every((t: any) => t.status === 'paid'))
+                : (courseInvoiceStatus === 'paid' || courseInvoiceStatus === 'completed')
+        )
+    );
+
     const keyPointList = parseList(courseData?.key_points);
     const isCompleted = courseItem?.progress === 100;
-    const hasCertificate = certificate && isCompleted && courseRating && courseInvoiceStatus === 'paid';
+    const hasCertificate = certificate && isCompleted && courseRating && isFullyPaid;
 
     const renderCertificateSection = () => {
         if (!courseItem || courseItem.progress !== 100) return null;
@@ -187,34 +215,48 @@ export default function DetailMyCourse({
                 >
                     <Card className="mb-6 overflow-hidden border-2 border-yellow-500/20">
                         <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 dark:from-yellow-950/20 dark:to-orange-950/20">
-                            <div className="flex items-start gap-4">
-                                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500 to-orange-600 shadow-lg">
-                                    <Award className="h-7 w-7 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
-                                        Terima kasih atas rating Anda!
-                                    </h3>
-                                    <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                        {!certificate ? 'Sertifikat belum dibuat untuk course ini.' : 'Sertifikat sedang diproses.'}
-                                    </p>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Rating Anda:</span>
-                                        <div className="flex gap-0.5">
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <Star
-                                                    key={star}
-                                                    className={`h-4 w-4 ${
-                                                        star <= courseRating.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                                                    }`}
-                                                />
-                                            ))}
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500 to-orange-600 shadow-lg">
+                                        <Award className="h-7 w-7 text-white" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
+                                            🎉 Terima kasih atas rating Anda!
+                                        </h3>
+                                        <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                                            {!certificate
+                                                ? 'Sertifikat belum dibuat untuk course ini.'
+                                                : !isFullyPaid
+                                                  ? (isInstallment ? 'Lunasi seluruh cicilan untuk membuka sertifikat.' : 'Selesaikan pembayaran untuk membuka sertifikat.')
+                                                  : 'Sertifikat sedang diproses.'}
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">Rating Anda:</span>
+                                            <div className="flex gap-0.5">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <Star
+                                                        key={star}
+                                                        className={`h-4 w-4 ${
+                                                            star <= courseRating.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                ({courseRating.rating}/5)
+                                            </span>
                                         </div>
-                                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                            ({courseRating.rating}/5)
-                                        </span>
                                     </div>
                                 </div>
+                                <Button size="lg" disabled variant="secondary" className="cursor-not-allowed opacity-70">
+                                    <Download className="mr-2 h-4 w-4" />
+                                    {!certificate
+                                        ? 'Sertifikat Belum Tersedia'
+                                        : !isFullyPaid
+                                          ? (isInstallment ? 'Lunasi Seluruh Cicilan' : 'Selesaikan Pembayaran')
+                                          : 'Menunggu Sertifikat'}
+                                </Button>
                             </div>
                         </div>
                     </Card>
@@ -395,7 +437,29 @@ export default function DetailMyCourse({
                                 {courseData.description}
                             </motion.p>
 
-                            {courseInvoiceStatus !== 'paid' && (
+                            {isSuspended ? (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 }}
+                                >
+                                    <Card className="border-2 border-red-500/20 bg-red-50/50 p-4 backdrop-blur-sm dark:bg-red-950/50">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500">
+                                                <span className="text-lg">⚠️</span>
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-red-900 dark:text-red-100">
+                                                    ⚠️ Akses Kelas Dibekukan
+                                                </p>
+                                                <p className="text-sm text-red-700 dark:text-red-300">
+                                                    Akses kelas dibekukan karena ada tagihan cicilan yang melewati jatuh tempo. Silakan lakukan pelunasan di menu Transaksi.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </motion.div>
+                            ) : !hasActiveAccess ? (
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -419,7 +483,29 @@ export default function DetailMyCourse({
                                         </div>
                                     </Card>
                                 </motion.div>
-                            )}
+                            ) : isInstallment && !isFullyPaid ? (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 }}
+                                >
+                                    <Card className="border-2 border-amber-500/20 bg-amber-50/50 p-4 backdrop-blur-sm dark:bg-amber-950/50">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-500 text-white font-bold">
+                                                ℹ️
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-amber-900 dark:text-amber-100">
+                                                    ℹ️ Pembayaran Cicilan Aktif
+                                                </p>
+                                                <p className="text-sm text-amber-700 dark:text-amber-300">
+                                                    Anda memiliki akses penuh ke materi kelas.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </motion.div>
+                            ) : null}
                         </div>
                     </section>
 
@@ -542,9 +628,11 @@ export default function DetailMyCourse({
                                         <div className="relative">
                                             <img
                                                 src={
-                                                    courseData.thumbnail.startsWith('http') || courseData.thumbnail.startsWith('/storage')
-                                                        ? courseData.thumbnail
-                                                        : `/storage/${courseData.thumbnail}`
+                                                    !courseData.thumbnail
+                                                        ? '/assets/images/placeholder.png'
+                                                        : courseData.thumbnail.startsWith('http') || courseData.thumbnail.startsWith('/storage')
+                                                          ? courseData.thumbnail
+                                                          : `/storage/${courseData.thumbnail}`
                                                 }
                                                 alt={courseData.title}
                                                 className="aspect-video w-full object-cover"
@@ -562,8 +650,9 @@ export default function DetailMyCourse({
 
                                             <Button
                                                 size="lg"
-                                                className="w-full "
+                                                className="w-full"
                                                 onClick={() => router.get(route('learn.course.detail', { course: courseData.slug }))}
+                                                disabled={!hasActiveAccess}
                                             >
                                                 {isCompleted ? (
                                                     <>
@@ -577,6 +666,32 @@ export default function DetailMyCourse({
                                                     </>
                                                 )}
                                             </Button>
+
+                                            {courseData.group_url && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="lg"
+                                                    className="mt-3 w-full border-green-600/30 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-500/30 dark:text-green-400 dark:hover:bg-green-950/30"
+                                                    asChild={hasActiveAccess}
+                                                    disabled={!hasActiveAccess}
+                                                >
+                                                    {hasActiveAccess ? (
+                                                        <a
+                                                            href={formatExternalUrl(courseData.group_url)}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            <MessageCircle className="mr-2 h-5 w-5" />
+                                                            Masuk Grup WA
+                                                        </a>
+                                                    ) : (
+                                                        <span>
+                                                            <MessageCircle className="mr-2 h-5 w-5" />
+                                                            Masuk Grup WA
+                                                        </span>
+                                                    )}
+                                                </Button>
+                                            )}
 
                                             {/* Stats */}
                                             

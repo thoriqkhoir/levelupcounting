@@ -36,9 +36,9 @@ export interface Invoice {
     is_installment?: boolean;
     access_suspended_at?: string | null;
     paid_at: string | null;
+    created_at: string;
     installment_terms?: InstallmentTermItem[];
     installmentTerms?: InstallmentTermItem[];
-    created_at: string;
     webinar_items: WebinarItem[];
 }
 
@@ -56,7 +56,7 @@ function ProofModal({ requirement, userName }: { requirement: FreeRequirement; u
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="size-8">
                     <Image className="size-4" />
                 </Button>
             </DialogTrigger>
@@ -264,21 +264,26 @@ export const columns: ColumnDef<Invoice>[] = [
                 const isSuspended = !!invoice.access_suspended_at;
 
                 return (
-                    <div className="flex flex-col gap-1 items-start">
-                        {isFullyPaid ? (
-                            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300">
-                                Cicilan Lunas
-                            </Badge>
-                        ) : isSuspended ? (
-                            <Badge variant="destructive">
-                                Akses Dibekukan
-                            </Badge>
-                        ) : (
-                            <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-                                Cicilan ({paidCount}/{totalCount || '?'})
-                            </Badge>
-                        )}
-                    </div>
+                    <InstallmentMonitorModal
+                        invoice={invoice as any}
+                        trigger={
+                            <div className="flex flex-col gap-1 items-start cursor-pointer hover:opacity-80 transition-opacity" title="Klik untuk monitor cicilan">
+                                {isFullyPaid ? (
+                                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 cursor-pointer">
+                                        Cicilan Lunas
+                                    </Badge>
+                                ) : isSuspended ? (
+                                    <Badge variant="destructive" className="cursor-pointer">
+                                        Akses Dibekukan
+                                    </Badge>
+                                ) : (
+                                    <Badge className="bg-amber-100 text-amber-800 border-amber-300 cursor-pointer">
+                                        Cicilan ({paidCount}/{totalCount || '?'})
+                                    </Badge>
+                                )}
+                            </div>
+                        }
+                    />
                 );
             }
 
@@ -290,6 +295,7 @@ export const columns: ColumnDef<Invoice>[] = [
                 pending: 'bg-yellow-100 text-yellow-800',
                 failed: 'bg-red-100 text-red-800',
                 expired: 'bg-gray-100 text-gray-800',
+                installment_pending: 'bg-amber-100 text-amber-800',
             };
             return <Badge className={`${statusClasses[status] || statusClasses.expired}`}>{statusText}</Badge>;
         },
@@ -302,7 +308,7 @@ export const columns: ColumnDef<Invoice>[] = [
     {
         accessorKey: 'paid_at',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Tgl. Pembayaran" />,
-        cell: ({ row }) => <p>{row.original.paid_at ? format(new Date(row.original.paid_at), 'dd MMM yyyy, HH:mm', { locale: id }) : '-'}</p>,
+        cell: ({ row }) => <p>{format(new Date(row.original.paid_at ? row.original.paid_at : new Date()), 'dd MMM yyyy, HH:mm', { locale: id })}</p>,
     },
     {
         id: 'actions',

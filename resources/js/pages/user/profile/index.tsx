@@ -23,6 +23,7 @@ import {
     BriefcaseBusiness,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatExternalUrl } from '@/lib/utils';
 
 interface Product {
     id: string;
@@ -39,6 +40,9 @@ interface Product {
     end_time?: string;
     group_url?: string;
     enrolled_at: string;
+    is_installment?: boolean;
+    is_fully_paid?: boolean;
+    is_suspended?: boolean;
 }
 
 interface ProfileProps {
@@ -110,13 +114,15 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
 
     const formatSchedule = (product: Product): string => {
         if (product.type === 'bootcamp') {
-            const startDate = format(new Date(product.start_date!), 'dd MMM yyyy', { locale: id });
+            if (!product.start_date) return '-';
+            const startDate = format(new Date(product.start_date), 'dd MMM yyyy', { locale: id });
             const endDate = product.end_date ? format(new Date(product.end_date), 'dd MMM yyyy', { locale: id }) : '';
             return endDate ? `${startDate} - ${endDate}` : startDate;
         }
 
         if (product.type === 'webinar') {
-            const startTime = format(new Date(product.start_time!), 'dd MMM yyyy, HH:mm', { locale: id });
+            if (!product.start_time) return '-';
+            const startTime = format(new Date(product.start_time), 'dd MMM yyyy, HH:mm', { locale: id });
             const endTime = product.end_time ? format(new Date(product.end_time), 'HH:mm', { locale: id }) : '';
             return endTime ? `${startTime} - ${endTime}` : startTime;
         }
@@ -125,7 +131,11 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
     };
 
     const getProductDetailUrl = (product: Product): string => {
-        const paramKey = product.routeParam || (product.type === 'certification-program' ? 'program' : product.type);
+        if (!product.slug) return '#';
+        if (product.type === 'certification-program') {
+            return route('profile.certification-program.detail', { program: product.slug });
+        }
+        const paramKey = product.routeParam || product.type;
         return route(`profile.${product.type}.detail`, { [paramKey]: product.slug });
     };
 
@@ -182,7 +192,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                 </motion.div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     {statsCards.map((stat, index) => (
                         <motion.div
                             key={stat.title}
@@ -243,7 +253,15 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                     {getProductTypeLabel(product.type)}
                                                 </Badge>
                                                 {product.type === 'course' && getProgressBadge(product.progress || 0)}
-                                                {product.type !== 'course' && (
+                                                {product.type === 'certification-program' && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-950/50"
+                                                    >
+                                                        {product.is_scholarship ? 'Beasiswa' : 'Reguler'}
+                                                    </Badge>
+                                                )}
+                                                {product.type !== 'course' && product.type !== 'certification-program' && (
                                                     <Badge
                                                         variant="outline"
                                                         className="border-green-200 bg-green-50 text-green-700 dark:bg-green-950/50"
@@ -259,6 +277,24 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                     {product.title}
                                                 </Link>
                                             </CardTitle>
+
+                                            {/* Installment Badge if applicable */}
+                                            {product.is_installment && (
+                                                <div className="pt-1">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={
+                                                            product.is_fully_paid
+                                                                ? 'border-green-300 bg-green-50 text-green-700 dark:bg-green-950/50'
+                                                                : product.is_suspended
+                                                                ? 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/50'
+                                                                : 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50'
+                                                        }
+                                                    >
+                                                        {product.is_fully_paid ? 'Cicilan Lunas' : product.is_suspended ? 'Cicilan Dibekukan' : 'Cicilan Aktif'}
+                                                    </Badge>
+                                                </div>
+                                            )}
                                         </CardHeader>
 
                                         <CardContent className="space-y-4 pb-4">
@@ -273,8 +309,19 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                 </div>
                                             )}
 
+                                            {/* Program Info for Certification Program */}
+                                            {product.type === 'certification-program' && (
+                                                <div className="flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-800">
+                                                    <BriefcaseBusiness className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                                                    <div>
+                                                        <p className="font-medium">Program</p>
+                                                        <p className="text-gray-600 dark:text-gray-400">Pendaftaran Sertifikasi</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* Schedule for Bootcamp/Webinar */}
-                                            {product.type !== 'course' && (
+                                            {(product.type === 'bootcamp' || product.type === 'webinar') && (
                                                 <div className="flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-800">
                                                     <Calendar className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
                                                     <div>
@@ -285,9 +332,22 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                             )}
 
                                             {/* Action Buttons */}
-                                            <div className="flex gap-2">
+                                            <div className="flex flex-wrap gap-2">
+                                                {product.is_installment && !product.is_fully_paid && (
+                                                    <Button
+                                                        asChild
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950/50"
+                                                    >
+                                                        <Link href={route('profile.installments')}>
+                                                            Cicilan
+                                                        </Link>
+                                                    </Button>
+                                                )}
+
                                                 {product.type === 'course' ? (
-                                                    <Button asChild size="sm" className="w-full shadow-sm">
+                                                    <Button asChild size="sm" className="flex-1 shadow-sm">
                                                         <Link href={route('profile.course.detail', { course: product.slug })}>
                                                             <Play className="mr-2 h-4 w-4" />
                                                             Mulai Belajar
@@ -303,9 +363,9 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                         </Button>
                                                         {product.group_url && (
                                                             <Button asChild size="sm" className="flex-1 shadow-sm">
-                                                                <a href={product.group_url} target="_blank" rel="noopener noreferrer">
+                                                                <a href={formatExternalUrl(product.group_url)} target="_blank" rel="noopener noreferrer">
                                                                     <MessageCircle className="mr-1 h-4 w-4" />
-                                                                    Grup
+                                                                    Grup WA
                                                                 </a>
                                                             </Button>
                                                         )}

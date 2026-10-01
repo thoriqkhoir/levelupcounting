@@ -24,7 +24,7 @@ class CourseController extends Controller
     public function index()
     {
         $userId = Auth::id();
-        $myCourses = Invoice::with('courseItems.course.category')
+        $myCourses = Invoice::with(['courseItems.course.category', 'installmentTerms'])
             ->purchasedByUser($userId)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -35,11 +35,14 @@ class CourseController extends Controller
     {
         $userId = Auth::id();
 
-        $course = Invoice::with(['courseItems' => function ($query) use ($slug) {
-            $query->whereHas('course', function ($q) use ($slug) {
-                $q->where('slug', $slug);
-            })->with('course.category');
-        }])
+        $course = Invoice::with([
+            'installmentTerms',
+            'courseItems' => function ($query) use ($slug) {
+                $query->whereHas('course', function ($q) use ($slug) {
+                    $q->where('slug', $slug);
+                })->with('course.category');
+            }
+        ])
             ->purchasedByUser($userId)
             ->whereHas('courseItems.course', function ($query) use ($slug) {
                 $query->where('slug', $slug);
@@ -49,11 +52,6 @@ class CourseController extends Controller
 
         if (!$course || $course->courseItems->isEmpty()) {
             abort(404, 'Kelas tidak ditemukan atau Anda belum terdaftar.');
-        }
-
-        if ($course->is_installment && $course->isAccessSuspended()) {
-            return redirect()->route('profile.installments')
-                ->with('error', 'Akses kelas ini dibekukan karena terdapat cicilan yang melewati jatuh tempo. Silakan bayar cicilan Anda.');
         }
 
         $courseRating = null;
@@ -75,6 +73,8 @@ class CourseController extends Controller
                 ->first();
         }
 
+        $course->append(['has_active_access', 'is_fully_paid']);
+
         return Inertia::render('user/profile/course/detail', [
             'course' => $course,
             'courseRating' => $courseRating,
@@ -89,14 +89,14 @@ class CourseController extends Controller
             $userId = Auth::id();
 
             $course = Invoice::with([
+                'installmentTerms',
                 'courseItems' => function ($query) use ($slug) {
                     $query->whereHas('course', function ($q) use ($slug) {
                         $q->where('slug', $slug);
                     })->with('course'); // ✅ filter by slug
                 }
             ])
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->whereHas('courseItems.course', function ($query) use ($slug) {
                     $query->where('slug', $slug);
                 })
@@ -105,6 +105,10 @@ class CourseController extends Controller
 
             if (!$course) {
                 return back()->with('error', 'Course tidak ditemukan atau Anda belum terdaftar.');
+            }
+
+            if ($course->is_installment && !$course->isFullyPaid()) {
+                return back()->with('error', 'Sertifikat kelulusan hanya dapat diunduh setelah seluruh termin cicilan lunas.');
             }
 
             $courseItem = $course->courseItems->first(); // ✅ sudah difilter by slug
@@ -158,14 +162,14 @@ class CourseController extends Controller
             $userId = Auth::id();
 
             $course = Invoice::with([
+                'installmentTerms',
                 'courseItems' => function ($query) use ($slug) {
                     $query->whereHas('course', function ($q) use ($slug) {
                         $q->where('slug', $slug);
                     })->with('course'); // ✅ filter by slug
                 }
             ])
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
+                ->purchasedByUser($userId)
                 ->whereHas('courseItems.course', function ($query) use ($slug) {
                     $query->where('slug', $slug);
                 })
@@ -174,6 +178,10 @@ class CourseController extends Controller
 
             if (!$course) {
                 return back()->with('error', 'Course tidak ditemukan atau Anda belum terdaftar.');
+            }
+
+            if ($course->is_installment && !$course->isFullyPaid()) {
+                return back()->with('error', 'Sertifikat kelulusan hanya dapat diunduh setelah seluruh termin cicilan lunas.');
             }
 
             $courseItem = $course->courseItems->first(); // ✅ sudah difilter by slug
