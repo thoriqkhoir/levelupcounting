@@ -1150,7 +1150,7 @@ export default function RegisterWebinar({
                                                     {loading ? 'Memproses...' : 'Upload Bukti Follow'}
                                                 </Button>
                                             </>
-                                        ) : installmentTerms && installmentTerms.length > 0 ? (
+                                        ) : ((installmentTerms && installmentTerms.length > 0) || (activeInstallment && !activeInstallment.is_fully_paid)) ? (
                                             <Tabs
                                                 value={paymentTab}
                                                 onValueChange={(val) => {
@@ -1171,7 +1171,7 @@ export default function RegisterWebinar({
                                                         Bayar Penuh
                                                     </TabsTrigger>
                                                     <TabsTrigger value="installment" className="text-xs sm:text-sm">
-                                                        Cicilan ({installmentTerms.length}x)
+                                                        Cicilan ({activeInstallment && !activeInstallment.is_fully_paid ? (activeInstallment.total_terms || activeInstallment.terms?.length) : installmentTerms.length}x)
                                                     </TabsTrigger>
                                                 </TabsList>
 

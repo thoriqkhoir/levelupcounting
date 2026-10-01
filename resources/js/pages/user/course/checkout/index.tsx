@@ -1029,7 +1029,7 @@ export default function CheckoutCourse({
                                                     )}
                                                 </Button>
                                             </>
-                                        ) : !isFree && installmentTerms && installmentTerms.length > 0 ? (
+                                        ) : !isFree && ((installmentTerms && installmentTerms.length > 0) || (activeInstallment && !activeInstallment.is_fully_paid)) ? (
                                                     <Tabs
                                                         value={paymentTab}
                                                         onValueChange={(val) => {
@@ -1050,7 +1050,7 @@ export default function CheckoutCourse({
                                                                 Bayar Penuh
                                                             </TabsTrigger>
                                                             <TabsTrigger value="installment" className="text-xs sm:text-sm">
-                                                                Cicilan ({installmentTerms.length}x)
+                                                                Cicilan ({activeInstallment && !activeInstallment.is_fully_paid ? (activeInstallment.total_terms || activeInstallment.terms?.length) : installmentTerms.length}x)
                                                             </TabsTrigger>
                                                         </TabsList>
 

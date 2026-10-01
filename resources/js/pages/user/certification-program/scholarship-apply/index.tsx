@@ -8,7 +8,6 @@ import UserLayout from '@/layouts/user-layout';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -177,55 +176,6 @@ export default function ScholarshipApply({ program }: { program: Program }) {
                 </section>
 
                 <div id="form" className="relative z-10 mx-auto w-full max-w-5xl px-4 py-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                        className="mb-8 space-y-6 rounded-xl border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl md:p-8 dark:border-zinc-700 dark:bg-zinc-800/60"
-                    >
-                        <div className="rounded-lg bg-white/60 p-3 text-center backdrop-blur-sm md:p-6 dark:bg-zinc-800/40">
-                            <p className="font-semibold text-gray-900 md:text-lg dark:text-gray-100">
-                                Level Up Accounting membuka Program Beasiswa bagi mahasiswa yang ingin meningkatkan kemampuan dan memperoleh sertifikasi profesional yang dibutuhkan di dunia kerja.
-                            </p>
-                        </div>
-
-                        <div>
-                            <h3 className="mb-4 flex items-center justify-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                <span className="md:text-2xl">🎓</span> Persyaratan Peserta
-                            </h3>
-                            <div className="grid gap-3">
-                                {['Mahasiswa aktif jenjang D1–S1', 'Memiliki IPK minimal 3,00', 'Maksimal berada pada semester 8', 'Bersedia mengikuti seluruh tahapan seleksi'].map((req) => (
-                                    <div key={req} className="flex items-start gap-3 rounded-lg bg-white/60 p-3 backdrop-blur-sm dark:bg-zinc-800/40">
-                                        <CheckCircle2 className="mt-0.5 size-5 flex-shrink-0 text-green-500" />
-                                        <span className="text-sm text-gray-700 md:text-base dark:text-gray-300">{req}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 className="mb-4 flex items-center justify-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                <span className="md:text-2xl">📅</span> Tahapan Pelaksanaan
-                            </h3>
-                            <div className="space-y-2">
-                                {['Pendaftaran administrasi', 'Sosialisasi program', 'Seleksi peserta'].map((step, i) => (
-                                    <div key={step} className="flex items-start gap-3 rounded-lg bg-white/60 p-3 backdrop-blur-sm dark:bg-zinc-800/40">
-                                        <div className="flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-purple-500 text-xs font-bold text-white">{i + 1}</div>
-                                        <span className="text-sm text-gray-700 md:text-base dark:text-gray-300">{step}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white shadow-lg">
-                            <p className="mb-3 text-xs font-semibold md:text-sm">📞 Untuk informasi lebih lanjut, silakan hubungi:</p>
-                            <div className="space-y-1">
-                                <p className="text-sm">📧 <span className="font-medium">levelupacc4@gmail.com</span></p>
-                                <p className="text-sm">💬 <span className="font-medium">+6287775764475</span></p>
-                            </div>
-                        </div>
-                    </motion.div>
-
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
