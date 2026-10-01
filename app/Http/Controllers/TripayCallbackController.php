@@ -366,24 +366,29 @@ class TripayCallbackController extends Controller
                 ]);
             }
         } else {
-            $defaultAffiliate = User::where('affiliate_code', 'LUC2025')->first();
+            $defaultAffiliate = User::where('affiliate_code', 'LUC2025')->first()
+                ?? User::role('affiliate')->first();
 
-            if ($defaultAffiliate && $defaultAffiliate->affiliate_status === 'Active' && $defaultAffiliate->commission > 0) {
-                $commissionAmount = $invoice->nett_amount * ($defaultAffiliate->commission / 100);
+            if ($defaultAffiliate && $defaultAffiliate->id !== $invoice->user_id) {
+                $invoice->update(['referred_by_user_id' => $defaultAffiliate->id]);
 
-                AffiliateEarning::create([
-                    'affiliate_user_id' => $defaultAffiliate->id,
-                    'invoice_id' => $invoice->id,
-                    'amount' => $commissionAmount,
-                    'rate' => $defaultAffiliate->commission,
-                    'status' => 'approved',
-                ]);
+                if ($defaultAffiliate->affiliate_status === 'Active' && $defaultAffiliate->commission > 0) {
+                    $commissionAmount = $invoice->nett_amount * ($defaultAffiliate->commission / 100);
 
-                Log::info('Default affiliate commission recorded (LUC2025)', [
-                    'affiliate_id' => $defaultAffiliate->id,
-                    'invoice_code' => $invoice->invoice_code,
-                    'commission_amount' => $commissionAmount
-                ]);
+                    AffiliateEarning::create([
+                        'affiliate_user_id' => $defaultAffiliate->id,
+                        'invoice_id' => $invoice->id,
+                        'amount' => $commissionAmount,
+                        'rate' => $defaultAffiliate->commission,
+                        'status' => 'approved',
+                    ]);
+
+                    Log::info('Default affiliate commission recorded (LUC2025)', [
+                        'affiliate_id' => $defaultAffiliate->id,
+                        'invoice_code' => $invoice->invoice_code,
+                        'commission_amount' => $commissionAmount
+                    ]);
+                }
             }
         }
 
