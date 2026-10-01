@@ -1,5 +1,0 @@
-<<<<<<<< HEAD:public/build/assets/transition-panel-CczUu8qh.js
-import{j as i}from"./app-C-plsfLp.js";import{c as o}from"./utils-LSsu3YK6.js";import{A as s}from"./index-_NDpwHfI.js";import{m as c}from"./proxy-DA2_aHh0.js";function u({children:r,className:n,transition:a,variants:m,activeIndex:e,...t}){return i.jsx("div",{className:o("relative",n),children:i.jsx(s,{initial:!1,mode:"popLayout",custom:t.custom,children:i.jsx(c.div,{variants:m,transition:a,initial:"enter",animate:"center",exit:"exit",...t,children:r[e]},e)})})}export{u as T};
-========
-import{j as i}from"./app-DH-C8xIL.js";import{c as o}from"./utils-BmOA4uDh.js";import{A as s}from"./index-Ccn4qmKK.js";import{m as c}from"./proxy-CtRSkNn5.js";function u({children:r,className:n,transition:a,variants:m,activeIndex:e,...t}){return i.jsx("div",{className:o("relative",n),children:i.jsx(s,{initial:!1,mode:"popLayout",custom:t.custom,children:i.jsx(c.div,{variants:m,transition:a,initial:"enter",animate:"center",exit:"exit",...t,children:r[e]},e)})})}export{u as T};
->>>>>>>> e0f3c82f8a199bf21a62243eed537501002d94cc:public/build/assets/transition-panel-BDOGFL5E.js
