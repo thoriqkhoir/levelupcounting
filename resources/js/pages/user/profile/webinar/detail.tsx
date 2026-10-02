@@ -7,7 +7,7 @@ import UserLayout from '@/layouts/user-layout';
 import { formatExternalUrl } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Award, BadgeCheck, Calendar, CheckCircle, Clock, Download, Eye, MessageSquare, Upload, Users, X, Youtube, Star } from 'lucide-react';
+import { ArrowLeft, Award, BadgeCheck, Calendar, CheckCircle, Clock, Download, Eye, MessageSquare, Upload, Users, X, Youtube, Star, ArrowRight, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
 interface Category {
@@ -33,6 +33,19 @@ interface Webinar {
     group_url: string | null;
     status: string;
     user_id: string;
+    has_certificate?: boolean;
+    requires_review?: boolean;
+    next_step_product?: {
+        id: string;
+        title: string;
+        slug: string;
+        thumbnail?: string | null;
+        price: number;
+        strikethrough_price?: number;
+        type: string;
+        type_label: string;
+        url: string;
+    } | null;
     created_at: string;
     updated_at: string;
 }
@@ -260,13 +273,39 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
     const isAttendanceVerified = webinarItem.attendance_verified;
     const hasReview = webinarItem.review && webinarItem.rating;
 
-    const hasCertificate = certificate && isCompleted && isFullyPaid && isAttendanceVerified && hasReview;
+        const offersCertificate = webinarData.has_certificate ?? true;
+    const requiresReview = webinarData.requires_review ?? true;
+
+    const hasCertificate =
+        offersCertificate &&
+        Boolean(certificate) &&
+        isCompleted &&
+        isFullyPaid &&
+        (!requiresReview || (isAttendanceVerified && hasReview));
 
     const renderCertificateSection = () => {
         if (!isCompleted) return null;
 
+        if (!offersCertificate) {
+            return (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
+                    <Card className="mb-6 overflow-hidden border border-gray-200 dark:border-gray-700">
+                        <div className="p-6 text-center">
+                            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                                <Award className="h-7 w-7 text-gray-400" />
+                            </div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white">Tanpa Sertifikat</h4>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                Webinar ini tidak menyediakan sertifikat kelulusan. Anda dapat langsung menikmati seluruh materi dan rekaman yang tersedia.
+                            </p>
+                        </div>
+                    </Card>
+                </motion.div>
+            );
+        }
+
         // Need review to get certificate
-        if (!hasReview && hasActiveAccess) {
+        if (requiresReview && !hasReview && hasActiveAccess) {
             return (
                 <>
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
@@ -817,6 +856,75 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                 </div>
                             </div>
                         </Card>
+
+                        {/* Next Step Pelatihan Recommendation Card */}
+                        {webinarData.next_step_product && (
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6">
+                                <Card className="overflow-hidden border border-gray-200 dark:border-gray-700">
+                                    <div className="border-b border-gray-100 bg-gray-50/80 p-4 dark:border-gray-700 dark:bg-gray-900/50">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Sparkles className="h-5 w-5 text-amber-500" />
+                                                <h3 className="font-bold text-gray-900 dark:text-white">Langkah Pelatihan Selanjutnya</h3>
+                                            </div>
+                                            <span className="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-semibold text-primary">
+                                                {webinarData.next_step_product.type_label}
+                                            </span>
+                                        </div>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                            Tingkatkan skill Anda ke level berikutnya dengan program lanjutan yang kami rekomendasikan
+                                        </p>
+                                    </div>
+                                    <div className="p-5">
+                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="flex flex-1 items-start gap-4">
+                                                {webinarData.next_step_product.thumbnail ? (
+                                                    <img
+                                                        src={webinarData.next_step_product.thumbnail}
+                                                        alt={webinarData.next_step_product.title}
+                                                        className="h-20 w-32 shrink-0 rounded-lg object-cover shadow-sm"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-20 w-32 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-400 dark:bg-gray-800">
+                                                        <Sparkles className="h-8 w-8" />
+                                                    </div>
+                                                )}
+                                                <div className="space-y-1">
+                                                    <h4 className="line-clamp-2 text-base font-bold text-gray-900 dark:text-white">
+                                                        {webinarData.next_step_product.title}
+                                                    </h4>
+                                                    <div className="flex items-baseline gap-2">
+                                                        {webinarData.next_step_product.price === 0 ? (
+                                                            <span className="text-base font-bold text-green-600 dark:text-green-400">Gratis</span>
+                                                        ) : (
+                                                            <>
+                                                                <span className="text-base font-bold text-gray-900 dark:text-white">
+                                                                    Rp {webinarData.next_step_product.price.toLocaleString('id-ID')}
+                                                                </span>
+                                                                {webinarData.next_step_product.strikethrough_price != null &&
+                                                                webinarData.next_step_product.strikethrough_price > webinarData.next_step_product.price ? (
+                                                                    <span className="text-xs text-gray-400 line-through">
+                                                                        Rp {webinarData.next_step_product.strikethrough_price.toLocaleString('id-ID')}
+                                                                    </span>
+                                                                ) : null}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="sm:shrink-0">
+                                                <Button asChild className="w-full sm:w-auto">
+                                                    <a href={webinarData.next_step_product.url} target="_blank" rel="noopener noreferrer">
+                                                        Daftar Sekarang
+                                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        )}
                     </motion.div>
 
                     {/* Right Column - Sidebar */}
@@ -917,6 +1025,21 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                         <h3 className="font-semibold">Sertifikat Partisipasi</h3>
                                     </div>
 
+                                    {!offersCertificate ? (
+                                        <div className="space-y-3 py-4 text-center">
+                                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800">
+                                                <Award className="h-6 w-6 text-gray-400" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-gray-900 dark:text-white">Tanpa Sertifikat</h4>
+                                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                                    Webinar ini tidak menyediakan sertifikat kelulusan. Anda dapat langsung menikmati seluruh materi dan rekaman yang tersedia.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+
                                     {isLoading && hasCertificate ? (
                                         <div className="space-y-3">
                                             <Skeleton className="h-[250px] w-full rounded-lg" />
@@ -1002,7 +1125,7 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                                     ? 'Sertifikat belum dibuat untuk webinar ini.'
                                                     : !isFullyPaid
                                                       ? (isInstallment ? 'Lunasi seluruh cicilan untuk membuka sertifikat.' : 'Selesaikan pembayaran untuk mendapatkan sertifikat.')
-                                                      : !hasReview
+                                                      : requiresReview && !hasReview
                                                         ? 'Lengkapi bukti kehadiran dan review untuk mendapatkan sertifikat.'
                                                         : !isCompleted
                                                           ? 'Sertifikat akan tersedia setelah webinar selesai.'
@@ -1020,6 +1143,8 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                                           ? 'Menunggu Webinar Selesai'
                                                           : 'Sertifikat Tidak Tersedia'}
                                             </Button>
+                                        </>
+                                    )}
                                         </>
                                     )}
                                 </Card>

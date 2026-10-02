@@ -7,23 +7,7 @@ import UserLayout from '@/layouts/user-layout';
 import { formatExternalUrl } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import {
-    ArrowLeft,
-    Award,
-    BadgeCheck,
-    Calendar,
-    CheckCircle,
-    Clock,
-    Download,
-    ExternalLink,
-    Eye,
-    LinkIcon,
-    MessageSquare,
-    Star,
-    Upload,
-    Users,
-    X,
-} from 'lucide-react';
+import { ArrowLeft, Award, BadgeCheck, Calendar, CheckCircle, Clock, Download, ExternalLink, Eye, LinkIcon, MessageSquare, Star, Upload, Users, X, ArrowRight, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
 interface Category {
@@ -69,6 +53,19 @@ interface Bootcamp {
     status: string;
     schedules: BootcampSchedule[];
     has_submission_link: boolean;
+    has_certificate?: boolean;
+    requires_review?: boolean;
+    next_step_product?: {
+        id: string;
+        title: string;
+        slug: string;
+        thumbnail?: string | null;
+        price: number;
+        strikethrough_price?: number;
+        type: string;
+        type_label: string;
+        url: string;
+    } | null;
     created_at: string;
     updated_at: string;
 }
@@ -363,14 +360,39 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
 
     const hasReview = bootcampItem.rating && bootcampItem.review;
 
+    const offersCertificate = bootcampData.has_certificate ?? true;
+    const requiresReview = bootcampData.requires_review ?? true;
+
     const hasCertificate =
-        certificate && isCompleted && isFullyPaid && allAttendanceVerified && (!needsSubmission || hasSubmission) && hasReview;
+        offersCertificate &&
+        Boolean(certificate) &&
+        isCompleted &&
+        isFullyPaid &&
+        (!requiresReview || (allAttendanceVerified && (!needsSubmission || hasSubmission) && hasReview));
 
     const renderCertificateSection = () => {
         if (!isCompleted) return null;
 
+        if (!offersCertificate) {
+            return (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
+                    <Card className="mb-6 overflow-hidden border border-gray-200 dark:border-gray-700">
+                        <div className="p-6 text-center">
+                            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                                <Award className="h-7 w-7 text-gray-400" />
+                            </div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white">Tanpa Sertifikat</h4>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                Bootcamp ini tidak menyediakan sertifikat kelulusan. Anda dapat langsung menikmati seluruh materi dan rekaman yang tersedia.
+                            </p>
+                        </div>
+                    </Card>
+                </motion.div>
+            );
+        }
+
         // Missing attendance or submission when completed
-        if (!allAttendanceVerified || (needsSubmission && !hasSubmission)) {
+        if (requiresReview && (!allAttendanceVerified || (needsSubmission && !hasSubmission))) {
             return (
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
                     <Card className="mb-6 overflow-hidden border-2 border-blue-500/20">
@@ -395,7 +417,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
         }
 
         // Need review to get certificate
-        if (!hasReview && allAttendanceVerified && (!needsSubmission || hasSubmission)) {
+        if (requiresReview && !hasReview && allAttendanceVerified && (!needsSubmission || hasSubmission)) {
             return (
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
                     <Card className="mb-6 overflow-hidden border-2 border-blue-500/20">
@@ -689,7 +711,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                             {/* Attendance Upload Section */}
                             {hasActiveAccess && bootcampData.schedules && bootcampData.schedules.length > 0 && (
                                 <div className="mb-8">
-                                    <h2 className="mb-4 text-2xl font-bold">Jadwal & Kehadiran</h2>
+                                    <h2 className="mb-4 text-2xl font-bold">{requiresReview ? "Jadwal & Kehadiran" : "Jadwal & Rekaman Pertemuan"}</h2>
                                     <div className="space-y-4">
                                         {bootcampData.schedules.map((schedule, idx) => {
                                             const attendance = getAttendanceForSchedule(schedule.id);
@@ -726,31 +748,33 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                             </div>
                                                         </div>
 
-                                                        {attendance ? (
-                                                            <div
-                                                                className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
-                                                                    attendance.verified
-                                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                                                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-                                                                }`}
-                                                            >
-                                                                {attendance.verified ? (
-                                                                    <>
-                                                                        <CheckCircle className="h-3 w-3" />
-                                                                        Terverifikasi
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <Clock className="h-3 w-3" />
-                                                                        Pending
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        ) : isPast ? (
-                                                            <div className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                                                                Belum Upload
-                                                            </div>
-                                                        ) : null}
+                                                        {requiresReview && (
+                                                            attendance ? (
+                                                                <div
+                                                                    className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
+                                                                        attendance.verified
+                                                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                                                            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                                                    }`}
+                                                                >
+                                                                    {attendance.verified ? (
+                                                                        <>
+                                                                            <CheckCircle className="h-3 w-3" />
+                                                                            Terverifikasi
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Clock className="h-3 w-3" />
+                                                                            Pending
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            ) : isPast ? (
+                                                                <div className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                                                                    Belum Upload
+                                                                </div>
+                                                            ) : null
+                                                        )}
                                                     </div>
 
                                                     {/* Recording */}
@@ -780,7 +804,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                     )}
 
                                                     {/* Upload Form */}
-                                                    {attendance && !showForm ? (
+                                                    {requiresReview && (attendance && !showForm ? (
                                                         <div className="mt-3 rounded-lg border border-gray-200 bg-white/50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
                                                             <div className="mb-2 flex items-center justify-between">
                                                                 <p className="text-sm font-medium">Bukti Kehadiran:</p>
@@ -906,7 +930,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                                                 </div>
                                                             </div>
                                                         )
-                                                    ) : null}
+                                                    ) : null)}
                                                 </motion.div>
                                             );
                                         })}
@@ -1036,6 +1060,75 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                 </div>
                             </div>
                         </Card>
+
+                        {/* Next Step Pelatihan Recommendation Card */}
+                        {bootcampData.next_step_product && (
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6">
+                                <Card className="overflow-hidden border border-gray-200 dark:border-gray-700">
+                                    <div className="border-b border-gray-100 bg-gray-50/80 p-4 dark:border-gray-700 dark:bg-gray-900/50">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Sparkles className="h-5 w-5 text-amber-500" />
+                                                <h3 className="font-bold text-gray-900 dark:text-white">Langkah Pelatihan Selanjutnya</h3>
+                                            </div>
+                                            <span className="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-semibold text-primary">
+                                                {bootcampData.next_step_product.type_label}
+                                            </span>
+                                        </div>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                            Tingkatkan skill Anda ke level berikutnya dengan program lanjutan yang kami rekomendasikan
+                                        </p>
+                                    </div>
+                                    <div className="p-5">
+                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="flex flex-1 items-start gap-4">
+                                                {bootcampData.next_step_product.thumbnail ? (
+                                                    <img
+                                                        src={bootcampData.next_step_product.thumbnail}
+                                                        alt={bootcampData.next_step_product.title}
+                                                        className="h-20 w-32 shrink-0 rounded-lg object-cover shadow-sm"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-20 w-32 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-400 dark:bg-gray-800">
+                                                        <Sparkles className="h-8 w-8" />
+                                                    </div>
+                                                )}
+                                                <div className="space-y-1">
+                                                    <h4 className="line-clamp-2 text-base font-bold text-gray-900 dark:text-white">
+                                                        {bootcampData.next_step_product.title}
+                                                    </h4>
+                                                    <div className="flex items-baseline gap-2">
+                                                        {bootcampData.next_step_product.price === 0 ? (
+                                                            <span className="text-base font-bold text-green-600 dark:text-green-400">Gratis</span>
+                                                        ) : (
+                                                            <>
+                                                                <span className="text-base font-bold text-gray-900 dark:text-white">
+                                                                    Rp {bootcampData.next_step_product.price.toLocaleString('id-ID')}
+                                                                </span>
+                                                                {bootcampData.next_step_product.strikethrough_price != null &&
+                                                                bootcampData.next_step_product.strikethrough_price > bootcampData.next_step_product.price ? (
+                                                                    <span className="text-xs text-gray-400 line-through">
+                                                                        Rp {bootcampData.next_step_product.strikethrough_price.toLocaleString('id-ID')}
+                                                                    </span>
+                                                                ) : null}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="sm:shrink-0">
+                                                <Button asChild className="w-full sm:w-auto">
+                                                    <a href={bootcampData.next_step_product.url} target="_blank" rel="noopener noreferrer">
+                                                        Daftar Sekarang
+                                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        )}
                     </motion.div>
 
                     {/* Right Column - Sidebar */}
@@ -1117,7 +1210,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                 isCompleted &&
                                 allAttendanceVerified &&
                                 (!needsSubmission || hasSubmission) &&
-                                !showReviewForm && (
+                                !showReviewForm && offersCertificate && requiresReview && (
                                     <Card className="p-6">
                                         <div className="mb-4 flex items-center gap-2">
                                             <MessageSquare className="text-amber-500" size={20} />
