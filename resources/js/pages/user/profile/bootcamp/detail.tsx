@@ -512,7 +512,7 @@ export default function DetailMyBootcamp({ bootcamp, certificate, certificatePar
                                         <div>
                                             <p className="text-sm font-medium text-green-900 dark:text-green-100">Nomor Sertifikat</p>
                                             <p className="mt-1 font-mono text-lg font-bold text-green-700 dark:text-green-300">
-                                                {String(certificateParticipant.certificate_number).padStart(4, '0')}/{certificate.certificate_number}
+                                                {String(certificateParticipant.certificate_number).padStart(4, '0')}/{certificate?.certificate_number}
                                             </p>
                                         </div>
                                         <Link

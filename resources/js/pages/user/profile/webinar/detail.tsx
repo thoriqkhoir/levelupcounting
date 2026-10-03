@@ -1087,7 +1087,7 @@ export default function DetailMyWebinar({ webinar, certificate, certificateParti
                                                     <p className="text-xs text-blue-600 dark:text-blue-400">
                                                         No. Sertifikat:{' '}
                                                         {certificateParticipant.certificate_number && certificate
-                                                            ? `${String(certificateParticipant.certificate_number).padStart(4, '0')}/${certificate.certificate_number}`
+                                                            ? `${String(certificateParticipant.certificate_number).padStart(4, '0')}/${certificate?.certificate_number}`
                                                             : certificateParticipant.certificate_code}
                                                     </p>
                                                     <Link

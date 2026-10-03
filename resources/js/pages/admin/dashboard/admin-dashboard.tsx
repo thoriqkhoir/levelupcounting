@@ -28,17 +28,31 @@ import { useEffect, useState } from 'react';
 import { ParticipantChart } from './charts/participant-chart';
 import { RevenueChart } from './charts/revenue-chart';
 
+interface CertificationItem {
+    certification_program?: { title: string };
+    certificationProgram?: { title: string };
+}
+
 interface RecentSale {
     id: number | string;
-    user: {
+    user?: {
         name: string;
     };
     nett_amount: number;
+    installment_number?: number | null;
+    parent_invoice_id?: string | null;
+    parentInvoice?: any;
+    parent_invoice?: any;
     course_items?: { course: { title: string } }[];
+    courseItems?: { course: { title: string } }[];
     bootcamp_items?: { bootcamp: { title: string } }[];
+    bootcampItems?: { bootcamp: { title: string } }[];
     webinar_items?: { webinar: { title: string } }[];
+    webinarItems?: { webinar: { title: string } }[];
     bundle_enrollments?: { bundle: { title: string } }[];
-    certification_program_items?: { certification_program: { title: string } }[];
+    bundleEnrollments?: { bundle: { title: string } }[];
+    certification_program_items?: CertificationItem[];
+    certificationProgramItems?: CertificationItem[];
 }
 
 interface PopularProduct {
@@ -125,12 +139,28 @@ const formatCurrency = (amount: number | string) => {
 };
 
 const getInvoiceItemName = (invoice: RecentSale): string => {
-    if (invoice.course_items?.length && invoice.course_items.length > 0) return `Kelas: ${invoice.course_items[0].course.title}`;
-    if (invoice.bootcamp_items?.length && invoice.bootcamp_items.length > 0) return `Bootcamp: ${invoice.bootcamp_items[0].bootcamp.title}`;
-    if (invoice.webinar_items?.length && invoice.webinar_items.length > 0) return `Webinar: ${invoice.webinar_items[0].webinar.title}`;
-    if (invoice.bundle_enrollments?.length && invoice.bundle_enrollments.length > 0) return `Bundle: ${invoice.bundle_enrollments[0].bundle.title}`;
-    if (invoice.certification_program_items?.length && invoice.certification_program_items.length > 0) return `Sertifikasi: ${invoice.certification_program_items[0].certification_program.title}`;
-    return 'Produk tidak diketahui';
+    const source = invoice.parentInvoice || invoice.parent_invoice || invoice;
+
+    const courses = source.courseItems || source.course_items;
+    if (courses?.length && courses.length > 0) return `Kelas: ${courses[0].course.title}`;
+
+    const bootcamps = source.bootcampItems || source.bootcamp_items;
+    if (bootcamps?.length && bootcamps.length > 0) return `Bootcamp: ${bootcamps[0].bootcamp.title}`;
+
+    const webinars = source.webinarItems || source.webinar_items;
+    if (webinars?.length && webinars.length > 0) return `Webinar: ${webinars[0].webinar.title}`;
+
+    const bundles = source.bundleEnrollments || source.bundle_enrollments;
+    if (bundles?.length && bundles.length > 0) return `Bundle: ${bundles[0].bundle.title}`;
+
+    const certs = source.certificationProgramItems || source.certification_program_items;
+    if (certs?.length && certs.length > 0) {
+        const certItem = certs[0];
+        const title = certItem.certificationProgram?.title || certItem.certification_program?.title;
+        if (title) return `Sertifikasi: ${title}`;
+    }
+
+    return 'Item tidak diketahui';
 };
 
 const getProductTypeBadge = (type: string) => {
@@ -429,7 +459,7 @@ export default function AdminDashboard({ stats, filters }: StatsProps) {
                 <div className="space-y-6">
                     <div className="border-border bg-card text-card-foreground rounded-xl border p-6 shadow-sm">
                         <h3 className="text-lg font-semibold">Total Pendaftar Produk</h3>
-                        <div className="mb-2 text-2xl font-bold text-primary">{stats.total_participants.toLocaleString('id-ID')}</div>
+                        <div className="text-primary mb-2 text-2xl font-bold">{stats.total_participants.toLocaleString('id-ID')}</div>
                         <div className="text-muted-foreground mb-4 flex items-center gap-2">
                             <p className="text-sm">{stats.participants_this_month.toLocaleString('id-ID')} Pendaftar Bulan ini</p>
                             <TrendingUp size="20" />
@@ -446,7 +476,19 @@ export default function AdminDashboard({ stats, filters }: StatsProps) {
                                 stats.recent_sales.map((sale) => (
                                     <div key={sale.id} className="flex items-center">
                                         <div className="flex-1 space-y-1">
-                                            <p className="text-sm leading-none font-medium">{sale.user.name}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-sm leading-none font-medium">
+                                                    {sale.user?.name || sale.parentInvoice?.user?.name || '-'}
+                                                </p>
+                                                {sale.installment_number && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-blue-200 bg-blue-50 px-1.5 py-0 text-[10px] text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                                                    >
+                                                        Cicilan ke-{sale.installment_number}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                             <p className="text-muted-foreground text-sm">{getInvoiceItemName(sale)}</p>
                                         </div>
                                         <div className="font-medium">{formatCurrency(sale.nett_amount)}</div>

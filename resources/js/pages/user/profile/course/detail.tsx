@@ -296,7 +296,7 @@ export default function DetailMyCourse({
                                             </p>
                                             <p className="mt-1 font-mono text-lg font-bold text-green-700 dark:text-green-300">
                                                 {String(certificateParticipant.certificate_number).padStart(4, '0')}/
-                                                {certificate.certificate_number}
+                                                {certificate?.certificate_number}
                                             </p>
                                         </div>
                                         <Link
