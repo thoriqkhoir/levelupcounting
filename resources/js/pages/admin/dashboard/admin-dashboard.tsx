@@ -142,16 +142,16 @@ const getInvoiceItemName = (invoice: RecentSale): string => {
     const source = invoice.parentInvoice || invoice.parent_invoice || invoice;
 
     const courses = source.courseItems || source.course_items;
-    if (courses?.length && courses.length > 0) return `Kelas: ${courses[0].course.title}`;
+    if (courses?.length && courses.length > 0 && courses[0]?.course?.title) return `Kelas: ${courses[0].course.title}`;
 
     const bootcamps = source.bootcampItems || source.bootcamp_items;
-    if (bootcamps?.length && bootcamps.length > 0) return `Bootcamp: ${bootcamps[0].bootcamp.title}`;
+    if (bootcamps?.length && bootcamps.length > 0 && bootcamps[0]?.bootcamp?.title) return `Bootcamp: ${bootcamps[0].bootcamp.title}`;
 
     const webinars = source.webinarItems || source.webinar_items;
-    if (webinars?.length && webinars.length > 0) return `Webinar: ${webinars[0].webinar.title}`;
+    if (webinars?.length && webinars.length > 0 && webinars[0]?.webinar?.title) return `Webinar: ${webinars[0].webinar.title}`;
 
     const bundles = source.bundleEnrollments || source.bundle_enrollments;
-    if (bundles?.length && bundles.length > 0) return `Bundle: ${bundles[0].bundle.title}`;
+    if (bundles?.length && bundles.length > 0 && bundles[0]?.bundle?.title) return `Bundle: ${bundles[0].bundle.title}`;
 
     const certs = source.certificationProgramItems || source.certification_program_items;
     if (certs?.length && certs.length > 0) {
@@ -478,7 +478,7 @@ export default function AdminDashboard({ stats, filters }: StatsProps) {
                                         <div className="flex-1 space-y-1">
                                             <div className="flex items-center gap-2">
                                                 <p className="text-sm leading-none font-medium">
-                                                    {sale.user?.name || sale.parentInvoice?.user?.name || '-'}
+                                                    {sale.user?.name || sale.parentInvoice?.user?.name || sale.parent_invoice?.user?.name || '-'}
                                                 </p>
                                                 {sale.installment_number && (
                                                     <Badge
