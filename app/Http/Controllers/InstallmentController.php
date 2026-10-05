@@ -67,11 +67,15 @@ class InstallmentController extends Controller
                     $isNextOverdue = Carbon::now('Asia/Jakarta')->gt(Carbon::parse($nextUnpaid->installment_due_date)->endOfDay());
                 }
 
+                $parentGrossAmount = ($invoice->amount == $invoice->nett_amount && $totalCount > 0)
+                    ? (float) $invoice->amount + ($totalCount * 5000)
+                    : (float) $invoice->amount;
+
                 return [
                     'id' => $invoice->id,
                     'invoice_code' => $invoice->invoice_code,
                     'status' => $invoice->status,
-                    'amount' => $invoice->amount,
+                    'amount' => $parentGrossAmount,
                     'is_access_suspended' => $invoice->isAccessSuspended() || $isNextOverdue,
                     'access_suspended_at' => $invoice->access_suspended_at,
                     'created_at' => $invoice->created_at,
@@ -82,7 +86,9 @@ class InstallmentController extends Controller
                     'next_unpaid_term' => $nextUnpaid ? [
                         'id' => $nextUnpaid->id,
                         'installment_number' => $nextUnpaid->installment_number,
-                        'amount' => $nextUnpaid->amount,
+                        'amount' => ($nextUnpaid->status !== 'paid' && $nextUnpaid->amount == $nextUnpaid->nett_amount)
+                            ? $nextUnpaid->amount + 5000
+                            : $nextUnpaid->amount,
                         'installment_due_date' => $nextUnpaid->installment_due_date,
                         'status' => $nextUnpaid->status,
                         'invoice_url' => $nextUnpaid->invoice_url,
@@ -99,7 +105,7 @@ class InstallmentController extends Controller
                             'installment_number' => $t->installment_number,
                             'invoice_code' => $t->invoice_code,
                             'invoice_url' => $t->invoice_url,
-                            'amount' => $t->amount,
+                            'amount' => ($t->status !== 'paid' && $t->amount == $t->nett_amount) ? $t->amount + 5000 : $t->amount,
                             'status' => $t->status,
                             'installment_due_date' => $t->installment_due_date,
                             'paid_at' => $t->paid_at,
@@ -127,6 +133,17 @@ class InstallmentController extends Controller
             $type = $request->input('type');
             $itemId = $request->input('id');
 
+                        // Cek apakah user sudah memiliki cicilan aktif yang belum lunas
+            if ($userId) {
+                $activeInstallment = Invoice::getActiveInstallmentForUser($userId, $type, $itemId);
+                if ($activeInstallment && !$activeInstallment['is_fully_paid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda memiliki transaksi cicilan yang sedang aktif untuk program ini. Silakan lanjutkan pembayaran termin cicilan Anda.',
+                    ], 422);
+                }
+            }
+
             // Validasi: cicilan tidak bisa dikombinasikan dengan poin/voucher
             if ($request->input('discount_code_id') || $request->input('points_redeemed', 0) > 0) {
                 throw new \Exception('Cicilan tidak dapat dikombinasikan dengan poin atau voucher.');
@@ -149,8 +166,12 @@ class InstallmentController extends Controller
                 throw new \Exception('Konfigurasi termin cicilan belum diatur oleh admin.');
             }
 
-            $totalAmount = $terms->sum('amount');
-            $dpAmount = $terms->first()->amount;
+            $totalNettAmount = $terms->sum('amount');
+            $adminFeePerTerm = 5000;
+            $termsCount = $terms->count();
+            $totalGrossAmount = $totalNettAmount + ($termsCount * $adminFeePerTerm);
+            $totalGrossAmount = $totalAmount + $totalAdminFees;
+            $dpGrossAmount = $terms->first()->amount + $adminFeePerTerm;
 
             // Ambil affiliate code jika ada (default fallback: LUC2025)
             $affiliateCode = $request->input('affiliate_code')
@@ -202,8 +223,8 @@ class InstallmentController extends Controller
                 'referred_by_user_id' => $referredByUserId,
                 'referral_user_id' => $referralUserId,
                 'invoice_code' => $parentCode,
-                'amount' => $totalAmount,
-                'nett_amount' => $totalAmount,
+                'amount' => $totalGrossAmount,
+                'nett_amount' => $totalNettAmount,
                 'discount_amount' => 0,
                 'points_redeemed' => 0,
                 'status' => 'installment_pending',
@@ -220,7 +241,7 @@ class InstallmentController extends Controller
                     'referred_by_user_id' => $referredByUserId,
                     'referral_user_id' => $referralUserId,
                     'invoice_code' => $childCode,
-                    'amount' => $term->amount,
+                    'amount' => $term->amount + $adminFeePerTerm,
                     'nett_amount' => $term->amount,
                     'discount_amount' => 0,
                     'points_redeemed' => 0,
@@ -242,7 +263,7 @@ class InstallmentController extends Controller
             $enrollmentData = [
                 'invoice_id' => $parentInvoice->id,
                 $enrollmentField => $item->id,
-                'price' => $totalAmount,
+                'price' => $totalNettAmount,
                 'completed_at' => null,
                 'progress' => 0,
             ];
@@ -263,7 +284,7 @@ class InstallmentController extends Controller
                 'snap_token' => $midtransResponse['snap_token'] ?? null,
                 'invoice_id' => $parentInvoice->id,
                 'invoice_code' => $parentCode,
-                'dp_amount' => $dpAmount,
+                'dp_amount' => $dpGrossAmount,
                 'total_terms' => $terms->count(),
             ], 200);
         } catch (\Exception $e) {
@@ -345,6 +366,12 @@ class InstallmentController extends Controller
             // Ambil data produk dari invoice induk
             $item = $this->getProductFromInvoice($parentInvoice);
 
+            
+            // Pastikan nominal tagihan child invoice sudah mencakup biaya admin Rp 5.000
+            if ($nextTerm->amount == $nextTerm->nett_amount) {
+                $nextTerm->amount = $nextTerm->nett_amount + 5000;
+                $nextTerm->save();
+            }
             $midtransResponse = $this->createMidtransTransaction($nextTerm, $item, Auth::user());
             $nextTerm->update([
                 'invoice_url' => $midtransResponse['redirect_url'] ?? null,
@@ -456,7 +483,10 @@ class InstallmentController extends Controller
             $phoneNumber = $this->formatPhoneNumber($user->phone_number);
             $termNumber = $termInvoice->installment_number;
             $totalTerms = $parentInvoice->installmentTerms()->count();
-            $amount = 'Rp ' . number_format($termInvoice->amount, 0, ',', '.');
+            $termAmount = ($termInvoice->status !== 'paid' && $termInvoice->amount == $termInvoice->nett_amount)
+                ? $termInvoice->amount + 5000
+                : $termInvoice->amount;
+            $amount = 'Rp ' . number_format($termAmount, 0, ',', '.');
             $dueDate = $termInvoice->installment_due_date ? Carbon::parse($termInvoice->installment_due_date)->translatedFormat('d F Y') : '-';
             $productName = $this->getProductName($parentInvoice);
             $payUrl = $termInvoice->invoice_url ?: url('/profile/installments');
