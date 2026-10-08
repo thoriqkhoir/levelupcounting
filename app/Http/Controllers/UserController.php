@@ -280,7 +280,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'instance' => $request->instance,
-            'city' => $user->city,
+            'city' => $request->city,
             'phone_number' => $request->phone_number,
             'password' => Hash::make($request->password),
             'email_verified_at' => now(),
