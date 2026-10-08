@@ -1,13 +1,13 @@
 import RatingDialog from '@/components/rating-dialog';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import UserLayout from '@/layouts/user-layout';
 import { formatExternalUrl } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Award, BadgeCheck, BookOpen, Calendar, CheckCircle, Clock, Download, Eye, MessageCircle, PlayCircle, Star, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Award, BadgeCheck, CheckCircle, Clock, CreditCard, Download, Eye, MessageCircle, Star } from 'lucide-react';
 import { useState } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
+import ProfileInstallmentAction from '@/components/profile-installment-action';
 
 interface Category {
     id: string;
@@ -94,44 +94,51 @@ function parseList(items?: string | null): string[] {
     return matches.map((li) => li.replace(/<\/?li>/g, '').trim());
 }
 
-const levelColors = {
-    beginner: 'bg-primary-foreground text-black border-primary-500/20 dark:text-red-400',
-    intermediate: 'bg-primary-foreground text-black border-primary-500/20 dark:text-red-400',
-    advanced: 'bg-red-500/40 text-black border-red-500/20 dark:text-red-400',
-};
-
-const levelLabels = {
-    beginner: 'Beginner',
-    intermediate: 'Intermediate',
-    advanced: 'Advanced',
-};
-
 export default function DetailMyCourse({
     course,
     courseRating,
     certificate,
     certificateParticipant,
+    active_installment,
 }: {
     course: CourseProps | null;
     courseRating: CourseRating | null;
     certificate?: Certificate | null;
     certificateParticipant?: CertificateParticipant | null;
+    active_installment?: any | null;
 }) {
     const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
+    const [isPayingCert, setIsPayingCert] = useState(false);
+
+    const handlePayCertInstallment = async () => {
+        if (!course) return;
+        setIsPayingCert(true);
+        try {
+            const res = await axios.post(`/installment/${course.id}/pay`);
+            if (res.data?.success && res.data?.payment_url) {
+                toast.success('Mengarahkan ke pembayaran...');
+                window.location.href = res.data.payment_url;
+            } else {
+                toast.error(res.data?.message || 'Gagal memproses pembayaran cicilan');
+                setIsPayingCert(false);
+            }
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Terjadi kesalahan saat memproses pembayaran');
+            setIsPayingCert(false);
+        }
+    };
 
     if (!course) {
         return (
             <UserLayout>
                 <Head title="Kelas Tidak Ditemukan" />
                 <div className="flex h-screen items-center justify-center">
-                    <Card className="p-8 text-center">
-                        <p className="mb-4">Detail kelas tidak dapat ditemukan.</p>
-                        <Button className="rounded-full" variant="secondary" asChild>
-                            <Link href="/profile/my-courses">
-                                <ArrowLeft className="mr-2 h-4 w-4" /> Kembali Ke Kelas Saya
-                            </Link>
-                        </Button>
-                    </Card>
+                    <p>Detail kelas tidak dapat ditemukan.</p>
+                    <Button className="mt-4 rounded-full" variant="secondary" asChild>
+                        <Link href="/profile/my-courses">
+                            <ArrowLeft /> Kembali Ke Kelas Saya
+                        </Link>
+                    </Button>
                 </div>
             </UserLayout>
         );
@@ -170,165 +177,137 @@ export default function DetailMyCourse({
 
         if (!courseRating) {
             return (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <Card className="mb-6 overflow-hidden border-2 border-blue-500/20">
-                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:from-blue-950/20 dark:to-indigo-950/20">
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex items-start gap-4">
-                                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
-                                        <Star className="h-7 w-7 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
-                                            🎉 Selamat! Kelas Selesai
-                                        </h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            Berikan rating dan review untuk mendapatkan sertifikat kelulusan
-                                        </p>
-                                    </div>
-                                </div>
-                                <Button
-                                    size="lg"
-                                    className="bg-primary"
-                                    onClick={() => setIsRatingDialogOpen(true)}
-                                >
-                                    <Star className="mr-2 h-4 w-4" />
-                                    Beri Rating
-                                </Button>
+                <div className="mb-6 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 p-4 dark:border-blue-700 dark:from-blue-900/20 dark:to-blue-800/20">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-400 to-blue-600">
+                                <Star className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎉 Selamat! Anda telah menyelesaikan kelas ini</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Berikan rating dan review untuk mendapatkan sertifikat kelulusan
+                                </p>
                             </div>
                         </div>
-                    </Card>
-                </motion.div>
+                        <Button
+                            size="sm"
+                            className="border-none bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-lg hover:from-blue-500 hover:to-blue-700"
+                            onClick={() => setIsRatingDialogOpen(true)}
+                        >
+                            <Star className="mr-2 h-4 w-4" />
+                            Beri Rating
+                        </Button>
+                    </div>
+                </div>
             );
         }
 
         if (courseRating && !hasCertificate) {
             return (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <Card className="mb-6 overflow-hidden border-2 border-yellow-500/20">
-                        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 dark:from-yellow-950/20 dark:to-orange-950/20">
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex items-start gap-4">
-                                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500 to-orange-600 shadow-lg">
-                                        <Award className="h-7 w-7 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
-                                            🎉 Terima kasih atas rating Anda!
-                                        </h3>
-                                        <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                            {!certificate
-                                                ? 'Sertifikat belum dibuat untuk course ini.'
-                                                : !isFullyPaid
-                                                  ? (isInstallment ? 'Lunasi seluruh cicilan untuk membuka sertifikat.' : 'Selesaikan pembayaran untuk membuka sertifikat.')
-                                                  : 'Sertifikat sedang diproses.'}
-                                        </p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">Rating Anda:</span>
-                                            <div className="flex gap-0.5">
-                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                    <Star
-                                                        key={star}
-                                                        className={`h-4 w-4 ${
-                                                            star <= courseRating.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                                                        }`}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                ({courseRating.rating}/5)
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <Button size="lg" disabled variant="secondary" className="cursor-not-allowed opacity-70">
-                                    <Download className="mr-2 h-4 w-4" />
+                <div className="mb-6 rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 dark:border-yellow-700 dark:from-yellow-900/20 dark:to-yellow-800/20">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600">
+                                <Award className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎉 Terima kasih atas rating Anda!</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
                                     {!certificate
-                                        ? 'Sertifikat Belum Tersedia'
+                                        ? 'Sertifikat belum dibuat untuk course ini.'
                                         : !isFullyPaid
-                                          ? (isInstallment ? 'Lunasi Seluruh Cicilan' : 'Selesaikan Pembayaran')
-                                          : 'Menunggu Sertifikat'}
-                                </Button>
+                                          ? (isInstallment ? 'Lunasi seluruh cicilan untuk membuka sertifikat.' : 'Selesaikan pembayaran untuk membuka sertifikat.')
+                                          : 'Sertifikat sedang diproses.'}
+                                </p>
+                                <div className="mt-1 flex items-center gap-1">
+                                    <span className="text-xs text-gray-500">Rating Anda:</span>
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                            key={star}
+                                            className={`h-3 w-3 ${star <= courseRating.rating ? 'fill-current text-yellow-400' : 'text-gray-300'}`}
+                                        />
+                                    ))}
+                                    <span className="ml-1 text-xs text-gray-500">({courseRating.rating}/5)</span>
+                                </div>
                             </div>
                         </div>
-                    </Card>
-                </motion.div>
+                        {isInstallment && !isFullyPaid ? (
+                            <Button
+                                size="sm"
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 font-semibold"
+                                onClick={handlePayCertInstallment}
+                                disabled={isPayingCert || isSuspended}
+                                id="btn-lunasi-sertifikat-course"
+                            >
+                                <CreditCard className="h-4 w-4" />
+                                {isPayingCert ? 'Mengarahkan...' : 'Lunasi Cicilan Sekarang'}
+                            </Button>
+                        ) : (
+                            <Button size="sm" disabled>
+                                <Download className="mr-2 h-4 w-4" />
+                                {!certificate
+                                    ? 'Sertifikat Belum Tersedia'
+                                    : !isFullyPaid
+                                      ? 'Menunggu Pembayaran'
+                                      : 'Menunggu Sertifikat'}
+                            </Button>
+                        )}
+                    </div>
+                </div>
             );
         }
 
         if (hasCertificate) {
             return (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <Card className="mb-6 overflow-hidden border-2 border-green-500/20">
-                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 dark:from-green-950/20 dark:to-emerald-950/20">
-                            <div className="mb-4 flex items-start gap-4">
-                                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
-                                    <Award className="h-7 w-7 text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="mb-1 text-lg font-bold text-green-900 dark:text-green-100">
-                                        🎉 Sertifikat Kelulusan Tersedia!
-                                    </h3>
-                                    <p className="text-sm text-green-700 dark:text-green-300">
-                                        Anda telah berhasil menyelesaikan kelas ini dan sertifikat sudah siap diunduh
-                                    </p>
-                                </div>
-                            </div>
-
-                            {certificateParticipant && (
-                                <div className="mb-4 rounded-lg border border-green-200 bg-white/50 p-4 dark:border-green-800 dark:bg-green-950/30">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                                                Nomor Sertifikat
-                                            </p>
-                                            <p className="mt-1 font-mono text-lg font-bold text-green-700 dark:text-green-300">
-                                                {String(certificateParticipant.certificate_number).padStart(4, '0')}/
-                                                {certificate?.certificate_number}
-                                            </p>
-                                        </div>
-                                        <Link
-                                            href={route('certificate.participant.detail', {
-                                                code: certificateParticipant.certificate_code,
-                                            })}
-                                            className="text-sm font-medium text-green-600 underline hover:text-green-800 dark:text-green-400"
-                                        >
-                                            Lihat Detail →
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" asChild>
-                                    <a href={route('profile.course.certificate', { course: courseData.slug })} target="_blank">
-                                        <Download className="mr-2 h-4 w-4" />
-                                        Unduh Sertifikat
-                                    </a>
-                                </Button>
-
-                                <Button variant="outline" className="border-2 border-green-600 text-green-600 hover:bg-green-50" asChild>
-                                    <a href={route('profile.course.certificate.preview', { course: courseData.slug })} target="_blank">
-                                        <Eye className="mr-2 h-4 w-4" />
-                                        Lihat Preview
-                                    </a>
-                                </Button>
-                            </div>
+                <div className="mb-6 rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-green-100 p-6 dark:border-green-700 dark:from-green-900/20 dark:to-green-800/20">
+                    <div className="mb-4 flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-green-400 to-green-600">
+                            <Award className="h-5 w-5 text-white" />
                         </div>
-                    </Card>
-                </motion.div>
+                        <div>
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎉 Sertifikat Kelulusan Tersedia!</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Anda telah berhasil menyelesaikan kelas ini dan sertifikat sudah siap diunduh
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-between">
+                        {certificateParticipant && (
+                            <div className="mt-4">
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                    No. Sertifikat: {String(certificateParticipant.certificate_number).padStart(4, '0')}/
+                                    {certificate?.certificate_number}
+                                </p>
+                                <Link
+                                    href={route('certificate.participant.detail', {
+                                        code: certificateParticipant.certificate_code,
+                                    })}
+                                    className="text-sm text-green-600 underline hover:text-green-800 dark:text-green-400"
+                                >
+                                    Lihat Detail Sertifikat
+                                </Link>
+                            </div>
+                        )}
+
+                        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <Button className="w-full" asChild>
+                                <a href={route('profile.course.certificate', { course: courseData.slug })} target="_blank">
+                                    <Download size={16} className="mr-2" />
+                                    Unduh Sertifikat
+                                </a>
+                            </Button>
+
+                            <Button variant="outline" className="w-full" asChild>
+                                <a href={route('profile.course.certificate.preview', { course: courseData.slug })} target="_blank">
+                                    <Eye size={16} className="mr-2" />
+                                    Lihat Preview
+                                </a>
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             );
         }
 
@@ -340,365 +319,220 @@ export default function DetailMyCourse({
             <Head title={courseData?.title || 'Detail Kelas'} />
             {!courseData ? (
                 <div className="flex h-screen items-center justify-center">
-                    <Card className="p-8 text-center">
+                    <div className="text-center">
                         <p className="mb-4">Detail kelas tidak dapat ditemukan.</p>
                         <Button className="rounded-full" variant="secondary" asChild>
                             <Link href="/profile/my-courses">
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Kembali Ke Kelas Saya
                             </Link>
                         </Button>
-                    </Card>
+                    </div>
                 </div>
             ) : (
                 <>
-                    {/* Hero Section */}
-                    <section className="relative overflow-hidden bg-gradient-to-br from-primary to-primary-foreground px-4 py-16">
-                        <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-                        <div className="absolute left-0 top-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/30 blur-3xl" />
-                        <div className="absolute bottom-0 right-0 h-96 w-96 translate-x-1/2 translate-y-1/2 rounded-full bg-blue-400/30 blur-3xl" />
+                    <section className="to-background from-background via-tertiary dark:via-background dark:to-background relative bg-gradient-to-b py-12 text-gray-900 dark:text-white">
+                        <div className="pointer-events-none absolute top-1/2 left-1/2 z-0 flex -translate-x-1/2 -translate-y-1/2 animate-spin items-center gap-8 duration-[10s]">
+                            <div className="bg-primary h-[300px] w-[300px] rounded-full blur-[200px]" />
+                            <div className="bg-secondary h-[300px] w-[300px] rounded-full blur-[200px]" />
+                        </div>
+                        <div className="relative mx-auto max-w-7xl px-4 text-center">
+                            <Button className="top-0 left-4 mb-4 rounded-full md:absolute md:mb-0" variant="secondary" asChild>
+                                <Link href="/profile/my-courses">
+                                    <ArrowLeft /> Kembali Ke Kelas Saya
+                                </Link>
+                            </Button>
+                            <div className="col-span-2">
+                                <div className="flex flex-col items-center justify-center md:flex-row md:gap-4">
+                                    <span className="text-primary border-primary bg-background mb-4 w-fit rounded-full border bg-gradient-to-t from-[#D9E5FF] to-white px-4 py-1 text-sm font-medium shadow-xs">
+                                        📌 Enrolled in{' '}
+                                        {courseItem &&
+                                            new Date(courseItem.created_at).toLocaleDateString('id-ID', {
+                                                month: 'long',
+                                                year: 'numeric',
+                                            })}
+                                    </span>
+                                    <span className="text-secondary border-secondary bg-background mb-4 inline-block rounded-full border bg-gradient-to-t from-[#FED6AD] to-white px-3 py-1 text-sm font-medium shadow-xs hover:text-[#FF925B]">
+                                        🎮 Level <span className="capitalize">{courseData.level}</span>
+                                    </span>
+                                    {hasCertificate ? (
+                                        <span className="mb-4 flex w-fit items-center gap-2 rounded-full border border-green-800 bg-green-100 px-4 py-1 text-sm font-medium text-green-800 shadow-xs">
+                                            <Award size={16} />
+                                            Sertifikat Tersedia
+                                        </span>
+                                    ) : null}
+                                </div>
 
-                        <div className="relative mx-auto max-w-7xl">
-                            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
-                                <Button className="mb-6 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20" asChild>
-                                    <Link href="/profile/my-courses">
-                                        <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
-                                    </Link>
-                                </Button>
-                            </motion.div>
+                                <h1 className="mx-auto mb-4 max-w-2xl text-4xl leading-tight font-bold italic sm:text-5xl">{courseData.title}</h1>
 
-                            <div className="flex flex-wrap items-center gap-3">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.1 }}
-                                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
-                                >
-                                    <Calendar className="h-4 w-4" />
-                                    Terdaftar{' '}
-                                    {courseItem &&
-                                        new Date(courseItem.created_at).toLocaleDateString('id-ID', {
-                                            month: 'long',
-                                            year: 'numeric',
-                                        })}
-                                </motion.div>
+                                <p className="mb-6 text-lg text-gray-600 dark:text-gray-400">{courseData.description}</p>
 
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.2 }}
-                                    className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r px-4 py-1.5 text-sm font-medium text-white shadow-lg ${
-                                        levelColors[courseData.level as keyof typeof levelColors]
-                                    }`}
-                                >
-                                    <TrendingUp className="h-4 w-4" />
-                                    Level {levelLabels[courseData.level as keyof typeof levelLabels]}
-                                </motion.div>
-
-                                {hasCertificate && (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: 0.3 }}
-                                        className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
-                                    >
-                                        <Award className="h-4 w-4" />
-                                        Bersertifikat
-                                    </motion.div>
-                                )}
-
-                                {isCompleted && (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: 0.4 }}
-                                        className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
-                                    >
-                                        <CheckCircle className="h-4 w-4" />
-                                        Selesai
-                                    </motion.div>
-                                )}
+                                <div className="flex items-center justify-center gap-4">
+                                    {isSuspended ? (
+                                        <div className="text-center">
+                                            <span className="block font-semibold text-red-600">
+                                                ⚠️ Akses kelas dibekukan karena ada tagihan cicilan yang melewati jatuh tempo.
+                                            </span>
+                                            <span className="block text-sm text-red-600/90">
+                                                Silakan lakukan pelunasan di menu Transaksi.
+                                            </span>
+                                        </div>
+                                    ) : !hasActiveAccess ? (
+                                        <div className="text-center">
+                                            <span className="block font-semibold text-red-600">
+                                                ⚠️ Status Pembayaran: {courseInvoiceStatus.toUpperCase()}
+                                            </span>
+                                            <span className="block text-sm text-gray-600 dark:text-gray-400">
+                                                {courseInvoiceStatus === 'failed'
+                                                    ? 'Pembayaran gagal atau dibatalkan. Silakan lakukan pembelian ulang.'
+                                                    : 'Selesaikan pembayaran untuk mengakses kelas.'}
+                                            </span>
+                                        </div>
+                                    ) : isInstallment && !isFullyPaid ? (
+                                        <div className="w-full">
+                                            <ProfileInstallmentAction
+                                                variant="banner"
+                                                activeInstallment={active_installment}
+                                                invoiceId={course.id}
+                                                isInstallment={isInstallment}
+                                                isFullyPaid={isFullyPaid}
+                                                isSuspended={isSuspended}
+                                                paidTerms={terms.filter((t: any) => t.status === 'paid').length}
+                                                totalTerms={terms.length}
+                                                installmentTerms={terms}
+                                            />
+                                        </div>
+                                    ) : null}
+                                </div>
                             </div>
-
-                            <motion.h1
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="mb-4 mt-6 text-4xl font-bold text-black sm:text-5xl"
-                            >
-                                {courseData.title}
-                            </motion.h1>
-
-                            <motion.p
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3 }}
-                                className="mb-6 max-w-3xl text-lg text-justify text-black"
-                            >
-                                {courseData.description}
-                            </motion.p>
-
-                            {isSuspended ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                >
-                                    <Card className="border-2 border-red-500/20 bg-red-50/50 p-4 backdrop-blur-sm dark:bg-red-950/50">
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500">
-                                                <span className="text-lg">⚠️</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-red-900 dark:text-red-100">
-                                                    ⚠️ Akses Kelas Dibekukan
-                                                </p>
-                                                <p className="text-sm text-red-700 dark:text-red-300">
-                                                    Akses kelas dibekukan karena ada tagihan cicilan yang melewati jatuh tempo. Silakan lakukan pelunasan di menu Transaksi.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            ) : !hasActiveAccess ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                >
-                                    <Card className="border-2 border-red-500/20 bg-red-50/50 p-4 backdrop-blur-sm dark:bg-red-950/50">
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500">
-                                                <span className="text-lg">⚠️</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-red-900 dark:text-red-100">
-                                                    Status Pembayaran: {courseInvoiceStatus.toUpperCase()}
-                                                </p>
-                                                <p className="text-sm text-red-700 dark:text-red-300">
-                                                    {courseInvoiceStatus === 'failed'
-                                                        ? 'Pembayaran gagal atau dibatalkan. Silakan lakukan pembelian ulang.'
-                                                        : 'Selesaikan pembayaran untuk mengakses kelas.'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            ) : isInstallment && !isFullyPaid ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                >
-                                    <Card className="border-2 border-amber-500/20 bg-amber-50/50 p-4 backdrop-blur-sm dark:bg-amber-950/50">
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-500 text-white font-bold">
-                                                ℹ️
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-amber-900 dark:text-amber-100">
-                                                    ℹ️ Pembayaran Cicilan Aktif
-                                                </p>
-                                                <p className="text-sm text-amber-700 dark:text-amber-300">
-                                                    Anda memiliki akses penuh ke materi kelas.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            ) : null}
                         </div>
                     </section>
+                    <section className="mx-auto mb-12 w-full max-w-7xl px-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div className="col-span-2 flex h-full flex-col rounded-xl bg-white p-6 shadow dark:bg-zinc-800">
+                                {renderCertificateSection()}
 
-                    {/* Main Content */}
-                    <section className="mx-auto my-12 w-full max-w-7xl px-4">
-                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                            {/* Left Column - Progress & Details */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.5 }}
-                                className="lg:col-span-2"
-                            >
-                                <Card className="p-6">
-                                    {renderCertificateSection()}
+                                <h1 className="text-lg font-semibold">Progres Kamu</h1>
 
-                                    {/* Progress Section */}
-                                    <div className="mb-8">
-                                        <div className="mb-4 flex items-center justify-between">
-                                            <h2 className="text-2xl font-bold">Progres Pembelajaran</h2>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-md font-bold text-white shadow-lg">
-                                                    {courseItem?.progress || 0}%
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="relative mb-4">
-                                            <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200 shadow-inner dark:bg-gray-700">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${courseItem?.progress || 0}%` }}
-                                                    transition={{ duration: 1, delay: 0.5 }}
-                                                    className={`relative h-4 rounded-full shadow-lg ${
-                                                        (courseItem?.progress || 0) === 100
-                                                            ? 'bg-gradient-to-r from-green-400 via-green-500 to-green-600'
-                                                            : 'bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-600'
-                                                    }`}
-                                                >
-                                                    <div className="absolute inset-0 animate-pulse rounded-full bg-white/20"></div>
-                                                </motion.div>
-                                            </div>
-                                        </div>
-
-                                        <Card className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 dark:from-gray-800 dark:to-gray-900">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    {courseItem?.completed_at ? (
-                                                        <>
-                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
-                                                                <CheckCircle className="h-5 w-5 text-white" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-semibold text-green-900 dark:text-green-100">
-                                                                    Kelas Selesai
-                                                                </p>
-                                                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                                                    {new Date(courseItem.completed_at).toLocaleDateString('id-ID', {
-                                                                        day: 'numeric',
-                                                                        month: 'long',
-                                                                        year: 'numeric',
-                                                                    })}
-                                                                </p>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
-                                                                <Clock className="h-5 w-5 text-white" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-semibold text-gray-900 dark:text-gray-100">
-                                                                    Sedang Berlangsung
-                                                                </p>
-                                                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                                                    Terus belajar untuk menyelesaikan kelas
-                                                                </p>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Card>
+                                <div className="mt-4 mb-6">
+                                    <div className="mb-2 flex items-center justify-between">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progres Pembelajaran</span>
+                                        <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{courseItem?.progress || 0}%</span>
                                     </div>
-
-                                    {/* Key Points */}
-                                    <div>
-                                        <h2 className="mb-4 text-2xl font-bold">Poin Utama</h2>
-                                        <div className="grid gap-3 sm:grid-cols-2">
-                                            {keyPointList.map((keyPoint, idx) => (
-                                                <motion.div
-                                                    key={idx}
-                                                    initial={{ opacity: 0, x: -20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: 0.1 * idx + 0.6 }}
-                                                    className="group flex items-start gap-3 rounded-lg border bg-gradient-to-br from-green-50 to-emerald-50 p-4 transition-all hover:shadow-md dark:from-green-950/20 dark:to-emerald-950/20"
-                                                >
-                                                    <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-transform group-hover:scale-110">
-                                                        <BadgeCheck className="h-4 w-4" />
-                                                    </div>
-                                                    <p className="text-sm font-medium leading-relaxed text-gray-700 dark:text-gray-300">
-                                                        {keyPoint}
-                                                    </p>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </Card>
-                            </motion.div>
-
-                            {/* Right Column - Course Card */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 }}
-                                className="lg:col-span-1"
-                            >
-                                <div className="sticky top-4">
-                                    <Card className="overflow-hidden">
-                                        <div className="relative">
-                                            <img
-                                                src={
-                                                    !courseData.thumbnail
-                                                        ? '/assets/images/placeholder.png'
-                                                        : courseData.thumbnail.startsWith('http') || courseData.thumbnail.startsWith('/storage')
-                                                          ? courseData.thumbnail
-                                                          : `/storage/${courseData.thumbnail}`
-                                                }
-                                                alt={courseData.title}
-                                                className="aspect-video w-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                                            <div className="absolute bottom-4 left-4 right-4">
-                                                <h3 className="text-lg font-bold text-white drop-shadow-lg">{courseData.title}</h3>
-                                            </div>
-                                        </div>
-
-                                        <div className="p-6">
-                                            <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-                                                {courseData.short_description}
-                                            </p>
-
-                                            <Button
-                                                size="lg"
-                                                className="w-full"
-                                                onClick={() => router.get(route('learn.course.detail', { course: courseData.slug }))}
-                                                disabled={!hasActiveAccess}
-                                            >
-                                                {isCompleted ? (
-                                                    <>
-                                                        <Eye className="mr-2 h-5 w-5" />
-                                                        Lihat Kembali Materi
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <PlayCircle className="mr-2 h-5 w-5" />
-                                                        Lanjutkan Belajar
-                                                    </>
-                                                )}
-                                            </Button>
-
-                                            {courseData.group_url && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="lg"
-                                                    className="mt-3 w-full border-green-600/30 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-500/30 dark:text-green-400 dark:hover:bg-green-950/30"
-                                                    asChild={hasActiveAccess}
-                                                    disabled={!hasActiveAccess}
-                                                >
-                                                    {hasActiveAccess ? (
-                                                        <a
-                                                            href={formatExternalUrl(courseData.group_url)}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                        >
-                                                            <MessageCircle className="mr-2 h-5 w-5" />
-                                                            Masuk Grup WA
-                                                        </a>
-                                                    ) : (
-                                                        <span>
-                                                            <MessageCircle className="mr-2 h-5 w-5" />
-                                                            Masuk Grup WA
-                                                        </span>
-                                                    )}
-                                                </Button>
+                                    <div className="h-3 w-full rounded-full bg-gray-200 shadow-inner dark:bg-gray-700">
+                                        <div
+                                            className={`relative h-3 rounded-full transition-all duration-500 ease-out ${
+                                                (courseItem?.progress || 0) === 100
+                                                    ? 'bg-gradient-to-r from-green-400 via-green-500 to-green-600 shadow-lg'
+                                                    : 'bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600'
+                                            }`}
+                                            style={{ width: `${courseItem?.progress || 0}%` }}
+                                        >
+                                            {(courseItem?.progress || 0) > 10 && (
+                                                <div className="absolute inset-0 animate-pulse rounded-full bg-white/20"></div>
                                             )}
-
-                                            {/* Stats */}
-                                            
                                         </div>
-                                    </Card>
+                                    </div>
                                 </div>
-                            </motion.div>
+
+                                <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Status Penyelesaian:</span>
+                                        <div className="flex items-center gap-2">
+                                            {courseItem?.completed_at ? (
+                                                <>
+                                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                                    <span className="text-sm font-semibold text-green-700 dark:text-green-400">Selesai</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="h-5 w-5 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
+                                                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Sedang Berlangsung</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {courseItem?.completed_at && (
+                                        <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                                            Diselesaikan pada:{' '}
+                                            {new Date(courseItem.completed_at).toLocaleDateString('id-ID', {
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <h1 className="text-lg font-semibold">Poin Utama</h1>
+                                <ul className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                    {keyPointList.map((keyPoint, idx) => (
+                                        <li key={idx} className="flex items-center gap-2">
+                                            <BadgeCheck size={18} className="mt-1 min-w-6 text-green-600" />
+                                            <p>{keyPoint}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div className="col-span-1 space-y-4">
+                                {isInstallment && (
+                                    <ProfileInstallmentAction
+                                        variant="card"
+                                        activeInstallment={active_installment}
+                                        invoiceId={course.id}
+                                        isInstallment={isInstallment}
+                                        isFullyPaid={isFullyPaid}
+                                        isSuspended={isSuspended}
+                                        paidTerms={terms.filter((t: any) => t.status === 'paid').length}
+                                        totalTerms={terms.length}
+                                        installmentTerms={terms}
+                                    />
+                                )}
+                                <div className="flex h-full flex-col rounded-xl bg-white p-6 shadow dark:bg-zinc-800">
+                                    <h2 className="mb-4 text-center font-semibold">{courseData.title}</h2>
+                                    <img
+                                        src={courseData.thumbnail ? `/storage/${courseData.thumbnail}` : '/assets/images/placeholder.png'}
+                                        alt={courseData.title}
+                                        className="aspect-video rounded-xl object-cover shadow-lg"
+                                    />
+                                    <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">{courseData.short_description}</p>
+
+                                    <Button
+                                        className="mt-2 w-full"
+                                        onClick={() => router.get(route('learn.course.detail', { course: courseData.slug }))}
+                                        disabled={!hasActiveAccess}
+                                    >
+                                        {isCompleted ? 'Lihat Kembali Materi' : 'Lanjutkan Belajar'}
+                                    </Button>
+
+                                    {courseData.group_url && (
+                                        <Button
+                                            variant="outline"
+                                            className="mt-2 w-full"
+                                            asChild={hasActiveAccess}
+                                            disabled={!hasActiveAccess}
+                                        >
+                                            {hasActiveAccess ? (
+                                                <a
+                                                    href={formatExternalUrl(courseData.group_url)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                    Masuk Grup WA
+                                                </a>
+                                            ) : (
+                                                <span>
+                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                    Masuk Grup WA
+                                                </span>
+                                            )}
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </>
