@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/build/assets/mentor-section-UfU6UCQW.js
 import{j as e,$ as d}from"./app-CvOHGTHo.js";import{A as m,a as c,b as x}from"./avatar-Bz_LTkAo.js";import{u as h}from"./use-initials-B4MGvUZW.js";import{m as t}from"./proxy-CLB6G3PL.js";import{S as p}from"./sparkles-hklSBDb-.js";import{A as g}from"./award-DYjrtros.js";import{S as u}from"./star-Chp9C3ow.js";import{c as f}from"./createLucideIcon-hZOqNBjR.js";import{A as y}from"./arrow-right-yA0vkJcU.js";/* empty css            */import"./index-Dhw9BupH.js";import"./index-D9H6u23I.js";import"./index-BFodAz7f.js";import"./utils-DufIjoG3.js";/**
+========
+import{j as e,$ as d}from"./app-jmuSZcwt.js";import{A as m,a as c,b as x}from"./avatar-DGMou8fs.js";import{u as h}from"./use-initials-Cz_HtT8C.js";import{m as t}from"./proxy-luBD3Y1r.js";import{S as p}from"./sparkles-D6KfhgXc.js";import{A as g}from"./award-C1ip4QHp.js";import{S as u}from"./star-sopFRCDN.js";import{c as f}from"./createLucideIcon-DeRFHVeM.js";import{A as y}from"./arrow-right-0FfchyBv.js";/* empty css            */import"./index-DYHYUV_J.js";import"./index-n_CO0zm9.js";import"./index-DCX-L-IR.js";import"./utils-xL6KZU3l.js";/**
+>>>>>>>> 428d3acb7ff457112baa35a5486973159833e3f0:public/build/assets/mentor-section-awZkbmKZ.js
  * @license lucide-react v0.475.0 - ISC
  *
  * This source code is licensed under the ISC license.

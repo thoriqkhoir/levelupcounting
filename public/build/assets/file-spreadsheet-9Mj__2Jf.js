@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/build/assets/file-spreadsheet-9Mj__2Jf.js
 import{c as a}from"./createLucideIcon-hZOqNBjR.js";/**
+========
+import{c as a}from"./createLucideIcon-DeRFHVeM.js";/**
+>>>>>>>> 428d3acb7ff457112baa35a5486973159833e3f0:public/build/assets/file-spreadsheet-DTd48jkA.js
  * @license lucide-react v0.475.0 - ISC
  *
  * This source code is licensed under the ISC license.

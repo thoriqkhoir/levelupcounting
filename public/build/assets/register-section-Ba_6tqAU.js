@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/build/assets/register-section-Ba_6tqAU.js
 import{K as u,j as e,$ as f}from"./app-CvOHGTHo.js";import{B as b}from"./button-HU-ot3z8.js";import{S as k}from"./separator-mFJs-2n5.js";import{m as r}from"./proxy-CLB6G3PL.js";import{S as y}from"./sparkles-hklSBDb-.js";import{P as N}from"./percent-CLEh0RAl.js";import{C as w}from"./circle-alert-CW-cmAqW.js";import{B as d}from"./badge-check-aFqwKNIc.js";import{C as v}from"./check-CV1CjVLo.js";import{I as S}from"./infinity-UVch25ww.js";import{c as M}from"./createLucideIcon-hZOqNBjR.js";import{P}from"./presentation-Ddi_oLZh.js";import{S as z}from"./smartphone-CxIALiwq.js";/* empty css            */import"./index-DI-vnYVp.js";import"./index-pNc_7thQ.js";import"./utils-DufIjoG3.js";import"./index-D9H6u23I.js";import"./index-BFodAz7f.js";/**
+========
+import{K as u,j as e,$ as f}from"./app-jmuSZcwt.js";import{B as b}from"./button-zZZY-mRK.js";import{S as k}from"./separator-ijvjVvZI.js";import{m as r}from"./proxy-luBD3Y1r.js";import{S as y}from"./sparkles-D6KfhgXc.js";import{P as N}from"./percent-CjOUMEnt.js";import{C as w}from"./circle-alert-B9EKmhFL.js";import{B as d}from"./badge-check-JXnOqlwf.js";import{C as v}from"./check-Cun4ioCM.js";import{I as S}from"./infinity-BHHDHgvb.js";import{c as M}from"./createLucideIcon-DeRFHVeM.js";import{P}from"./presentation-COtKVM_Z.js";import{S as z}from"./smartphone-Bwok_xxM.js";/* empty css            */import"./index-Dw_qe5GE.js";import"./index-o_fDm36y.js";import"./utils-xL6KZU3l.js";import"./index-n_CO0zm9.js";import"./index-DCX-L-IR.js";/**
+>>>>>>>> 428d3acb7ff457112baa35a5486973159833e3f0:public/build/assets/register-section-CzpGUebt.js
  * @license lucide-react v0.475.0 - ISC
  *
  * This source code is licensed under the ISC license.

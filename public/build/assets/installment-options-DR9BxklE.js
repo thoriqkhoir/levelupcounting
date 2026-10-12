@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/build/assets/installment-options-DR9BxklE.js
 import{c as V}from"./createLucideIcon-hZOqNBjR.js";import{r as q,j as e,b as A}from"./app-CvOHGTHo.js";import{B as M}from"./badge-COHqOOPV.js";import{B as w}from"./button-HU-ot3z8.js";import{C as z}from"./checkbox-B4U-MNFI.js";import{L as J}from"./label-Ci-ZxR-i.js";import{r as d}from"./utils-DufIjoG3.js";import{t as o}from"./index-D3eroG2l.js";import{C as x}from"./circle-check-CXQco_aL.js";import{S as U}from"./sparkles-hklSBDb-.js";import{C as P}from"./clock-DFKXN1VK.js";import{C as X}from"./circle-alert-CW-cmAqW.js";import{C as L}from"./credit-card-rt-Yp66D.js";import{f as $}from"./format-CNjBDjOL.js";import{p as R}from"./parseISO-CfmKIOEe.js";import{i as D}from"./id-BLKIQCr7.js";/**
+========
+import{c as V}from"./createLucideIcon-DeRFHVeM.js";import{r as q,j as e,b as A}from"./app-jmuSZcwt.js";import{B as M}from"./badge-BL2ljfb5.js";import{B as w}from"./button-zZZY-mRK.js";import{C as z}from"./checkbox-D--P81T0.js";import{L as J}from"./label-B0x_cUW7.js";import{r as d}from"./utils-xL6KZU3l.js";import{t as o}from"./index-_J_wOg62.js";import{C as x}from"./circle-check-Wa8f5UJY.js";import{S as U}from"./sparkles-D6KfhgXc.js";import{C as P}from"./clock-Bbq8Lbhi.js";import{C as X}from"./circle-alert-B9EKmhFL.js";import{C as L}from"./credit-card-NU5uNFQk.js";import{f as $}from"./format-CNjBDjOL.js";import{p as R}from"./parseISO-CfmKIOEe.js";import{i as D}from"./id-BLKIQCr7.js";/**
+>>>>>>>> 428d3acb7ff457112baa35a5486973159833e3f0:public/build/assets/installment-options-tGc2uiv-.js
  * @license lucide-react v0.475.0 - ISC
  *
  * This source code is licensed under the ISC license.

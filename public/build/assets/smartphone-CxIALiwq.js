@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/build/assets/smartphone-CxIALiwq.js
 import{c as t}from"./createLucideIcon-hZOqNBjR.js";/**
+========
+import{c as t}from"./createLucideIcon-DeRFHVeM.js";/**
+>>>>>>>> 428d3acb7ff457112baa35a5486973159833e3f0:public/build/assets/smartphone-Bwok_xxM.js
  * @license lucide-react v0.475.0 - ISC
  *
  * This source code is licensed under the ISC license.

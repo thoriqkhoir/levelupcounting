@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/build/assets/index-CAPOYjZY.js
 import{r as N}from"./app-CvOHGTHo.js";/**
+========
+import{r as N}from"./app-jmuSZcwt.js";/**
+>>>>>>>> 428d3acb7ff457112baa35a5486973159833e3f0:public/build/assets/index-yC5B_7s2.js
    * table-core
    *
    * Copyright (c) TanStack

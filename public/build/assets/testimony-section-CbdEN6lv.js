@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/build/assets/testimony-section-CbdEN6lv.js
 import{r,j as a}from"./app-CvOHGTHo.js";import{C as w,a as b,b as N,c as k}from"./carousel-Dh-zmuX8.js";import{c as T}from"./createLucideIcon-hZOqNBjR.js";/* empty css            */import"./utils-DufIjoG3.js";import"./use-motion-value-BNN-RN_b.js";import"./proxy-CLB6G3PL.js";import"./chevron-left-0DYS38RG.js";import"./chevron-right-CN6BrhGK.js";/**
+========
+import{r,j as a}from"./app-jmuSZcwt.js";import{C as w,a as b,b as N,c as k}from"./carousel-D9xlwbOd.js";import{c as T}from"./createLucideIcon-DeRFHVeM.js";/* empty css            */import"./utils-xL6KZU3l.js";import"./use-motion-value-PCJN8iYz.js";import"./proxy-luBD3Y1r.js";import"./chevron-left-CONqLspo.js";import"./chevron-right-C6W02qR6.js";/**
+>>>>>>>> 428d3acb7ff457112baa35a5486973159833e3f0:public/build/assets/testimony-section-CAzuZuPA.js
  * @license lucide-react v0.475.0 - ISC
  *
  * This source code is licensed under the ISC license.
