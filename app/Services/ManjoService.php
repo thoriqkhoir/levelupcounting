@@ -225,7 +225,7 @@ class ManjoService
             'X-PARTNER-ID' => (string) ($this->qrisPartnerId ?? $merchantId),
             'X-EXTERNAL-ID' => $externalId,
             'CHANNEL-ID' => $this->qrisChannelId,
-            'X-IP-ADDRESS' => request()->ip() ?: '127.0.0.1',
+            'X-IP-ADDRESS' => config('manjo.qris.ip_address') ?: (request()->ip() ?: '127.0.0.1'),
             'X-SIGNATURE' => $signature,
         ];
 
