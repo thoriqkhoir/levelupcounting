@@ -21,12 +21,10 @@ interface PaymentMethodSelectorProps {
 
 const DEFAULT_BANKS: SupportedBank[] = [
     { bank_code: 'BMRI', bank_name: 'Bank Mandiri', va_type: ['DYNAMIC', 'STATIC'] },
-    { bank_code: 'BRIN', bank_name: 'Bank BRI', va_type: ['DYNAMIC', 'STATIC'] },
-    { bank_code: 'BNIA', bank_name: 'Bank BNI', va_type: ['DYNAMIC', 'STATIC'] },
-    { bank_code: 'BBBA', bank_name: 'Bank BCA', va_type: ['DYNAMIC', 'STATIC'] },
+    { bank_code: 'BNIA', bank_name: 'Bank CIMB Niaga', va_type: ['DYNAMIC', 'STATIC'] },
+    { bank_code: 'BBBA', bank_name: 'Bank Permata', va_type: ['DYNAMIC', 'STATIC'] },
+    { bank_code: 'BRIN', bank_name: 'Bank Rakyat Indonesia (BRI)', va_type: ['DYNAMIC', 'STATIC'] },
     { bank_code: 'BSYI', bank_name: 'Bank Syariah Indonesia (BSI)', va_type: ['DYNAMIC', 'STATIC'] },
-    { bank_code: 'BDIN', bank_name: 'Bank Danamon', va_type: ['DYNAMIC', 'STATIC'] },
-    { bank_code: 'BNIN', bank_name: 'Bank Permata', va_type: ['DYNAMIC', 'STATIC'] },
 ];
 
 export default function PaymentMethodSelector({
@@ -165,7 +163,7 @@ export default function PaymentMethodSelector({
                                 </Badge>
                             </div>
                             <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                                {isVa && currentBankObj ? currentBankObj.bank_name || currentBankObj.name : 'Mandiri, BRI, BNI, BCA, BSI, dll.'}
+                                {isVa && currentBankObj ? currentBankObj.bank_name || currentBankObj.name : 'Mandiri, CIMB Niaga, Permata, BRI, BSI'}
                             </p>
                         </div>
                     </div>

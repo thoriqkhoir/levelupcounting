@@ -1282,6 +1282,8 @@ class ManjoCheckoutFlowTest extends TestCase
         $this->assertTrue($banks->contains('code', 'BMRI'));
         $this->assertTrue($banks->contains('code', 'BRIN'));
         $this->assertTrue($banks->contains('code', 'BBBA'));
+        $this->assertTrue($banks->contains('code', 'BNIA'));
+        $this->assertTrue($banks->contains('code', 'BSYI'));
     }
 
     /**

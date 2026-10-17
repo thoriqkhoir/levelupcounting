@@ -8,17 +8,19 @@ interface BankLogoProps {
 
 const BANK_IMAGE_MAP: Record<string, string> = {
     QRIS: '/assets/images/banks/qris.webp',
-    BBBA: '/assets/images/banks/bca.webp',
-    BCA: '/assets/images/banks/bca.webp',
     BMRI: '/assets/images/banks/mandiri.webp',
     MANDIRI: '/assets/images/banks/mandiri.webp',
+    BNIA: '/assets/images/banks/cimb.svg',
+    CIMB: '/assets/images/banks/cimb.svg',
+    CIMB_NIAGA: '/assets/images/banks/cimb.svg',
+    BBBA: '/assets/images/banks/permata.webp',
+    PERMATA: '/assets/images/banks/permata.webp',
+    BNIN: '/assets/images/banks/permata.webp',
     BRIN: '/assets/images/banks/bri.png',
     BRI: '/assets/images/banks/bri.png',
     BSYI: '/assets/images/banks/bsi.webp',
     BSI: '/assets/images/banks/bsi.webp',
-    BNIN: '/assets/images/banks/permata.webp',
-    PERMATA: '/assets/images/banks/permata.webp',
-    CIMB: '/assets/images/banks/cimb.svg',
+    BCA: '/assets/images/banks/bca.webp',
 };
 
 export default function BankLogo({ bankCode, className = '', size = 'md' }: BankLogoProps) {

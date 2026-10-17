@@ -1822,12 +1822,10 @@ class InvoiceController extends Controller
     {
         $defaultBanks = [
             ['code' => 'BMRI', 'name' => 'Bank Mandiri', 'bank_code' => 'BMRI', 'bank_name' => 'Bank Mandiri', 'va_type' => ['DYNAMIC', 'STATIC']],
-            ['code' => 'BRIN', 'name' => 'Bank BRI', 'bank_code' => 'BRIN', 'bank_name' => 'Bank BRI', 'va_type' => ['DYNAMIC', 'STATIC']],
-            ['code' => 'BNIA', 'name' => 'Bank BNI', 'bank_code' => 'BNIA', 'bank_name' => 'Bank BNI', 'va_type' => ['DYNAMIC', 'STATIC']],
-            ['code' => 'BBBA', 'name' => 'Bank BCA', 'bank_code' => 'BBBA', 'bank_name' => 'Bank BCA', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BNIA', 'name' => 'Bank CIMB Niaga', 'bank_code' => 'BNIA', 'bank_name' => 'Bank CIMB Niaga', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BBBA', 'name' => 'Bank Permata', 'bank_code' => 'BBBA', 'bank_name' => 'Bank Permata', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BRIN', 'name' => 'Bank Rakyat Indonesia (BRI)', 'bank_code' => 'BRIN', 'bank_name' => 'Bank Rakyat Indonesia (BRI)', 'va_type' => ['DYNAMIC', 'STATIC']],
             ['code' => 'BSYI', 'name' => 'Bank Syariah Indonesia (BSI)', 'bank_code' => 'BSYI', 'bank_name' => 'Bank Syariah Indonesia (BSI)', 'va_type' => ['DYNAMIC', 'STATIC']],
-            ['code' => 'BDIN', 'name' => 'Bank Danamon', 'bank_code' => 'BDIN', 'bank_name' => 'Bank Danamon', 'va_type' => ['DYNAMIC', 'STATIC']],
-            ['code' => 'BNIN', 'name' => 'Bank Permata', 'bank_code' => 'BNIN', 'bank_name' => 'Bank Permata', 'va_type' => ['DYNAMIC', 'STATIC']],
         ];
 
         return Cache::remember('manjo_va_bank_list', 3600, function () use ($defaultBanks) {
@@ -1867,7 +1865,7 @@ class InvoiceController extends Controller
     public function getValidPaymentChannelCodes(): array
     {
         $supported = collect($this->getSupportedVaBanks())->pluck('bank_code')->map(fn($c) => strtoupper($c))->all();
-        $aliases = ['MANDIRI', 'BRI', 'BNI', 'BCA', 'BSI', 'DANAMON', 'PERMATA'];
+        $aliases = ['MANDIRI', 'CIMB', 'CIMB_NIAGA', 'PERMATA', 'BRI', 'BSI', 'BCA', 'BNI'];
         return array_values(array_unique(array_merge($supported, $aliases)));
     }
 

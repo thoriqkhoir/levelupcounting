@@ -166,19 +166,18 @@ export default function CheckoutPending({ invoice }: PendingProps) {
 
     const bankNameMap: Record<string, string> = {
         BMRI: 'Bank Mandiri',
-        BRIN: 'Bank BRI',
-        BNIA: 'Bank BNI',
-        BBBA: 'Bank BCA',
+        BNIA: 'Bank CIMB Niaga',
+        BBBA: 'Bank Permata',
+        BRIN: 'Bank Rakyat Indonesia (BRI)',
         BSYI: 'Bank Syariah Indonesia (BSI)',
-        BDIN: 'Bank Danamon',
-        BNIN: 'Bank Permata',
         MANDIRI: 'Bank Mandiri',
-        BRI: 'Bank BRI',
-        BNI: 'Bank BNI',
-        BCA: 'Bank BCA',
-        BSI: 'Bank Syariah Indonesia (BSI)',
-        DANAMON: 'Bank Danamon',
+        CIMB: 'Bank CIMB Niaga',
+        CIMB_NIAGA: 'Bank CIMB Niaga',
         PERMATA: 'Bank Permata',
+        BRI: 'Bank Rakyat Indonesia (BRI)',
+        BSI: 'Bank Syariah Indonesia (BSI)',
+        BCA: 'Bank BCA',
+        BNI: 'Bank BNI',
     };
 
     const channelUpper = (invoice.payment_channel || '').toUpperCase();
