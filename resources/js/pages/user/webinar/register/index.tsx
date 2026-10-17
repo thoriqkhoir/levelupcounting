@@ -1,4 +1,5 @@
 import InstallmentOptions, { ActiveInstallmentData, InstallmentTermOption } from '@/components/installment-options';
+import PaymentMethodSelector from '@/components/payment-method-selector';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -87,6 +88,7 @@ interface InvoiceData {
     discount_amount: number;
     nett_amount: number;
     total_amount: number;
+    payment_channel?: string;
     discount_code_id?: string;
     discount_code_amount?: number;
     referral_code?: string;
@@ -188,6 +190,7 @@ export default function RegisterWebinar({
     const discountAmount = discountData?.discount_amount || 0;
     const finalWebinarPrice = basePrice - discountAmount;
 
+    const [selectedChannel, setSelectedChannel] = useState<string>('qris');
     const adminFee = isFree ? 0 : 5000;
     const totalPrice = isFree ? 0 : finalWebinarPrice + adminFee;
 
@@ -362,6 +365,7 @@ export default function RegisterWebinar({
             discount_amount: originalDiscountAmount + promoDiscountAmount,
             nett_amount: webinar.price - promoDiscountAmount,
             total_amount: webinar.price - promoDiscountAmount + 5000,
+            payment_channel: selectedChannel,
         };
 
         if (activeDiscount?.valid && codeType === 'voucher') {
@@ -1438,6 +1442,14 @@ export default function RegisterWebinar({
                                                                 </p>
                                                             )}
                                                         </div>
+                                                    </div>
+
+                                                    {/* Payment Method Selector */}
+                                                    <div className="pt-2">
+                                                        <PaymentMethodSelector
+                                                            selectedChannel={selectedChannel}
+                                                            onChannelChange={setSelectedChannel}
+                                                        />
                                                     </div>
 
                                                     {discountData?.valid && (

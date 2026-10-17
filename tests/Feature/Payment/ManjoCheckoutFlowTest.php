@@ -1259,6 +1259,157 @@ class ManjoCheckoutFlowTest extends TestCase
         $this->assertEquals('failed', $failedInvoice->status);
         $this->assertEquals($initialPoints, $this->user->fresh()->point_balance);
     }
+
+    /**
+     * 25. Test endpoint /payment/va-banks returns list of supported banks
+     */
+    public function test_get_va_banks_endpoint_returns_supported_banks_list()
+    {
+        $response = $this->getJson(route('payment.va-banks'));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+        ]);
+        $response->assertJsonStructure([
+            'success',
+            'banks' => [
+                '*' => ['code', 'name', 'bank_code', 'bank_name', 'va_type']
+            ]
+        ]);
+
+        $banks = collect($response->json('banks'));
+        $this->assertTrue($banks->contains('code', 'BMRI'));
+        $this->assertTrue($banks->contains('code', 'BRIN'));
+        $this->assertTrue($banks->contains('code', 'BBBA'));
+    }
+
+    /**
+     * 26. Test checkout with valid SNAP VA bank code (BMRI) succeeds and persists channel
+     */
+    public function test_checkout_with_valid_snap_va_bank_code_succeeds_and_persists_channel()
+    {
+        $this->fakeVaSuccess('TRX-VA-BMRI-123', '880812345678', 'BMRI', '2026-10-18 10:00:00');
+
+        $response = $this->actingAs($this->user)->postJson(route('invoice.store'), [
+            'type' => 'course',
+            'id' => $this->course->id,
+            'discount_amount' => 50000,
+            'nett_amount' => 100000,
+            'total_amount' => 105000,
+            'payment_channel' => 'BMRI',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'payment_method' => 'manjo',
+            'payment_channel' => 'BMRI',
+            'status' => 'pending',
+        ]);
+
+        $invoice = Invoice::findOrFail($response->json('invoice_id'));
+        $this->assertEquals('BMRI', $invoice->payment_channel);
+        $this->assertEquals('TRX-VA-BMRI-123', $invoice->payment_reference);
+        $this->assertEquals('880812345678', $invoice->va_number);
+    }
+
+    /**
+     * 27. Test checkout with unsupported/invalid payment channel returns 422 and does not call gateway
+     */
+    public function test_checkout_with_invalid_payment_channel_returns_422_and_does_not_call_gateway()
+    {
+        Cache::put('manjo_va_bank_list', [
+            ['bank_code' => 'BMRI', 'bank_name' => 'Bank Mandiri', 'va_type' => ['DYNAMIC', 'STATIC']],
+        ], 3600);
+
+        Http::fake();
+
+        $response = $this->actingAs($this->user)->postJson(route('invoice.store'), [
+            'type' => 'course',
+            'id' => $this->course->id,
+            'discount_amount' => 50000,
+            'nett_amount' => 100000,
+            'total_amount' => 105000,
+            'payment_channel' => 'UNSUPPORTED_CRYPTO',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'success' => false,
+        ]);
+        $this->assertStringContainsString('tidak didukung', $response->json('message'));
+
+        // Gateway must NEVER be called
+        Http::assertNothingSent();
+    }
+
+    /**
+     * 28. Test page refresh, QR image requests, and status checks reuse cache and NEVER create gateway calls
+     */
+    public function test_page_refresh_and_status_checks_reuse_cache_and_never_call_gateway_again()
+    {
+        $expectedQr = '0002010102122658_MANJO_PAGE_REFRESH_TEST_QR';
+        $this->fakeQrisSuccess('REF-QRIS-REFRESH', $expectedQr, 900);
+
+        // 1. Initial checkout generates QRIS and caches it
+        $createResponse = $this->actingAs($this->user)->postJson(route('invoice.store'), [
+            'type' => 'course',
+            'id' => $this->course->id,
+            'discount_amount' => 50000,
+            'nett_amount' => 100000,
+            'total_amount' => 105000,
+            'payment_channel' => 'qris',
+        ]);
+
+        $createResponse->assertStatus(200);
+        $invoiceId = $createResponse->json('invoice_id');
+
+        // Reset Http fake recorder to verify subsequent actions do zero network requests to gateway
+        Http::fake();
+
+        // 2. Page refresh: User loads pending payment page GET /invoice/{id}
+        $refreshResponse = $this->actingAs($this->user)->get(route('invoice.show', $invoiceId));
+        $refreshResponse->assertStatus(200);
+
+        // 3. User browser fetches QR image GET /invoice/{id}/qr-image
+        $qrImageResponse = $this->actingAs($this->user)->get(route('invoice.qris.image', $invoiceId));
+        $qrImageResponse->assertStatus(200);
+        $qrImageResponse->assertHeader('Content-Type', 'image/png');
+
+        // 4. Repeated page reloads
+        $refreshAgain = $this->actingAs($this->user)->get(route('invoice.show', $invoiceId));
+        $refreshAgain->assertStatus(200);
+
+        // Gateway must NEVER be contacted during reloads / image views
+        Http::assertNothingSent();
+    }
+
+    /**
+     * 29. Test invoice show endpoint renders pending page with correct status for failed or expired invoice
+     */
+    public function test_invoice_show_renders_pending_page_for_failed_invoice()
+    {
+        $failedInvoice = Invoice::create([
+            'user_id' => $this->user->id,
+            'invoice_code' => 'LUC-FAIL-001',
+            'amount' => 105000,
+            'nett_amount' => 100000,
+            'status' => 'failed',
+            'payment_method' => 'manjo',
+            'payment_channel' => 'qris',
+            'expires_at' => now()->subHour(),
+        ]);
+
+        $response = $this->actingAs($this->user)->get(route('invoice.show', $failedInvoice->id));
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('user/checkout/pending')
+            ->where('invoice.id', $failedInvoice->id)
+            ->where('invoice.status', 'failed')
+        );
+    }
 }
+
 
 

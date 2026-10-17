@@ -1,4 +1,5 @@
 import InstallmentOptions, { ActiveInstallmentData, InstallmentTermOption } from '@/components/installment-options';
+import PaymentMethodSelector from '@/components/payment-method-selector';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -119,7 +120,7 @@ interface InvoiceData {
     discount_amount: number;
     nett_amount: number;
     total_amount: number;
-    // payment_channel?: string;
+    payment_channel?: string;
     discount_code_id?: string;
     discount_code_amount?: number;
     referral_code?: string;
@@ -200,7 +201,7 @@ export default function CheckoutCourse({
 
     const totalModules = course.modules?.length || 0;
     const totalLessons = course.modules?.reduce((acc, module) => acc + (module.lessons?.length || 0), 0) || 0;
-    // const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(channels.length > 0 ? channels[0] : null);
+    const [selectedChannel, setSelectedChannel] = useState<string>('qris');
 
     const isFree = course.price === 0;
 
@@ -400,6 +401,7 @@ export default function CheckoutCourse({
                 discount_amount: originalDiscountAmount + promoDiscountAmount,
                 nett_amount: finalCoursePrice,
                 total_amount: totalPrice,
+                payment_channel: selectedChannel,
             };
 
             if (discountData?.valid && codeType === 'voucher') {
@@ -1187,6 +1189,14 @@ export default function CheckoutCourse({
                                                         </div>
                                                     </div>
 
+                                                    {/* Payment Method Selector */}
+                                                    <div className="mb-6">
+                                                        <PaymentMethodSelector
+                                                            selectedChannel={selectedChannel}
+                                                            onChannelChange={setSelectedChannel}
+                                                        />
+                                                    </div>
+
                                                     {/* Price Breakdown */}
                                                     <div className="mb-6 space-y-3 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">
                                                         {course.strikethrough_price > 0 && (
@@ -1456,6 +1466,14 @@ export default function CheckoutCourse({
                                                             </motion.div>
                                                         )}
                                                     </div>
+                                                </div>
+
+                                                {/* Payment Method Selector */}
+                                                <div className="mb-6">
+                                                    <PaymentMethodSelector
+                                                        selectedChannel={selectedChannel}
+                                                        onChannelChange={setSelectedChannel}
+                                                    />
                                                 </div>
 
                                                 {/* Price Breakdown */}

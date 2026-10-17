@@ -1,4 +1,5 @@
 import InstallmentOptions, { ActiveInstallmentData, InstallmentTermOption } from '@/components/installment-options';
+import PaymentMethodSelector from '@/components/payment-method-selector';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -124,7 +125,7 @@ interface InvoiceData {
     discount_amount: number;
     nett_amount: number;
     total_amount: number;
-    // payment_channel?: string;
+    payment_channel?: string;
     discount_code_id?: string;
     discount_code_amount?: number;
     referral_code?: string;
@@ -213,7 +214,8 @@ export default function RegisterBootcamp({
     //     return flatFee + percentFee;
     // };
 
-    const adminFee = isFree ? 0 : 5000; //calculateAdminFee(selectedChannel);
+    const [selectedChannel, setSelectedChannel] = useState<string>('qris');
+    const adminFee = isFree ? 0 : 5000;
     const totalPrice = isFree ? 0 : finalBootcampPrice + adminFee;
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         name: '',
@@ -534,6 +536,7 @@ export default function RegisterBootcamp({
             discount_amount: originalDiscountAmount + promoDiscountAmount,
             nett_amount: finalBootcampPrice,
             total_amount: totalPrice,
+            payment_channel: selectedChannel,
         };
 
         if (discountData?.valid && codeType === 'voucher') {
@@ -694,6 +697,7 @@ export default function RegisterBootcamp({
                             discount_amount: originalDiscountAmount + promoDiscountAmount,
                             nett_amount: finalPrice,
                             total_amount: totalAmount,
+                            payment_channel: checkoutData.payment_channel || selectedChannel || 'qris',
                         };
 
                         if (checkoutData.discountData?.valid) {
@@ -1665,6 +1669,14 @@ export default function RegisterBootcamp({
                                                         </div>
                                                     </div>
 
+                                                    {/* Payment Method Selector */}
+                                                    <div className="mb-6">
+                                                        <PaymentMethodSelector
+                                                            selectedChannel={selectedChannel}
+                                                            onChannelChange={setSelectedChannel}
+                                                        />
+                                                    </div>
+
                                                     {/* Price Breakdown */}
                                                     <div className="mb-6 space-y-3 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">
                                                         {bootcamp.strikethrough_price > 0 && (
@@ -1958,6 +1970,14 @@ export default function RegisterBootcamp({
                                                     </div>
                                                 </div>
 
+
+                                                {/* Payment Method Selector */}
+                                                <div className="mb-6">
+                                                    <PaymentMethodSelector
+                                                        selectedChannel={selectedChannel}
+                                                        onChannelChange={setSelectedChannel}
+                                                    />
+                                                </div>
 
                                                 {/* Price Breakdown */}
                                                 <div className="mb-6 space-y-3 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">

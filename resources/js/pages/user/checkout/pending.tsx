@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import UserLayout from '@/layouts/user-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
@@ -12,9 +13,12 @@ import {
     CheckCircle2,
     Clock,
     Copy,
+    Download,
+    ExternalLink,
     Hourglass,
     QrCode,
     RefreshCw,
+    ShieldCheck,
     XCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -42,7 +46,7 @@ interface Invoice {
     amount: number;
     nett_amount: number;
     transaction_fee: number;
-    status: 'pending' | 'paid' | 'failed' | 'installment_pending';
+    status: 'pending' | 'paid' | 'failed' | 'installment_pending' | string;
     payment_method?: string;
     payment_channel?: string;
     payment_reference?: string;
@@ -50,6 +54,7 @@ interface Invoice {
     qr_code_url?: string;
     created_at?: string;
     expires_at?: string;
+    paid_at?: string;
     course_items?: CourseItem[];
     bootcamp_items?: BootcampItem[];
     webinar_items?: WebinarItem[];
@@ -71,7 +76,7 @@ export default function CheckoutPending({ invoice }: PendingProps) {
 
     // Hitung countdown expiry
     useEffect(() => {
-        if (!invoice.expires_at) return;
+        if (!invoice.expires_at || invoice.status !== 'pending') return;
 
         const updateTimer = () => {
             const diff = new Date(invoice.expires_at!).getTime() - new Date().getTime();
@@ -92,10 +97,14 @@ export default function CheckoutPending({ invoice }: PendingProps) {
         updateTimer();
         const interval = setInterval(updateTimer, 1000);
         return () => clearInterval(interval);
-    }, [invoice.expires_at]);
+    }, [invoice.expires_at, invoice.status]);
 
-    const isQris = invoice.payment_channel === 'qris';
-    const isVa = !isQris && !!invoice.va_number;
+    const isPaid = invoice.status === 'paid';
+    const isFailed = invoice.status === 'failed';
+    const isOverdue = isExpired && invoice.status === 'pending';
+
+    const isQris = (invoice.payment_channel || '').toLowerCase() === 'qris';
+    const isVa = !isQris;
 
     const copyToClipboard = (text: string, type: 'va' | 'amount') => {
         navigator.clipboard.writeText(text);
@@ -134,18 +143,24 @@ export default function CheckoutPending({ invoice }: PendingProps) {
         }
     };
 
-    // Nama produk
+    // Nama produk & link akses
     let productTitle = 'Tagihan Pembayaran';
+    let productLink = '/profile/my-courses';
     if (invoice.course_items && invoice.course_items.length > 0) {
         productTitle = invoice.course_items[0].course.title;
+        productLink = `/profile/my-courses/${invoice.course_items[0].course.slug}`;
     } else if (invoice.bootcamp_items && invoice.bootcamp_items.length > 0) {
         productTitle = invoice.bootcamp_items[0].bootcamp.title;
+        productLink = `/profile/my-bootcamps/${invoice.bootcamp_items[0].bootcamp.slug}`;
     } else if (invoice.webinar_items && invoice.webinar_items.length > 0) {
         productTitle = invoice.webinar_items[0].webinar.title;
+        productLink = `/profile/my-webinars/${invoice.webinar_items[0].webinar.slug}`;
     } else if (invoice.certification_program_items && invoice.certification_program_items.length > 0) {
         productTitle = invoice.certification_program_items[0].certification_program.title;
+        productLink = `/profile/my-certifications`;
     } else if (invoice.bundle_enrollments && invoice.bundle_enrollments.length > 0) {
         productTitle = invoice.bundle_enrollments[0].bundle.title;
+        productLink = `/profile/my-courses`;
     }
 
     const bankNameMap: Record<string, string> = {
@@ -156,14 +171,22 @@ export default function CheckoutPending({ invoice }: PendingProps) {
         BSYI: 'Bank Syariah Indonesia (BSI)',
         BDIN: 'Bank Danamon',
         BNIN: 'Bank Permata',
+        MANDIRI: 'Bank Mandiri',
+        BRI: 'Bank BRI',
+        BNI: 'Bank BNI',
+        BCA: 'Bank BCA',
+        BSI: 'Bank Syariah Indonesia (BSI)',
+        DANAMON: 'Bank Danamon',
+        PERMATA: 'Bank Permata',
     };
 
-    const bankName = bankNameMap[invoice.payment_channel || ''] || invoice.payment_channel || 'Virtual Account';
+    const channelUpper = (invoice.payment_channel || '').toUpperCase();
+    const bankName = bankNameMap[channelUpper] || invoice.payment_channel || 'Virtual Account';
 
     return (
         <div className="relative min-h-screen bg-background">
             <UserLayout>
-                <Head title={`Menunggu Pembayaran - ${invoice.invoice_code}`} />
+                <Head title={`${isPaid ? 'Pembayaran Berhasil' : isFailed ? 'Pembayaran Gagal' : 'Menunggu Pembayaran'} - ${invoice.invoice_code}`} />
 
                 <div className="mx-auto max-w-4xl px-4 py-12">
                     {/* Status Header */}
@@ -172,12 +195,17 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                         animate={{ opacity: 1, y: 0 }}
                         className="mb-8 text-center"
                     >
-                        {invoice.status === 'failed' ? (
+                        {isPaid ? (
+                            <div className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-semibold text-green-700 dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-300">
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                Pembayaran Berhasil Terverifikasi
+                            </div>
+                        ) : isFailed ? (
                             <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-sm font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
                                 <XCircle className="h-4 w-4" />
                                 Transaksi Dibatalkan / Gagal
                             </div>
-                        ) : isExpired ? (
+                        ) : isOverdue ? (
                             <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-semibold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
                                 <AlertCircle className="h-4 w-4" />
                                 Masa Pembayaran Telah Habis
@@ -190,8 +218,12 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                         )}
 
                         <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-                            {invoice.status === 'failed'
+                            {isPaid
+                                ? 'Pembayaran Berhasil Diterima'
+                                : isFailed
                                 ? 'Pembayaran Tidak Terselesaikan'
+                                : isOverdue
+                                ? 'Batas Waktu Pembayaran Berakhir'
                                 : 'Selesaikan Pembayaran Anda'}
                         </h1>
                         <p className="mt-2 text-sm text-muted-foreground">
@@ -202,42 +234,101 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                     <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                         {/* Main Payment Section */}
                         <div className="md:col-span-2 space-y-6">
-                            {/* QRIS Card */}
-                            {isQris && (
+                            {/* State: Verified Paid */}
+                            {isPaid && (
+                                <Card className="overflow-hidden border border-green-200 bg-card p-6 shadow-md dark:border-green-900/60">
+                                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-950/60 dark:text-green-400">
+                                            <ShieldCheck className="h-10 w-10" />
+                                        </div>
+                                        <h3 className="mt-4 text-xl font-bold text-foreground">Transaksi Sukses!</h3>
+                                        <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                                            Pembayaran untuk tagihan <span className="font-semibold text-foreground">{invoice.invoice_code}</span> telah diverifikasi secara otomatis oleh sistem.
+                                        </p>
+
+                                        <div className="mt-6 w-full max-w-sm rounded-xl border bg-muted/30 p-4 text-left text-xs space-y-2">
+                                            <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Metode Pembayaran:</span>
+                                                <span className="font-semibold text-foreground uppercase">{isQris ? 'QRIS Dynamic' : `VA ${bankName}`}</span>
+                                            </div>
+                                            {invoice.payment_reference && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-muted-foreground">Nomor Referensi:</span>
+                                                    <span className="font-mono font-semibold text-foreground">{invoice.payment_reference}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between pt-1 border-t">
+                                                <span className="text-muted-foreground">Total Nominal:</span>
+                                                <span className="font-bold text-foreground text-sm text-green-600">
+                                                    Rp {(invoice.amount || 0).toLocaleString('id-ID')}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-6 flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+                                            <Button asChild size="lg" className="w-full font-bold gap-2 bg-green-600 hover:bg-green-700 text-white">
+                                                <Link href={productLink}>
+                                                    Akses Materi Sekarang
+                                                    <ArrowRight className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Card>
+                            )}
+
+                            {/* State: QRIS Card */}
+                            {!isPaid && isQris && (
                                 <Card className="overflow-hidden border border-border/60 bg-card p-6 shadow-md">
                                     <div className="flex items-center justify-between border-b pb-4">
                                         <div className="flex items-center gap-2">
-                                            <QrCode className="h-6 w-6 text-primary" />
+                                            <QrCode className="h-6 w-6 text-orange-600" />
                                             <div>
                                                 <h3 className="font-bold text-foreground">QRIS Dynamic (SNAP BI)</h3>
                                                 <p className="text-xs text-muted-foreground">Merchant: Level Up Counting</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-600">
-                                            <Clock className="h-4 w-4" />
-                                            <span>{timeLeft || 'Memuat timer...'}</span>
-                                        </div>
+                                        {!isFailed && !isOverdue && (
+                                            <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-600">
+                                                <Clock className="h-4 w-4" />
+                                                <span>{timeLeft || 'Memuat timer...'}</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* QR Image Display */}
                                     <div className="my-6 flex flex-col items-center justify-center">
-                                        <div className="rounded-2xl border-2 border-border/80 bg-white p-4 shadow-sm dark:bg-white">
+                                        <div className="relative rounded-2xl border-2 border-border/80 bg-white p-4 shadow-sm">
                                             {invoice.qr_code_url ? (
                                                 <img
                                                     src={invoice.qr_code_url}
                                                     alt="QRIS Code"
-                                                    className={`h-64 w-64 object-contain ${isExpired ? 'opacity-30 blur-[2px]' : ''}`}
+                                                    className={`h-64 w-64 object-contain ${
+                                                        isOverdue || isFailed ? 'opacity-25 grayscale blur-[2px]' : ''
+                                                    }`}
                                                 />
                                             ) : (
                                                 <div className="flex h-64 w-64 items-center justify-center text-center text-sm text-muted-foreground">
                                                     Memuat QRIS...
                                                 </div>
                                             )}
+
+                                            {(isOverdue || isFailed) && (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-background/80 p-4 text-center">
+                                                    <XCircle className="h-10 w-10 text-red-600" />
+                                                    <p className="mt-2 text-sm font-bold text-red-600">
+                                                        {isFailed ? 'QRIS Dibatalkan' : 'QRIS Kedaluwarsa'}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-muted-foreground">
+                                                        Kode QR tidak dapat digunakan lagi.
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        {isExpired ? (
-                                            <p className="mt-3 text-sm font-semibold text-red-600">
-                                                QRIS telah kedaluwarsa. Silakan batalkan transaksi untuk membuat baru.
+                                        {isOverdue || isFailed ? (
+                                            <p className="mt-3 text-center text-xs font-semibold text-red-600">
+                                                Transaksi ini telah kedaluwarsa atau dibatalkan. Silakan batalkan transaksi untuk membuat pesanan baru.
                                             </p>
                                         ) : (
                                             <p className="mt-3 text-center text-xs text-muted-foreground">
@@ -261,61 +352,75 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                                 </Card>
                             )}
 
-                            {/* Virtual Account Card */}
-                            {isVa && (
+                            {/* State: Virtual Account Card */}
+                            {!isPaid && isVa && (
                                 <Card className="overflow-hidden border border-border/60 bg-card p-6 shadow-md">
                                     <div className="flex items-center justify-between border-b pb-4">
                                         <div className="flex items-center gap-2">
-                                            <Building2 className="h-6 w-6 text-primary" />
+                                            <Building2 className="h-6 w-6 text-orange-600" />
                                             <div>
                                                 <h3 className="font-bold text-foreground">Virtual Account {bankName}</h3>
                                                 <p className="text-xs text-muted-foreground">Transfer Otomatis Terverifikasi</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-600">
-                                            <Clock className="h-4 w-4" />
-                                            <span>{timeLeft || 'Memuat timer...'}</span>
-                                        </div>
+                                        {!isFailed && !isOverdue && (
+                                            <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-600">
+                                                <Clock className="h-4 w-4" />
+                                                <span>{timeLeft || 'Memuat timer...'}</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* VA Number Section */}
-                                    <div className="my-6 rounded-2xl bg-muted/30 p-6 text-center border">
+                                    <div className={`my-6 rounded-2xl p-6 text-center border ${
+                                        isOverdue || isFailed ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900' : 'bg-muted/30'
+                                    }`}>
                                         <span className="text-xs uppercase tracking-wider text-muted-foreground">
                                             Nomor Rekening Virtual Account
                                         </span>
                                         <div className="mt-2 flex items-center justify-center gap-3">
-                                            <span className="font-mono text-2xl font-black tracking-wider text-foreground sm:text-3xl">
-                                                {invoice.va_number}
+                                            <span className={`font-mono text-2xl font-black tracking-wider sm:text-3xl ${
+                                                isOverdue || isFailed ? 'text-muted-foreground line-through' : 'text-foreground'
+                                            }`}>
+                                                {invoice.va_number || 'Tidak Tersedia'}
                                             </span>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => copyToClipboard(invoice.va_number!, 'va')}
-                                                className="h-9 px-3 gap-1.5"
-                                            >
-                                                {copiedVa ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                                                <span>{copiedVa ? 'Disalin' : 'Salin'}</span>
-                                            </Button>
+                                            {invoice.va_number && !isOverdue && !isFailed && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => copyToClipboard(invoice.va_number!, 'va')}
+                                                    className="h-9 px-3 gap-1.5"
+                                                >
+                                                    {copiedVa ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                                                    <span>{copiedVa ? 'Disalin' : 'Salin'}</span>
+                                                </Button>
+                                            )}
                                         </div>
+
+                                        {(isOverdue || isFailed) && (
+                                            <p className="mt-2 text-xs font-semibold text-red-600">
+                                                Nomor Virtual Account ini telah tidak aktif karena transaksi kedaluwarsa atau dibatalkan.
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* VA Instructions */}
                                     <div className="rounded-xl bg-muted/40 p-4 text-xs space-y-2 text-muted-foreground">
-                                        <p className="font-semibold text-foreground">Cara Pembayaran Virtual Account:</p>
+                                        <p className="font-semibold text-foreground">Cara Pembayaran Virtual Account {bankName}:</p>
                                         <ol className="list-inside list-decimal space-y-1">
                                             <li>Buka aplikasi m-Banking atau kunjungi ATM terdekat.</li>
-                                            <li>Pilih menu <strong>Transfer / Bayar &gt; Virtual Account</strong>.</li>
-                                            <li>Masukkan nomor Virtual Account di atas.</li>
-                                            <li>Periksa rincian nama dan jumlah tagihan yang tertera di layar.</li>
-                                            <li>Konfirmasi dan selesaikan pembayaran.</li>
+                                            <li>Pilih menu <strong>Transfer / Pembayaran &gt; Virtual Account</strong>.</li>
+                                            <li>Masukkan nomor Virtual Account: <strong className="font-mono">{invoice.va_number}</strong>.</li>
+                                            <li>Periksa nama tagihan dan pastikan nominal tepat sebesar <strong>Rp {(invoice.amount || 0).toLocaleString('id-ID')}</strong>.</li>
+                                            <li>Konfirmasi dan selesaikan pembayaran. Transaksi akan terverifikasi secara instan.</li>
                                         </ol>
                                     </div>
                                 </Card>
                             )}
                         </div>
 
-                        {/* Order Summary & Actions */}
+                        {/* Order Summary & Actions Sidebar */}
                         <div className="space-y-6">
                             <Card className="border border-border/60 bg-card p-6 shadow-md">
                                 <h3 className="font-bold text-foreground border-b pb-3">Ringkasan Tagihan</h3>
@@ -326,13 +431,18 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                                         <p className="font-semibold text-foreground line-clamp-2">{productTitle}</p>
                                     </div>
 
-                                    <div className="flex justify-between text-muted-foreground pt-2 border-t">
+                                    <div className="flex justify-between text-muted-foreground pt-2 border-t text-xs">
+                                        <span>Metode Pembayaran</span>
+                                        <span className="font-medium text-foreground uppercase">{isQris ? 'QRIS' : `VA ${bankName}`}</span>
+                                    </div>
+
+                                    <div className="flex justify-between text-muted-foreground text-xs">
                                         <span>Harga Produk</span>
                                         <span>Rp {(invoice.nett_amount || 0).toLocaleString('id-ID')}</span>
                                     </div>
 
                                     {invoice.transaction_fee > 0 && (
-                                        <div className="flex justify-between text-muted-foreground">
+                                        <div className="flex justify-between text-muted-foreground text-xs">
                                             <span>Biaya Layanan</span>
                                             <span>Rp {invoice.transaction_fee.toLocaleString('id-ID')}</span>
                                         </div>
@@ -341,34 +451,45 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                                     <div className="flex justify-between items-center pt-3 border-t font-bold text-foreground">
                                         <span>Total Pembayaran</span>
                                         <div className="text-right">
-                                            <span className="text-lg text-primary">
+                                            <span className="text-lg text-orange-600">
                                                 Rp {(invoice.amount || 0).toLocaleString('id-ID')}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full text-xs text-muted-foreground hover:text-foreground"
-                                        onClick={() => copyToClipboard(invoice.amount.toString(), 'amount')}
-                                    >
-                                        {copiedAmount ? <Check className="mr-1 h-3 w-3 text-green-600" /> : <Copy className="mr-1 h-3 w-3" />}
-                                        {copiedAmount ? 'Nominal Disalin' : 'Salin Nominal Tepat'}
-                                    </Button>
+                                    {!isPaid && !isOverdue && !isFailed && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full text-xs text-muted-foreground hover:text-foreground"
+                                            onClick={() => copyToClipboard(invoice.amount.toString(), 'amount')}
+                                        >
+                                            {copiedAmount ? <Check className="mr-1 h-3 w-3 text-green-600" /> : <Copy className="mr-1 h-3 w-3" />}
+                                            {copiedAmount ? 'Nominal Disalin' : 'Salin Nominal Tepat'}
+                                        </Button>
+                                    )}
                                 </div>
 
                                 <div className="mt-6 space-y-2 pt-4 border-t">
-                                    <Button
-                                        type="button"
-                                        className="w-full font-semibold gap-2"
-                                        onClick={handleCheckStatus}
-                                        disabled={isChecking}
-                                    >
-                                        <RefreshCw className={`h-4 w-4 ${isChecking ? 'animate-spin' : ''}`} />
-                                        Cek Status Pembayaran
-                                    </Button>
+                                    {isPaid ? (
+                                        <Button asChild className="w-full font-semibold gap-2 bg-green-600 hover:bg-green-700 text-white">
+                                            <Link href={productLink}>
+                                                Buka Materi Belajar
+                                                <ArrowRight className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="button"
+                                            className="w-full font-semibold gap-2 bg-orange-600 hover:bg-orange-700 text-white"
+                                            onClick={handleCheckStatus}
+                                            disabled={isChecking}
+                                        >
+                                            <RefreshCw className={`h-4 w-4 ${isChecking ? 'animate-spin' : ''}`} />
+                                            {isChecking ? 'Memeriksa...' : 'Cek Status Pembayaran'}
+                                        </Button>
+                                    )}
 
                                     {invoice.status === 'pending' && (
                                         <Button
@@ -379,6 +500,12 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                                             disabled={isCancelling}
                                         >
                                             {isCancelling ? 'Membatalkan...' : 'Batalkan Tagihan'}
+                                        </Button>
+                                    )}
+
+                                    {(isFailed || isOverdue) && (
+                                        <Button asChild variant="outline" className="w-full">
+                                            <Link href="/courses">Buat Pesanan Baru</Link>
                                         </Button>
                                     )}
 

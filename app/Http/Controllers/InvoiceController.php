@@ -265,7 +265,20 @@ class InvoiceController extends Controller
         $userId = Auth::id();
         $type = $request->input('type', 'course');
         $itemId = $request->input('id');
-        $paymentChannel = $request->input('payment_channel', 'qris') ?: 'qris';
+
+        $rawChannel = trim((string) $request->input('payment_channel', 'qris'));
+        if (empty($rawChannel) || strtolower($rawChannel) === 'qris') {
+            $paymentChannel = 'qris';
+        } else {
+            $validCodes = $this->getValidPaymentChannelCodes();
+            if (!in_array(strtoupper($rawChannel), $validCodes, true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Metode atau bank pembayaran '{$rawChannel}' tidak didukung.",
+                ], 422);
+            }
+            $paymentChannel = $rawChannel;
+        }
 
         // 1. Lock untuk mencegah double-submit / race condition (SEC-01)
         $lockTtl = max(45, (int) config('manjo.timeout', 30) + 15);
@@ -598,7 +611,7 @@ class InvoiceController extends Controller
                         'customerName' => Auth::user()->name,
                         'customerEmail' => Auth::user()->email,
                         'customerPhone' => Auth::user()->phone_number ?? '',
-                        'bankCode' => $paymentChannel,
+                        'bankCode' => strtoupper($paymentChannel),
                     ]);
                 }
             } catch (\Throwable $gatewayError) {
@@ -738,7 +751,20 @@ class InvoiceController extends Controller
     {
         $userId = Auth::id();
         $bundleId = $request->input('bundle_id');
-        $paymentChannel = $request->input('payment_channel', 'qris') ?: 'qris';
+
+        $rawChannel = trim((string) $request->input('payment_channel', 'qris'));
+        if (empty($rawChannel) || strtolower($rawChannel) === 'qris') {
+            $paymentChannel = 'qris';
+        } else {
+            $validCodes = $this->getValidPaymentChannelCodes();
+            if (!in_array(strtoupper($rawChannel), $validCodes, true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Metode atau bank pembayaran '{$rawChannel}' tidak didukung.",
+                ], 422);
+            }
+            $paymentChannel = $rawChannel;
+        }
 
         // 1. Lock untuk mencegah double-submit / race condition (SEC-01)
         $lockTtl = max(45, (int) config('manjo.timeout', 30) + 15);
@@ -1013,7 +1039,7 @@ class InvoiceController extends Controller
                         'customerName' => Auth::user()->name,
                         'customerEmail' => Auth::user()->email,
                         'customerPhone' => Auth::user()->phone_number ?? '',
-                        'bankCode' => $paymentChannel,
+                        'bankCode' => strtoupper($paymentChannel),
                     ]);
                 }
             } catch (\Throwable $gatewayError) {
@@ -1330,7 +1356,7 @@ class InvoiceController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk melihat tagihan ini.');
         }
 
-        if ($invoice->status === 'pending') {
+        if ($invoice->status === 'pending' || $invoice->status === 'failed') {
             return Inertia::render('user/checkout/pending', [
                 'invoice' => $invoice,
             ]);
@@ -1784,6 +1810,78 @@ class InvoiceController extends Controller
         }
 
         return Carbon::now()->addSeconds($validitySeconds);
+    }
+
+    /**
+     * Mengambil daftar bank Virtual Account yang didukung Manjo.
+     * Mengambil dari API Manjo jika tersedia, dengan fallback ke bank utama Indonesia.
+     *
+     * @return array
+     */
+    public function getSupportedVaBanks(): array
+    {
+        $defaultBanks = [
+            ['code' => 'BMRI', 'name' => 'Bank Mandiri', 'bank_code' => 'BMRI', 'bank_name' => 'Bank Mandiri', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BRIN', 'name' => 'Bank BRI', 'bank_code' => 'BRIN', 'bank_name' => 'Bank BRI', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BNIA', 'name' => 'Bank BNI', 'bank_code' => 'BNIA', 'bank_name' => 'Bank BNI', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BBBA', 'name' => 'Bank BCA', 'bank_code' => 'BBBA', 'bank_name' => 'Bank BCA', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BSYI', 'name' => 'Bank Syariah Indonesia (BSI)', 'bank_code' => 'BSYI', 'bank_name' => 'Bank Syariah Indonesia (BSI)', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BDIN', 'name' => 'Bank Danamon', 'bank_code' => 'BDIN', 'bank_name' => 'Bank Danamon', 'va_type' => ['DYNAMIC', 'STATIC']],
+            ['code' => 'BNIN', 'name' => 'Bank Permata', 'bank_code' => 'BNIN', 'bank_name' => 'Bank Permata', 'va_type' => ['DYNAMIC', 'STATIC']],
+        ];
+
+        return Cache::remember('manjo_va_bank_list', 3600, function () use ($defaultBanks) {
+            try {
+                $banks = $this->manjoService->getVaBankList();
+                if (!empty($banks)) {
+                    $dynamicBanks = array_filter($banks, function ($bank) {
+                        $types = $bank['va_type'] ?? [];
+                        return empty($types) || in_array('DYNAMIC', $types, true);
+                    });
+                    $targetBanks = array_values($dynamicBanks ?: $banks);
+                    return array_map(function ($bank) {
+                        $code = $bank['bank_code'] ?? $bank['code'] ?? '';
+                        $name = $bank['bank_name'] ?? $bank['name'] ?? $code;
+                        return [
+                            'code' => $code,
+                            'name' => $name,
+                            'bank_code' => $code,
+                            'bank_name' => $name,
+                            'va_type' => $bank['va_type'] ?? ['DYNAMIC'],
+                        ];
+                    }, $targetBanks);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Gagal mengambil daftar bank dari Manjo API, menggunakan default fallback: ' . $e->getMessage());
+            }
+
+            return $defaultBanks;
+        });
+    }
+
+    /**
+     * Daftar kode pembayaran / bank yang sah untuk request checkout.
+     *
+     * @return array
+     */
+    public function getValidPaymentChannelCodes(): array
+    {
+        $supported = collect($this->getSupportedVaBanks())->pluck('bank_code')->map(fn($c) => strtoupper($c))->all();
+        $aliases = ['MANDIRI', 'BRI', 'BNI', 'BCA', 'BSI', 'DANAMON', 'PERMATA'];
+        return array_values(array_unique(array_merge($supported, $aliases)));
+    }
+
+    /**
+     * Endpoint API publik/user untuk mendapatkan daftar bank VA yang tersedia.
+     */
+    public function getVaBanks()
+    {
+        $banks = $this->getSupportedVaBanks();
+        return response()->json([
+            'success' => true,
+            'banks' => $banks,
+            'data' => $banks,
+        ]);
     }
 
     private function calculateTransactionFee($channelCode, $nettAmount): int

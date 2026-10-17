@@ -166,6 +166,8 @@ Route::get('/certification-programs/{program:slug}/scholarship-apply', [UserCert
 Route::post('/certification-programs/{program:slug}/scholarship-store', [UserCertificationProgramController::class, 'scholarshipStore']);
 Route::get('/certification-programs/{program:slug}/scholarship-success', [UserCertificationProgramController::class, 'scholarshipSuccess']);
 
+Route::get('/payment/va-banks', [InvoiceController::class, 'getVaBanks'])->name('payment.va-banks');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/course/checkout/success', [UserCourseController::class, 'showCheckoutSuccess'])->name('course.checkout.success');
     Route::get('/bootcamp/register/success', [UserBootcampController::class, 'showRegisterSuccess'])->name('bootcamp.register.success');

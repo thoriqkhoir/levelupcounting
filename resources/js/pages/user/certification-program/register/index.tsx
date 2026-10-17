@@ -1,4 +1,5 @@
 import InstallmentOptions, { ActiveInstallmentData, InstallmentTermOption } from '@/components/installment-options';
+import PaymentMethodSelector from '@/components/payment-method-selector';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -183,6 +184,7 @@ export default function Register({
     const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
     const [documentAttachment, setDocumentAttachment] = useState<File | null>(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
+    const [selectedChannel, setSelectedChannel] = useState<string>('qris');
     const [codeType, setCodeType] = useState<'voucher' | 'referral'>('voucher');
     const [promoCode, setPromoCode] = useState('');
 
@@ -543,6 +545,7 @@ export default function Register({
                 nett_amount: activeFinalPrice,
                 transaction_fee: adminFee,
                 total_amount: activeFinalPrice + adminFee,
+                payment_channel: selectedChannel,
                 isScholarship: isScholarship ? 1 : 0,
                 is_scholarship: isScholarship ? 1 : 0,
             };
@@ -1554,6 +1557,12 @@ export default function Register({
                                                     </div>
                                                 </div>
 
+                                                <PaymentMethodSelector
+                                                    selectedChannel={selectedChannel}
+                                                    onChannelChange={setSelectedChannel}
+                                                    className="mb-6"
+                                                />
+
                                                 {/* Price Breakdown */}
                                                 <div className="mb-6 space-y-3 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">
                                                     {!isScholarshipNotApproved && typeof program.strikethrough_price === 'number' && program.strikethrough_price > 0 && program.strikethrough_price > displayPrice && (
@@ -1796,6 +1805,14 @@ export default function Register({
                                                         )}
                                                     </div>
                                                 </div>
+                                            )}
+
+                                            {displayPrice > 0 && (
+                                                <PaymentMethodSelector
+                                                    selectedChannel={selectedChannel}
+                                                    onChannelChange={setSelectedChannel}
+                                                    className="mb-6"
+                                                />
                                             )}
 
                                             {/* Price Breakdown */}
