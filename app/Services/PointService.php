@@ -52,6 +52,9 @@ class PointService
     public function refundPoints(Invoice $invoice): ?PointTransaction
     {
         return DB::transaction(function () use ($invoice) {
+            $user = User::where('id', $invoice->user_id)->lockForUpdate()->first();
+            if (!$user) return null;
+
             $deduction = PointTransaction::where('user_id', $invoice->user_id)
                 ->where('reference_type', Invoice::class)->where('reference_id', $invoice->id)
                 ->where('type', 'redeem')->where('amount', '<', 0)->first();
@@ -65,9 +68,6 @@ class PointService
                 ->where('description', 'like', '%Pengembalian poin%')->exists();
 
             if ($alreadyRefunded) return null;
-
-            $user = User::find($invoice->user_id);
-            if (!$user) return null;
 
             return $this->addTransaction(
                 $user, $refundAmount, 'adjustment', 'checkout',

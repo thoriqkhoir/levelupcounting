@@ -38,6 +38,10 @@ use Xendit\Configuration;
 use Xendit\Invoice\CreateInvoiceRequest;
 use Xendit\Invoice\InvoiceApi;
 use App\Services\MidtransService;
+use App\Services\ManjoService;
+use App\Services\PointService;
+use Illuminate\Support\Facades\Cache;
+use Milon\Barcode\DNS2D;
 use Maatwebsite\Excel\Facades\Excel;
 
 class InvoiceController extends Controller
@@ -46,12 +50,14 @@ class InvoiceController extends Controller
 
     protected $tripayService;
     protected $midtransService;
+    protected $manjoService;
 
-    public function __construct(TripayService $tripayService, MidtransService $midtransService)
+    public function __construct(TripayService $tripayService, MidtransService $midtransService, ManjoService $manjoService)
     {
         Configuration::setXenditKey(config('xendit.API_KEY'));
         $this->tripayService = $tripayService;
         $this->midtransService = $midtransService;
+        $this->manjoService = $manjoService;
     }
 
     public function index(Request $request)
@@ -256,16 +262,26 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
-        DB::beginTransaction();
-        try {
-            $userId = Auth::id();
-            $type = $request->input('type', 'course');
-            $itemId = $request->input('id');
+        $userId = Auth::id();
+        $type = $request->input('type', 'course');
+        $itemId = $request->input('id');
+        $paymentChannel = $request->input('payment_channel', 'qris') ?: 'qris';
 
+        // 1. Lock untuk mencegah double-submit / race condition (SEC-01)
+        $lockTtl = max(45, (int) config('manjo.timeout', 30) + 15);
+        $lockKey = "checkout_lock_{$userId}_{$type}_{$itemId}";
+        $lock = Cache::lock($lockKey, $lockTtl);
+
+        if (!$lock->get()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permintaan transaksi Anda sedang diproses. Mohon tunggu beberapa detik.',
+            ], 429);
+        }
+
+        try {
             $isScholarship = false;
             $itemPrice = null;
-
-            $paymentChannel = $request->input('payment_channel');
 
             $discountAmount = $request->input('discount_amount', 0);
             $nettAmount = $request->input('nett_amount', 0);
@@ -311,22 +327,27 @@ class InvoiceController extends Controller
                 $item = Course::findOrFail($itemId);
                 $enrollmentTable = EnrollmentCourse::class;
                 $enrollmentField = 'course_id';
+                $enrollmentRelation = 'courseItems';
             } elseif ($type === 'bootcamp') {
                 $item = Bootcamp::findOrFail($itemId);
                 $enrollmentTable = EnrollmentBootcamp::class;
                 $enrollmentField = 'bootcamp_id';
+                $enrollmentRelation = 'bootcampItems';
             } elseif ($type === 'webinar') {
                 $item = Webinar::findOrFail($itemId);
                 $enrollmentTable = EnrollmentWebinar::class;
                 $enrollmentField = 'webinar_id';
+                $enrollmentRelation = 'webinarItems';
             } elseif ($type === 'bundle') {
                 $item = Bundle::findOrFail($itemId);
                 $enrollmentTable = EnrollmentBundle::class;
                 $enrollmentField = 'bundle_id';
+                $enrollmentRelation = 'bundleEnrollments';
             } elseif ($type === 'certification_program') {
                 $item = CertificationProgram::findOrFail($itemId);
                 $enrollmentTable = EnrollmentCertificationProgram::class;
                 $enrollmentField = 'certification_program_id';
+                $enrollmentRelation = 'certificationProgramItems';
 
                 $isScholarship = $request->boolean('is_scholarship', false);
                 if ($item->type === 'scholarship') {
@@ -376,6 +397,7 @@ class InvoiceController extends Controller
                 throw new \Exception('Tipe pembelian tidak valid');
             }
 
+            // 3. Sumber kebenaran harga dihitung di Backend
             $itemPrice = $item->price;
             if ($type === 'certification_program' && $isScholarship) {
                 $itemPrice = $item->scholarship_price;
@@ -388,19 +410,15 @@ class InvoiceController extends Controller
                 if (!$discountCode) {
                     throw new \Exception('Kode diskon tidak ditemukan');
                 }
-
                 if (!$discountCode->isValid()) {
                     throw new \Exception('Kode diskon tidak valid atau sudah kedaluwarsa');
                 }
-
                 if (!$discountCode->canBeUsed()) {
                     throw new \Exception('Kode diskon sudah mencapai batas penggunaan');
                 }
-
                 if (!$discountCode->canBeUsedByUser($userId)) {
                     throw new \Exception('Anda sudah mencapai batas penggunaan kode diskon ini');
                 }
-
                 if (!$discountCode->isApplicableToProduct($type, $itemId)) {
                     throw new \Exception('Kode diskon tidak berlaku untuk produk ini');
                 }
@@ -423,7 +441,6 @@ class InvoiceController extends Controller
                 if ($pointsRedeemed > $user->point_balance) {
                     throw new \Exception('Saldo poin Anda tidak mencukupi.');
                 }
-
                 if ($pointsRedeemed > $expectedNettAmount) {
                     throw new \Exception('Poin yang digunakan melebihi harga produk.');
                 }
@@ -442,164 +459,273 @@ class InvoiceController extends Controller
                 throw new \Exception('Total amount tidak sesuai. Expected: ' . $expectedTotal . ', Got: ' . $totalAmount);
             }
 
-            $invoice_code = IdGenerator::generate([
-                'table' => 'invoices',
-                'field' => 'invoice_code',
-                'length' => 11,
-                'reset_on_prefix_change' => true,
-                'prefix' => 'LUC-' . date('y')
-            ]);
+            // 2. Double-check idempotensi: Cek invoice pending aktif dengan referensi gateway valid (SEC-02)
+            $activeInvoice = Invoice::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->where('is_installment', false)
+                ->where('payment_method', 'manjo')
+                ->where('payment_channel', $paymentChannel)
+                ->where('expires_at', '>', Carbon::now())
+                ->where(function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNotNull('payment_reference')->where('payment_reference', '!=', '');
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('va_number')->where('va_number', '!=', '');
+                    });
+                })
+                ->whereHas($enrollmentRelation, fn($q) => $q->where($enrollmentField, $itemId))
+                ->latest()
+                ->first();
 
-            $expiresAt = Carbon::now()->addHours(24);
-
-            $invoice = Invoice::create([
-                'user_id' => $userId,
-                'referred_by_user_id' => $referredByUserId,
-                'referral_user_id' => $referralUserId,
-                'invoice_code' => $invoice_code,
-                'discount_amount' => $discountAmount,
-                'amount' => $totalAmount,
-                'nett_amount' => $nettAmount,
-                'transaction_fee' => $validatedFee,
-                'points_redeemed' => $pointsRedeemed,
-                'expires_at' => $expiresAt,
-                'payment_method' => 'midtrans',
-                'payment_channel' => $paymentChannel,
-            ]);
-
-            if ($pointsRedeemed > 0) {
-                app(\App\Services\PointService::class)->redeemPoints(Auth::user(), $pointsRedeemed, $invoice);
+            if ($activeInvoice && (int) $activeInvoice->amount === (int) $expectedTotal) {
+                return response()->json([
+                    'success' => true,
+                    'payment_url' => route('invoice.show', $activeInvoice->id),
+                    'invoice_id' => $activeInvoice->id,
+                    'invoice_code' => $activeInvoice->invoice_code,
+                    'payment_method' => $activeInvoice->payment_method,
+                    'payment_channel' => $activeInvoice->payment_channel,
+                    'status' => 'pending',
+                ], 200);
             }
 
-            if ($discountCode) {
-                DiscountUsage::create([
-                    'discount_code_id' => $discountCode->id,
+            // 3. Cegah checkout ulang jika ada transaksi Manjo pending yang belum terkonfirmasi (ambigu / timeout)
+            $unconfirmedInvoice = Invoice::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->where('is_installment', false)
+                ->where('payment_method', 'manjo')
+                ->where('expires_at', '>', Carbon::now())
+                ->where(function ($q) {
+                    $q->whereNull('payment_reference')->orWhere('payment_reference', '');
+                })
+                ->where(function ($q) {
+                    $q->whereNull('va_number')->orWhere('va_number', '');
+                })
+                ->whereHas($enrollmentRelation, fn($q) => $q->where($enrollmentField, $itemId))
+                ->latest()
+                ->first();
+
+            if ($unconfirmedInvoice) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda memiliki transaksi yang masih menunggu rekonsiliasi gateway (kode invoice: ' . $unconfirmedInvoice->invoice_code . '). Mohon tunggu atau batalkan transaksi sebelumnya sebelum membuat tagihan baru.',
+                    'invoice_id' => $unconfirmedInvoice->id,
+                    'invoice_code' => $unconfirmedInvoice->invoice_code,
+                    'requires_reconciliation' => true,
+                ], 409);
+            }
+
+            // 4. FASE 1: DB Transaction Singkat untuk Pembuatan Invoice Lokal Pending
+            DB::beginTransaction();
+            try {
+                $invoice_code = $this->generateInvoiceCode();
+
+                $invoice = Invoice::create([
                     'user_id' => $userId,
-                    'invoice_id' => $invoice->id,
-                    'discount_amount' => $discountCodeAmount,
+                    'referred_by_user_id' => $referredByUserId,
+                    'referral_user_id' => $referralUserId,
+                    'invoice_code' => $invoice_code,
+                    'discount_amount' => $discountAmount,
+                    'amount' => $expectedTotal,
+                    'nett_amount' => $expectedNettAmount,
+                    'transaction_fee' => $validatedFee,
+                    'points_redeemed' => $pointsRedeemed,
+                    'expires_at' => Carbon::now()->addHours(24),
+                    'payment_method' => 'manjo',
+                    'payment_channel' => $paymentChannel,
+                    'status' => 'pending',
                 ]);
 
-                $discountCode->incrementUsage();
-            }
+                if ($pointsRedeemed > 0) {
+                    app(PointService::class)->redeemPoints(Auth::user(), $pointsRedeemed, $invoice);
+                }
 
-            // $tripayResponse = $this->tripayService->requestTransaction(
-            //     $invoice_code,
-            //     $paymentChannel,
-            //     $item->title,
-            //     (int)$nettAmount,
-            //     Auth::user()->name,
-            //     Auth::user()->email
-            // );
+                if ($discountCode) {
+                    DiscountUsage::create([
+                        'discount_code_id' => $discountCode->id,
+                        'user_id' => $userId,
+                        'invoice_id' => $invoice->id,
+                        'discount_amount' => $discountCodeAmount,
+                    ]);
+                    $discountCode->incrementUsage();
+                }
 
-            $midtransParams = [
-                'transaction_details' => [
-                    'order_id' => $invoice_code,
-                    'gross_amount' => (int) $totalAmount,
-                ],
-                'customer_details' => [
-                    'first_name' => Auth::user()->name,
-                    'email' => Auth::user()->email,
-                    'phone' => Auth::user()->phone_number ?? '',
-                ],
-                'item_details' => [
-                    [
-                        'id' => $item->id,
-                        'price' => (int) $nettAmount,
-                        'quantity' => 1,
-                        'name' => $item->title,
-                    ],
-                ],
-                'callbacks' => [
-                    'finish' => config('app.url') . '/invoice/' . $invoice->id,
-                    'error' => config('app.url') . '/invoice/pending',
-                    'unfinish' => config('app.url') . '/invoice/pending',
-                ],
-            ];
-
-            // Add transaction fee if exists
-            if ($validatedFee > 0) {
-                $midtransParams['item_details'][] = [
-                    'id' => 'fee',
-                    'price' => (int) $validatedFee,
-                    'quantity' => 1,
-                    'name' => 'Biaya Admin',
+                $enrollmentData = [
+                    'invoice_id' => $invoice->id,
+                    $enrollmentField => $item->id,
+                    'price' => $expectedNettAmount,
+                    'completed_at' => null,
+                    'progress' => 0,
                 ];
+
+                if ($type === 'certification_program') {
+                    $enrollmentData['is_scholarship'] = $isScholarship;
+                }
+
+                $enrollmentTable::create($enrollmentData);
+
+                if (in_array($type, ['course', 'bootcamp', 'webinar'], true)) {
+                    $this->addToCertificateParticipants($type, $item->id, $userId);
+                }
+
+                DB::commit();
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                throw $e;
             }
 
-            $midtransResponse = $this->midtransService->createTransaction($midtransParams);
+            // 5. FASE 2: Network Call Manjo di Luar DB Transaction
+            try {
+                $itemTitle = $item->title ?? 'Pembayaran Produk';
+                if ($paymentChannel === 'qris') {
+                    $validityPeriod = (string) config('manjo.qris.validity_period', '900');
+                    $manjoRes = $this->manjoService->generateQrisMpm([
+                        'partnerReferenceNo' => $invoice->invoice_code,
+                        'amount' => $expectedTotal,
+                        'productDescription' => Str::limit($itemTitle, 100),
+                        'validityPeriod' => $validityPeriod,
+                    ]);
+                } else {
+                    $manjoRes = $this->manjoService->createVirtualAccount([
+                        'amount' => $expectedTotal,
+                        'customerName' => Auth::user()->name,
+                        'customerEmail' => Auth::user()->email,
+                        'customerPhone' => Auth::user()->phone_number ?? '',
+                        'bankCode' => $paymentChannel,
+                    ]);
+                }
+            } catch (\Throwable $gatewayError) {
+                // Penolakan definitif (4xx / parameter tidak valid)
+                $isDefiniteFailure = ($gatewayError instanceof \InvalidArgumentException) ||
+                    (str_contains($gatewayError->getMessage(), '400') ||
+                     str_contains($gatewayError->getMessage(), '401') ||
+                     str_contains($gatewayError->getMessage(), '422') ||
+                     str_contains($gatewayError->getMessage(), 'Nominal transaksi'));
 
-            if (!$midtransResponse['success']) {
-                throw new \Exception($midtransResponse['message'] ?? 'Gagal membuat transaksi Midtrans');
+                if ($isDefiniteFailure) {
+                    DB::transaction(function () use ($invoice, $discountCode) {
+                        $invoice->update(['status' => 'failed']);
+                        if ($invoice->points_redeemed > 0) {
+                            app(PointService::class)->refundPoints($invoice);
+                        }
+                        if ($invoice->discountUsage) {
+                            if ($discountCode) {
+                                $discountCode->decrement('used_count');
+                            }
+                            $invoice->discountUsage->delete();
+                        }
+                    });
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Pembayaran ditolak gateway: ' . $gatewayError->getMessage(),
+                    ], 422);
+                }
+
+                // Timeout ambigu / network error
+                Log::critical('Manjo Gateway Network Timeout / Ambiguous Error', [
+                    'invoice_code' => $invoice->invoice_code,
+                    'amount' => $invoice->amount,
+                    'channel' => $paymentChannel,
+                    'error' => $gatewayError->getMessage(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Koneksi ke gateway pembayaran sedang mengalami gangguan. Silakan periksa status tagihan Anda beberapa saat lagi.',
+                    'invoice_code' => $invoice->invoice_code,
+                ], 504);
             }
 
-            // if (!isset($tripayResponse->success) || !$tripayResponse->success) {
-            //     throw new \Exception($tripayResponse->message ?? 'Gagal membuat transaksi Tripay');
-            // }
+            // 6. FASE 3: Simpan Respons Gateway dalam DB Transaction Singkat
+            try {
+                DB::transaction(function () use ($invoice, $paymentChannel, $manjoRes) {
+                    if ($paymentChannel === 'qris') {
+                        $validitySeconds = (int) ($manjoRes['raw_response']['validityPeriod'] ?? config('manjo.qris.validity_period', 900));
+                        $expiryTime = Carbon::now()->addSeconds($validitySeconds);
 
-            // if (!isset($tripayResponse->data)) {
-            //     throw new \Exception('Invalid response format from Tripay');
-            // }
+                        Cache::put("manjo_qris_{$invoice->id}", $manjoRes['qr_content'], now()->addSeconds($validitySeconds));
 
-            // $transaction = $tripayResponse->data;
+                        $invoice->update([
+                            'payment_reference' => $manjoRes['reference_no'],
+                            'qr_code_url' => route('invoice.qris.image', $invoice->id),
+                            'invoice_url' => route('invoice.show', $invoice->id),
+                            'expires_at' => $expiryTime,
+                        ]);
+                    } else {
+                        $expiryTime = !empty($manjoRes['expired_date'])
+                            ? Carbon::parse($manjoRes['expired_date'])
+                            : Carbon::now()->addMinutes((int) config('manjo.va.expiry_minutes', 1440));
 
-            $invoice->update([
-                // 'payment_reference' => $transaction->reference,
-                // 'va_number' => $transaction->pay_code ?? null,
-                // 'qr_code_url' => $transaction->qr_url ?? null,
-                'payment_reference' => $invoice_code,
-                'invoice_url' => $midtransResponse['redirect_url'] ?? null,
-            ]);
+                        $invoice->update([
+                            'payment_reference' => $manjoRes['trx_id'],
+                            'va_number' => $manjoRes['virtual_account_no'],
+                            'payment_channel' => $manjoRes['bank_code'],
+                            'invoice_url' => route('invoice.show', $invoice->id),
+                            'expires_at' => $expiryTime,
+                        ]);
+                    }
+                });
+            } catch (\Throwable $saveError) {
+                Log::emergency('MANJO_GATEWAY_SUCCESS_LOCAL_SAVE_FAILED', [
+                    'invoice_id' => $invoice->id,
+                    'invoice_code' => $invoice->invoice_code,
+                    'reference' => $manjoRes['reference_no'] ?? $manjoRes['trx_id'] ?? null,
+                    'error' => $saveError->getMessage(),
+                ]);
 
-            $enrollmentData = [
-                'invoice_id' => $invoice->id,
-                $enrollmentField => $item->id,
-                'price' => $nettAmount,
-                'completed_at' => null,
-                'progress' => 0,
-            ];
-
-            if ($type === 'certification_program') {
-                $enrollmentData['is_scholarship'] = $isScholarship;
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaksi berhasil dibuat di gateway namun terjadi kesalahan sistem saat menyimpan referensi. Mohon hubungi admin dengan kode invoice: ' . $invoice->invoice_code,
+                    'invoice_code' => $invoice->invoice_code,
+                ], 500);
             }
-
-            $enrollmentTable::create($enrollmentData);
-
-            if (in_array($type, ['course', 'bootcamp', 'webinar'], true)) {
-                $this->addToCertificateParticipants($type, $item->id, $userId);
-            }
-
-            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'payment_url' => $midtransResponse['redirect_url'],
-                'snap_token' => $midtransResponse['snap_token'],
+                'payment_url' => route('invoice.show', $invoice->id),
                 'invoice_id' => $invoice->id,
                 'invoice_code' => $invoice->invoice_code,
+                'payment_method' => 'manjo',
+                'payment_channel' => $paymentChannel,
+                'status' => 'pending',
             ], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
+
+        } catch (\Throwable $e) {
             Log::error('Invoice creation failed', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id(),
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 422);
+        } finally {
+            optional($lock)->release();
         }
     }
 
     public function storeBundle(Request $request)
     {
-        DB::beginTransaction();
-        try {
-            $userId = Auth::id();
-            $bundleId = $request->input('bundle_id');
-            $paymentChannel = $request->input('payment_channel');
+        $userId = Auth::id();
+        $bundleId = $request->input('bundle_id');
+        $paymentChannel = $request->input('payment_channel', 'qris') ?: 'qris';
 
+        // 1. Lock untuk mencegah double-submit / race condition (SEC-01)
+        $lockTtl = max(45, (int) config('manjo.timeout', 30) + 15);
+        $lockKey = "checkout_bundle_lock_{$userId}_{$bundleId}";
+        $lock = Cache::lock($lockKey, $lockTtl);
+
+        if (!$lock->get()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permintaan transaksi bundle Anda sedang diproses. Mohon tunggu beberapa detik.',
+            ], 429);
+        }
+
+        try {
             $discountAmount = $request->input('discount_amount', 0);
             $nettAmount = $request->input('nett_amount', 0);
             $totalAmount = $request->input('total_amount');
@@ -715,156 +841,259 @@ class InvoiceController extends Controller
                 throw new \Exception('Total amount tidak sesuai. Expected: ' . $expectedTotal . ', Got: ' . $totalAmount);
             }
 
-            $invoice_code = IdGenerator::generate([
-                'table' => 'invoices',
-                'field' => 'invoice_code',
-                'length' => 11,
-                'reset_on_prefix_change' => true,
-                'prefix' => 'LUC-' . date('y')
-            ]);
+            // 2. Double-check idempotensi: Cek invoice bundle pending aktif dengan referensi gateway valid (SEC-02)
+            $activeInvoice = Invoice::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->where('is_installment', false)
+                ->where('payment_method', 'manjo')
+                ->where('payment_channel', $paymentChannel)
+                ->where('expires_at', '>', Carbon::now())
+                ->where(function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNotNull('payment_reference')->where('payment_reference', '!=', '');
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('va_number')->where('va_number', '!=', '');
+                    });
+                })
+                ->whereHas('bundleEnrollments', fn($q) => $q->where('bundle_id', $bundleId))
+                ->latest()
+                ->first();
 
-            $expiresAt = Carbon::now()->addHours(24);
-
-            $invoice = Invoice::create([
-                'user_id' => $userId,
-                'referred_by_user_id' => $referredByUserId,
-                'referral_user_id' => $referralUserId,
-                'invoice_code' => $invoice_code,
-                'discount_amount' => $discountAmount,
-                'amount' => $totalAmount,
-                'nett_amount' => $nettAmount,
-                'transaction_fee' => $validatedFee,
-                'points_redeemed' => $pointsRedeemed,
-                'expires_at' => $expiresAt,
-                'payment_method' => 'midtrans',
-                'payment_channel' => $paymentChannel,
-            ]);
-
-            if ($pointsRedeemed > 0) {
-                app(\App\Services\PointService::class)->redeemPoints(Auth::user(), $pointsRedeemed, $invoice);
+            if ($activeInvoice && (int) $activeInvoice->amount === (int) $expectedTotal) {
+                return response()->json([
+                    'success' => true,
+                    'payment_url' => route('invoice.show', $activeInvoice->id),
+                    'invoice_id' => $activeInvoice->id,
+                    'invoice_code' => $activeInvoice->invoice_code,
+                    'payment_method' => $activeInvoice->payment_method,
+                    'payment_channel' => $activeInvoice->payment_channel,
+                    'status' => 'pending',
+                ], 200);
             }
 
-            if ($discountCode) {
-                DiscountUsage::create([
-                    'discount_code_id' => $discountCode->id,
+            // 3. Cegah checkout ulang jika ada transaksi bundle Manjo yang belum terkonfirmasi (ambigu / timeout)
+            $unconfirmedInvoice = Invoice::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->where('is_installment', false)
+                ->where('payment_method', 'manjo')
+                ->where('expires_at', '>', Carbon::now())
+                ->where(function ($q) {
+                    $q->whereNull('payment_reference')->orWhere('payment_reference', '');
+                })
+                ->where(function ($q) {
+                    $q->whereNull('va_number')->orWhere('va_number', '');
+                })
+                ->whereHas('bundleEnrollments', fn($q) => $q->where('bundle_id', $bundleId))
+                ->latest()
+                ->first();
+
+            if ($unconfirmedInvoice) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda memiliki transaksi bundle yang masih menunggu rekonsiliasi gateway (kode invoice: ' . $unconfirmedInvoice->invoice_code . '). Mohon tunggu atau batalkan transaksi sebelumnya sebelum membuat tagihan baru.',
+                    'invoice_id' => $unconfirmedInvoice->id,
+                    'invoice_code' => $unconfirmedInvoice->invoice_code,
+                    'requires_reconciliation' => true,
+                ], 409);
+            }
+
+            // 4. FASE 1: DB Transaction Singkat untuk Invoice Lokal Pending
+            $invoice = null;
+            DB::transaction(function () use (
+                &$invoice, $userId, $referredByUserId, $referralUserId, $discountAmount,
+                $totalAmount, $nettAmount, $validatedFee, $pointsRedeemed, $paymentChannel,
+                $discountCode, $discountCodeAmount, $bundle
+            ) {
+                $invoice_code = $this->generateInvoiceCode();
+
+                $expiresAt = Carbon::now()->addHours(24);
+
+                $invoice = Invoice::create([
                     'user_id' => $userId,
-                    'invoice_id' => $invoice->id,
-                    'discount_amount' => $discountCodeAmount,
+                    'referred_by_user_id' => $referredByUserId,
+                    'referral_user_id' => $referralUserId,
+                    'invoice_code' => $invoice_code,
+                    'discount_amount' => $discountAmount,
+                    'amount' => $totalAmount,
+                    'nett_amount' => $nettAmount,
+                    'transaction_fee' => $validatedFee,
+                    'points_redeemed' => $pointsRedeemed,
+                    'status' => 'pending',
+                    'expires_at' => $expiresAt,
+                    'payment_method' => 'manjo',
+                    'payment_channel' => $paymentChannel,
                 ]);
 
-                $discountCode->incrementUsage();
-            }
-
-            EnrollmentBundle::create([
-                'invoice_id' => $invoice->id,
-                'bundle_id' => $bundle->id,
-                'price' => $nettAmount,
-            ]);
-
-            $bundleEnrollment = EnrollmentBundle::where('invoice_id', $invoice->id)->first();
-            if ($bundleEnrollment) {
-                $bundleEnrollment->createIndividualEnrollments();
-
-                Log::info('Bundle individual enrollments created', [
-                    'invoice_code' => $invoice->invoice_code,
-                    'bundle_id' => $bundle->id
-                ]);
-
-                // Pastikan peserta langsung ditambahkan ke sertifikat untuk setiap item bundle
-                foreach ($bundle->bundleItems as $item) {
-                    $type = $item->getTypeSlug();
-                    $this->addToCertificateParticipants($type, $item->bundleable_id, $userId);
+                if ($pointsRedeemed > 0) {
+                    app(PointService::class)->redeemPoints(Auth::user(), $pointsRedeemed, $invoice);
                 }
+
+                if ($discountCode) {
+                    DiscountUsage::create([
+                        'discount_code_id' => $discountCode->id,
+                        'user_id' => $userId,
+                        'invoice_id' => $invoice->id,
+                        'discount_amount' => $discountCodeAmount,
+                    ]);
+
+                    $discountCode->incrementUsage();
+                }
+
+                EnrollmentBundle::create([
+                    'invoice_id' => $invoice->id,
+                    'bundle_id' => $bundle->id,
+                    'price' => $nettAmount,
+                ]);
+
+                $bundleEnrollment = EnrollmentBundle::where('invoice_id', $invoice->id)->first();
+                if ($bundleEnrollment) {
+                    $bundleEnrollment->createIndividualEnrollments();
+
+                    Log::info('Bundle individual enrollments created', [
+                        'invoice_code' => $invoice->invoice_code,
+                        'bundle_id' => $bundle->id,
+                    ]);
+
+                    foreach ($bundle->bundleItems as $item) {
+                        $type = $item->getTypeSlug();
+                        $this->addToCertificateParticipants($type, $item->bundleable_id, $userId);
+                    }
+                }
+            });
+
+            if (!$invoice) {
+                throw new \Exception('Gagal membuat tagihan lokal.');
             }
 
-            // $tripayResponse = $this->tripayService->requestTransaction(
-            //     $invoice_code,
-            //     $paymentChannel,
-            //     'Paket Bundling: ' . $bundle->title,
-            //     (int)$nettAmount,
-            //     Auth::user()->name,
-            //     Auth::user()->email
-            // );
+            // 5. FASE 2: Network Call Manjo di Luar DB Transaction
+            try {
+                if ($paymentChannel === 'qris') {
+                    $validityPeriod = (string) config('manjo.qris.validity_period', '900');
+                    $manjoRes = $this->manjoService->generateQrisMpm([
+                        'partnerReferenceNo' => $invoice->invoice_code,
+                        'amount' => $expectedTotal,
+                        'productDescription' => Str::limit('Bundle: ' . $bundle->title, 100),
+                        'validityPeriod' => $validityPeriod,
+                    ]);
+                } else {
+                    $manjoRes = $this->manjoService->createVirtualAccount([
+                        'amount' => $expectedTotal,
+                        'customerName' => Auth::user()->name,
+                        'customerEmail' => Auth::user()->email,
+                        'customerPhone' => Auth::user()->phone_number ?? '',
+                        'bankCode' => $paymentChannel,
+                    ]);
+                }
+            } catch (\Throwable $gatewayError) {
+                // Penolakan definitif (4xx / parameter tidak valid)
+                $isDefiniteFailure = ($gatewayError instanceof \InvalidArgumentException) ||
+                    (str_contains($gatewayError->getMessage(), '400') ||
+                     str_contains($gatewayError->getMessage(), '401') ||
+                     str_contains($gatewayError->getMessage(), '422') ||
+                     str_contains($gatewayError->getMessage(), 'Nominal transaksi'));
 
-            // if (!isset($tripayResponse->success) || !$tripayResponse->success) {
-            //     throw new \Exception($tripayResponse->message ?? 'Gagal membuat transaksi Tripay');
-            // }
+                if ($isDefiniteFailure) {
+                    DB::transaction(function () use ($invoice, $discountCode) {
+                        $invoice->update(['status' => 'failed']);
+                        if ($invoice->points_redeemed > 0) {
+                            app(PointService::class)->refundPoints($invoice);
+                        }
+                        if ($invoice->discountUsage) {
+                            if ($discountCode) {
+                                $discountCode->decrement('used_count');
+                            }
+                            $invoice->discountUsage->delete();
+                        }
+                    });
 
-            // if (!isset($tripayResponse->data)) {
-            //     throw new \Exception('Invalid response format from Tripay');
-            // }
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Pembayaran ditolak gateway: ' . $gatewayError->getMessage(),
+                    ], 422);
+                }
 
-            // $transaction = $tripayResponse->data;
+                // Timeout ambigu / network error
+                Log::critical('Manjo Gateway Bundle Network Timeout / Ambiguous Error', [
+                    'invoice_code' => $invoice->invoice_code,
+                    'amount' => $invoice->amount,
+                    'channel' => $paymentChannel,
+                    'error' => $gatewayError->getMessage(),
+                ]);
 
-            $midtransParams = [
-                'transaction_details' => [
-                    'order_id' => $invoice_code,
-                    'gross_amount' => (int) $totalAmount,
-                ],
-                'customer_details' => [
-                    'first_name' => Auth::user()->name,
-                    'email' => Auth::user()->email,
-                    'phone' => Auth::user()->phone_number ?? '',
-                ],
-                'item_details' => [
-                    [
-                        'id' => $bundle->id,
-                        'price' => (int) $nettAmount,
-                        'quantity' => 1,
-                        'name' => 'Paket Bundling: ' . $bundle->title,
-                    ],
-                ],
-                'callbacks' => [
-                    'finish' => config('app.url') . '/invoice/' . $invoice->id,
-                ],
-            ];
-
-            // Add transaction fee if exists
-            if ($validatedFee > 0) {
-                $midtransParams['item_details'][] = [
-                    'id' => 'fee',
-                    'price' => (int) $validatedFee,
-                    'quantity' => 1,
-                    'name' => 'Biaya Admin',
-                ];
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Koneksi ke gateway pembayaran sedang mengalami gangguan. Silakan periksa status tagihan Anda beberapa saat lagi.',
+                    'invoice_code' => $invoice->invoice_code,
+                ], 504);
             }
 
-            $midtransResponse = $this->midtransService->createTransaction($midtransParams);
+            // 6. FASE 3: Simpan Respons Gateway dalam DB Transaction Singkat
+            try {
+                DB::transaction(function () use ($invoice, $paymentChannel, $manjoRes) {
+                    if ($paymentChannel === 'qris') {
+                        $validitySeconds = (int) ($manjoRes['raw_response']['validityPeriod'] ?? config('manjo.qris.validity_period', 900));
+                        $expiryTime = Carbon::now()->addSeconds($validitySeconds);
 
-            if (!$midtransResponse['success']) {
-                throw new \Exception($midtransResponse['message'] ?? 'Gagal membuat transaksi Midtrans');
+                        Cache::put("manjo_qris_{$invoice->id}", $manjoRes['qr_content'], now()->addSeconds($validitySeconds));
+
+                        $invoice->update([
+                            'payment_reference' => $manjoRes['reference_no'],
+                            'qr_code_url' => route('invoice.qris.image', $invoice->id),
+                            'invoice_url' => route('invoice.show', $invoice->id),
+                            'expires_at' => $expiryTime,
+                        ]);
+                    } else {
+                        $expiryTime = !empty($manjoRes['expired_date'])
+                            ? Carbon::parse($manjoRes['expired_date'])
+                            : Carbon::now()->addMinutes((int) config('manjo.va.expiry_minutes', 1440));
+
+                        $invoice->update([
+                            'payment_reference' => $manjoRes['trx_id'],
+                            'va_number' => $manjoRes['virtual_account_no'],
+                            'payment_channel' => $manjoRes['bank_code'],
+                            'invoice_url' => route('invoice.show', $invoice->id),
+                            'expires_at' => $expiryTime,
+                        ]);
+                    }
+                });
+            } catch (\Throwable $saveError) {
+                Log::emergency('MANJO_GATEWAY_SUCCESS_LOCAL_SAVE_FAILED', [
+                    'invoice_id' => $invoice->id,
+                    'invoice_code' => $invoice->invoice_code,
+                    'reference' => $manjoRes['reference_no'] ?? $manjoRes['trx_id'] ?? null,
+                    'error' => $saveError->getMessage(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaksi berhasil dibuat di gateway namun terjadi kesalahan sistem saat menyimpan referensi. Mohon hubungi admin dengan kode invoice: ' . $invoice->invoice_code,
+                    'invoice_code' => $invoice->invoice_code,
+                ], 500);
             }
-
-            $invoice->update([
-                // 'payment_reference' => $transaction->reference,
-                // 'va_number' => $transaction->pay_code ?? null,
-                // 'qr_code_url' => $transaction->qr_url ?? null,
-                'payment_reference' => $invoice_code,
-                'invoice_url' => $midtransResponse['redirect_url'] ?? null,
-            ]);
-
-            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'payment_url' => $midtransResponse['redirect_url'],
-                'snap_token' => $midtransResponse['snap_token'],
+                'payment_url' => route('invoice.show', $invoice->id),
                 'invoice_id' => $invoice->id,
                 'invoice_code' => $invoice->invoice_code,
-                'payment_method' => 'midtrans',
+                'payment_method' => 'manjo',
+                'payment_channel' => $paymentChannel,
+                'status' => 'pending',
             ], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
+
+        } catch (\Throwable $e) {
             Log::error('Bundle invoice creation failed', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id(),
-                'bundle_id' => $request->input('bundle_id')
+                'bundle_id' => $request->input('bundle_id'),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 422);
+        } finally {
+            optional($lock)->release();
         }
     }
 
@@ -1035,8 +1264,76 @@ class InvoiceController extends Controller
 
     public function show($id)
     {
-        $invoice = Invoice::with(['courseItems.course', 'bootcampItems.bootcamp', 'webinarItems.webinar', 'certificationProgramItems.certificationProgram'])->findOrFail($id);
-        return Inertia::render('user/checkout/success', ['invoice' => $invoice]);
+        $invoice = Invoice::with([
+            'courseItems.course',
+            'bootcampItems.bootcamp',
+            'webinarItems.webinar',
+            'certificationProgramItems.certificationProgram',
+            'bundleEnrollments.bundle.bundleItems.bundleable',
+        ])->findOrFail($id);
+
+        $user = Auth::user();
+        $isAdmin = $user && ($user->hasRole('admin') || $user->hasRole('super_admin'));
+        if (!$isAdmin && $invoice->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat tagihan ini.');
+        }
+
+        if ($invoice->status === 'pending') {
+            return Inertia::render('user/checkout/pending', [
+                'invoice' => $invoice,
+            ]);
+        }
+
+        return Inertia::render('user/checkout/success', [
+            'invoice' => $invoice,
+        ]);
+    }
+
+    public function renderQrisImage($id)
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        $user = Auth::user();
+        $isAdmin = $user && ($user->hasRole('admin') || $user->hasRole('super_admin'));
+        if (!$isAdmin && $invoice->user_id !== Auth::id()) {
+            abort(403, 'Akses tidak diizinkan.');
+        }
+
+        $renderSvgFallback = function (string $title, string $subtitle) {
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+                <rect width="300" height="300" fill="#f8fafc" rx="8"/>
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="#64748b" font-family="system-ui, sans-serif" font-size="14" font-weight="600">' . htmlspecialchars($title) . '</text>
+                <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12">' . htmlspecialchars($subtitle) . '</text>
+            </svg>';
+            return response($svg, 200, [
+                'Content-Type' => 'image/svg+xml',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            ]);
+        };
+
+        // Invoice non-pending tidak boleh menampilkan QR aktif (SEC-03)
+        if ($invoice->status !== 'pending') {
+            return $renderSvgFallback('QR Code Tidak Aktif', 'Tagihan tidak dalam status menunggu pembayaran');
+        }
+
+        // Invoice kedaluwarsa tidak boleh menampilkan QR aktif (SEC-03)
+        if ($invoice->expires_at && Carbon::now()->gt($invoice->expires_at)) {
+            return $renderSvgFallback('QR Code Kedaluwarsa', 'Masa berlaku tagihan telah habis');
+        }
+
+        // Cache miss tidak boleh memicu transaksi gateway baru (Ketentuan 9)
+        $qrContent = Cache::get("manjo_qris_{$invoice->id}");
+        if (!$qrContent) {
+            return $renderSvgFallback('QR Code Tidak Tersedia', 'atau masa berlaku telah habis');
+        }
+
+        $dns2d = new \Milon\Barcode\DNS2D();
+        $pngBase64 = $dns2d->getBarcodePNG($qrContent, 'QRCODE,H', 8, 8);
+
+        return response(base64_decode($pngBase64), 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+        ]);
     }
 
     /**
@@ -1056,9 +1353,13 @@ class InvoiceController extends Controller
                 $query->where('user_id', Auth::id());
             }
 
-            $invoice = $query->firstOrFail();
+            $invoice = $query->lockForUpdate()->firstOrFail();
 
             $this->expireInvoiceInXendit($invoice->invoice_code);
+
+            if ($invoice->points_redeemed > 0) {
+                app(PointService::class)->refundPoints($invoice);
+            }
 
             if ($invoice->discountUsage) {
                 $discountCode = $invoice->discountUsage->discountCode;
@@ -1156,11 +1457,16 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Approve a pending invoice manually (mark as paid with Midtrans payment method)
-     * Also records affiliate commission and fires TransactionPaid event
+     * Approve a pending invoice manually (mark as paid)
+     * Enforces admin authorization, preserves original payment method, and records audit trail.
      */
     public function approvePending($id)
     {
+        $user = Auth::user();
+        if (!$user || (!$user->hasRole('admin') && !$user->hasRole('super_admin'))) {
+            abort(403, 'Hanya admin yang memiliki izin untuk menyetujui transaksi secara manual.');
+        }
+
         DB::beginTransaction();
         try {
             $invoice = Invoice::with([
@@ -1175,12 +1481,25 @@ class InvoiceController extends Controller
                 ->where('status', 'pending')
                 ->firstOrFail();
 
-            // Update invoice to paid with Midtrans payment method
+            // Pertahankan payment method invoice (misal 'manjo' atau 'midtrans')
+            $currentPaymentMethod = $invoice->payment_method ?: 'manjo';
+
             $invoice->update([
                 'status'           => 'paid',
                 'paid_at'          => Carbon::now('Asia/Jakarta'),
-                'payment_method'   => 'midtrans',
-                'payment_channel'  => 'midtrans',
+                'payment_method'   => $currentPaymentMethod,
+            ]);
+
+            // Catat audit trail persetujuan manual oleh admin
+            Log::info('ADMIN_MANUAL_INVOICE_APPROVAL', [
+                'admin_id'          => $user->id,
+                'admin_email'       => $user->email,
+                'invoice_id'        => $invoice->id,
+                'invoice_code'      => $invoice->invoice_code,
+                'amount'            => $invoice->amount,
+                'payment_method'    => $currentPaymentMethod,
+                'payment_reference' => $invoice->payment_reference,
+                'approved_at'       => Carbon::now('Asia/Jakarta')->toIso8601String(),
             ]);
 
             // ====== INSTALLMENT CHILD HANDLER ======
@@ -1338,6 +1657,28 @@ class InvoiceController extends Controller
         }
     }
 
+    private function generateInvoiceCode(): string
+    {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            $prefix = 'LUC-' . date('y');
+            $latest = Invoice::where('invoice_code', 'like', $prefix . '%')->orderByDesc('id')->value('invoice_code');
+            $nextNum = 1;
+            if ($latest) {
+                $lastNum = (int) substr($latest, strlen($prefix));
+                $nextNum = $lastNum + 1;
+            }
+            return $prefix . str_pad((string) $nextNum, 5, '0', STR_PAD_LEFT);
+        }
+
+        return IdGenerator::generate([
+            'table' => 'invoices',
+            'field' => 'invoice_code',
+            'length' => 11,
+            'reset_on_prefix_change' => true,
+            'prefix' => 'LUC-' . date('y'),
+        ]);
+    }
+
     private function calculateTransactionFee($channelCode, $nettAmount): int
     {
         if ($nettAmount <= 0) {
@@ -1399,18 +1740,46 @@ class InvoiceController extends Controller
      */
     public function expireOldInvoices()
     {
-        $expiredInvoices = Invoice::where('status', 'pending')
+        $expiredInvoices = Invoice::with(['discountUsage.discountCode'])
+            ->where('status', 'pending')
             ->where('expires_at', '<', Carbon::now())
             ->get();
 
+        $count = 0;
         foreach ($expiredInvoices as $invoice) {
-            $this->expireInvoiceInXendit($invoice->invoice_code);
-            $invoice->update(['status' => 'failed']);
+            DB::transaction(function () use ($invoice, &$count) {
+                $lockedInvoice = Invoice::with(['discountUsage.discountCode'])
+                    ->where('id', $invoice->id)
+                    ->where('status', 'pending')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$lockedInvoice) {
+                    return;
+                }
+
+                $this->expireInvoiceInXendit($lockedInvoice->invoice_code);
+
+                if ($lockedInvoice->points_redeemed > 0) {
+                    app(PointService::class)->refundPoints($lockedInvoice);
+                }
+
+                if ($lockedInvoice->discountUsage) {
+                    $discountCode = $lockedInvoice->discountUsage->discountCode;
+                    if ($discountCode) {
+                        $discountCode->decrement('used_count');
+                    }
+                    $lockedInvoice->discountUsage->delete();
+                }
+
+                $lockedInvoice->update(['status' => 'failed']);
+                $count++;
+            });
         }
 
         return response()->json([
-            'message' => count($expiredInvoices) . ' invoices expired and updated.',
-            'expired_count' => count($expiredInvoices)
+            'message' => $count . ' invoices expired and updated.',
+            'expired_count' => $count
         ]);
     }
 
