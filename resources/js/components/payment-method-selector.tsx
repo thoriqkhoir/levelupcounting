@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { QrCode, Building2, Check, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { QrCode, Building2, Check, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
 import axios from 'axios';
+import BankLogo from '@/components/bank-logo';
 
 export interface SupportedBank {
+    code?: string;
+    name?: string;
     bank_code: string;
     bank_name: string;
     va_type?: string[];
@@ -32,7 +34,7 @@ export default function PaymentMethodSelector({
     onChannelChange,
     className = '',
 }: PaymentMethodSelectorProps) {
-    const isQris = selectedChannel === 'qris';
+    const isQris = !selectedChannel || selectedChannel.toLowerCase() === 'qris';
     const isVa = !isQris;
 
     const [banks, setBanks] = useState<SupportedBank[]>(DEFAULT_BANKS);
@@ -41,14 +43,17 @@ export default function PaymentMethodSelector({
     );
     const [showBankList, setShowBankList] = useState<boolean>(true);
 
-    // Fetch daftar bank aktual dari API jika tersedia
+    // Fetch daftar bank aktual dari API
     useEffect(() => {
         let isMounted = true;
         axios
             .get('/payment/va-banks')
             .then((res) => {
-                if (isMounted && res.data && res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
-                    setBanks(res.data.data);
+                if (isMounted && res.data && res.data.success) {
+                    const bankList = res.data.banks || res.data.data;
+                    if (Array.isArray(bankList) && bankList.length > 0) {
+                        setBanks(bankList);
+                    }
                 }
             })
             .catch(() => {
@@ -75,149 +80,158 @@ export default function PaymentMethodSelector({
         onChannelChange(bankCode);
     };
 
-    const currentBankObj = banks.find((b) => b.bank_code.toUpperCase() === selectedBank.toUpperCase()) || banks[0];
+    const currentBankObj =
+        banks.find((b) => (b.bank_code || b.code || '').toUpperCase() === selectedBank.toUpperCase()) || banks[0];
 
     return (
-        <div className={`space-y-4 ${className}`}>
+        <div className={`space-y-3.5 ${className}`}>
             <div className="flex items-center justify-between">
                 <Label className="text-sm font-bold text-foreground">Metode Pembayaran</Label>
-                <span className="text-xs text-muted-foreground">Pilih metode yang diinginkan</span>
+                <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Pembayaran Aman
+                </span>
             </div>
 
-            {/* Method Cards */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {/* QRIS Option */}
+            {/* Method Cards - Stacked Vertically to prevent narrow sidebar squishing/offset */}
+            <div className="space-y-2.5">
+                {/* 1. QRIS Card */}
                 <div
                     onClick={() => handleSelectMethod('qris')}
-                    className={`group relative cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 ${
+                    role="button"
+                    tabIndex={0}
+                    className={`group relative flex cursor-pointer items-center justify-between rounded-xl border-2 p-3 sm:p-3.5 transition-all duration-200 select-none ${
                         isQris
-                            ? 'border-orange-500 bg-orange-50/60 dark:border-orange-500 dark:bg-orange-950/20 shadow-sm'
-                            : 'border-border/70 bg-card hover:border-orange-300 dark:hover:border-orange-700/60'
+                            ? 'border-orange-500 bg-orange-50/70 dark:border-orange-500 dark:bg-orange-950/20 shadow-xs'
+                            : 'border-border/70 bg-card hover:border-orange-300 dark:hover:border-orange-800'
                     }`}
                 >
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                            <div
-                                className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                                    isQris
-                                        ? 'bg-orange-500 text-white shadow-sm'
-                                        : 'bg-muted text-muted-foreground group-hover:text-foreground'
-                                }`}
-                            >
-                                <QrCode className="h-5 w-5" />
+                    <div className="flex min-w-0 items-center gap-3">
+                        <BankLogo bankCode="QRIS" size="md" className="shrink-0" />
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-sm text-foreground">QRIS</span>
+                                <Badge
+                                    variant="outline"
+                                    className="border-emerald-300 bg-emerald-50 text-[10px] text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 py-0 px-1.5 font-bold"
+                                >
+                                    Instan
+                                </Badge>
                             </div>
-                            <div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="font-bold text-sm text-foreground">QRIS</span>
-                                    <Badge variant="outline" className="border-orange-300 bg-orange-100/50 text-[10px] text-orange-700 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300 py-0 px-1.5 font-semibold">
-                                        Instan
-                                    </Badge>
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                                    Scan via GoPay, BCA, Mandiri, Dana, dll.
-                                </p>
-                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                GoPay, BCA, Mandiri, OVO, Dana, ShopeePay
+                            </p>
                         </div>
+                    </div>
 
-                        <div
-                            className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                                isQris
-                                    ? 'border-orange-500 bg-orange-500 text-white'
-                                    : 'border-muted-foreground/30'
-                            }`}
-                        >
-                            {isQris && <Check className="h-3 w-3 stroke-[3]" />}
-                        </div>
+                    <div
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ml-2 ${
+                            isQris
+                                ? 'border-orange-500 bg-orange-500 text-white shadow-xs'
+                                : 'border-muted-foreground/30'
+                        }`}
+                    >
+                        {isQris && <Check className="h-3 w-3 stroke-[3]" />}
                     </div>
                 </div>
 
-                {/* Virtual Account Option */}
+                {/* 2. Virtual Account Card */}
                 <div
                     onClick={() => handleSelectMethod('va')}
-                    className={`group relative cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 ${
+                    role="button"
+                    tabIndex={0}
+                    className={`group relative flex cursor-pointer items-center justify-between rounded-xl border-2 p-3 sm:p-3.5 transition-all duration-200 select-none ${
                         isVa
-                            ? 'border-orange-500 bg-orange-50/60 dark:border-orange-500 dark:bg-orange-950/20 shadow-sm'
-                            : 'border-border/70 bg-card hover:border-orange-300 dark:hover:border-orange-700/60'
+                            ? 'border-orange-500 bg-orange-50/70 dark:border-orange-500 dark:bg-orange-950/20 shadow-xs'
+                            : 'border-border/70 bg-card hover:border-orange-300 dark:hover:border-orange-800'
                     }`}
                 >
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                            <div
-                                className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                                    isVa
-                                        ? 'bg-orange-500 text-white shadow-sm'
-                                        : 'bg-muted text-muted-foreground group-hover:text-foreground'
-                                }`}
-                            >
-                                <Building2 className="h-5 w-5" />
+                    <div className="flex min-w-0 items-center gap-3">
+                        {isVa && currentBankObj ? (
+                            <BankLogo bankCode={currentBankObj.bank_code || currentBankObj.code || 'BMRI'} size="md" className="shrink-0" />
+                        ) : (
+                            <div className="flex h-7 w-12 items-center justify-center rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
+                                <Building2 className="h-4 w-4" />
                             </div>
-                            <div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="font-bold text-sm text-foreground">Virtual Account</span>
-                                    <Badge variant="outline" className="border-blue-300 bg-blue-100/50 text-[10px] text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 py-0 px-1.5 font-semibold">
-                                        Transfer
-                                    </Badge>
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                                    {isVa && currentBankObj ? currentBankObj.bank_name : 'Mandiri, BRI, BNI, BCA, BSI, dll.'}
-                                </p>
+                        )}
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-sm text-foreground">Virtual Account</span>
+                                <Badge
+                                    variant="outline"
+                                    className="border-blue-300 bg-blue-50 text-[10px] text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 py-0 px-1.5 font-bold"
+                                >
+                                    Verifikasi Otomatis
+                                </Badge>
                             </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                {isVa && currentBankObj ? currentBankObj.bank_name || currentBankObj.name : 'Mandiri, BRI, BNI, BCA, BSI, dll.'}
+                            </p>
                         </div>
+                    </div>
 
-                        <div
-                            className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                                isVa
-                                    ? 'border-orange-500 bg-orange-500 text-white'
-                                    : 'border-muted-foreground/30'
-                            }`}
-                        >
-                            {isVa && <Check className="h-3 w-3 stroke-[3]" />}
-                        </div>
+                    <div
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ml-2 ${
+                            isVa
+                                ? 'border-orange-500 bg-orange-500 text-white shadow-xs'
+                                : 'border-muted-foreground/30'
+                        }`}
+                    >
+                        {isVa && <Check className="h-3 w-3 stroke-[3]" />}
                     </div>
                 </div>
             </div>
 
-            {/* Bank Selector Section (when VA is active) */}
+            {/* Bank Selector List (shown when VA is active) */}
             {isVa && (
-                <div className="rounded-xl border border-border/80 bg-muted/20 p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-orange-600" />
+                <div className="rounded-xl border border-border/80 bg-muted/20 p-3 sm:p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between pb-1 border-b border-border/50">
+                        <div className="flex items-center gap-1.5">
+                            <Building2 className="h-3.5 w-3.5 text-orange-600" />
                             <span className="text-xs font-bold text-foreground">Pilih Bank Virtual Account</span>
                         </div>
                         <button
                             type="button"
-                            onClick={() => setShowBankList(!showBankList)}
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600 hover:text-orange-700"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowBankList(!showBankList);
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400"
                         >
-                            <span>{currentBankObj?.bank_name || selectedBank}</span>
+                            <span>{showBankList ? 'Tutup Pilihan' : 'Ganti Bank'}</span>
                             {showBankList ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         </button>
                     </div>
 
                     {showBankList && (
-                        <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
+                        <div className="space-y-1.5 max-h-[260px] overflow-y-auto pr-0.5 scrollbar-thin">
                             {banks.map((bank) => {
-                                const isBankSelected = selectedBank.toUpperCase() === bank.bank_code.toUpperCase();
+                                const bankCode = bank.bank_code || bank.code || '';
+                                const bankName = bank.bank_name || bank.name || bankCode;
+                                const isBankSelected = selectedBank.toUpperCase() === bankCode.toUpperCase();
+
                                 return (
                                     <div
-                                        key={bank.bank_code}
-                                        onClick={() => handleSelectBank(bank.bank_code)}
-                                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${
+                                        key={bankCode}
+                                        onClick={() => handleSelectBank(bankCode)}
+                                        role="button"
+                                        tabIndex={0}
+                                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-2.5 transition-all select-none ${
                                             isBankSelected
-                                                ? 'border-orange-500 bg-orange-500/10 dark:border-orange-500/80 dark:bg-orange-950/40 text-foreground font-semibold shadow-xs'
-                                                : 'border-border/60 bg-card hover:border-orange-300 dark:hover:border-orange-800 text-muted-foreground'
+                                                ? 'border-orange-500 bg-orange-500/10 dark:border-orange-500 dark:bg-orange-950/40 text-foreground font-semibold shadow-2xs'
+                                                : 'border-border/60 bg-card hover:border-orange-300 dark:hover:border-orange-800 text-foreground'
                                         }`}
                                     >
-                                        <div className="flex items-center gap-2.5">
-                                            <span className="flex h-6 w-11 items-center justify-center rounded bg-muted/80 font-mono text-[11px] font-bold text-foreground">
-                                                {bank.bank_code}
-                                            </span>
-                                            <span className="text-xs">{bank.bank_name}</span>
+                                        <div className="flex min-w-0 items-center gap-2.5">
+                                            <BankLogo bankCode={bankCode} size="sm" className="shrink-0" />
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-semibold text-foreground truncate">{bankName}</div>
+                                                <div className="text-[10px] text-muted-foreground font-mono">Kode: {bankCode}</div>
+                                            </div>
                                         </div>
 
                                         <div
-                                            className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all ml-2 ${
                                                 isBankSelected
                                                     ? 'border-orange-500 bg-orange-500 text-white'
                                                     : 'border-muted-foreground/30'

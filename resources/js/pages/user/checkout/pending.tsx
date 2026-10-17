@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import BankLogo from '@/components/bank-logo';
 
 interface CourseItem {
     course: { title: string; slug: string; thumbnail?: string };
@@ -281,8 +282,8 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                             {!isPaid && isQris && (
                                 <Card className="overflow-hidden border border-border/60 bg-card p-6 shadow-md">
                                     <div className="flex items-center justify-between border-b pb-4">
-                                        <div className="flex items-center gap-2">
-                                            <QrCode className="h-6 w-6 text-orange-600" />
+                                        <div className="flex items-center gap-3">
+                                            <BankLogo bankCode="QRIS" size="md" />
                                             <div>
                                                 <h3 className="font-bold text-foreground">QRIS Dynamic (SNAP BI)</h3>
                                                 <p className="text-xs text-muted-foreground">Merchant: Level Up Counting</p>
@@ -356,8 +357,8 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                             {!isPaid && isVa && (
                                 <Card className="overflow-hidden border border-border/60 bg-card p-6 shadow-md">
                                     <div className="flex items-center justify-between border-b pb-4">
-                                        <div className="flex items-center gap-2">
-                                            <Building2 className="h-6 w-6 text-orange-600" />
+                                        <div className="flex items-center gap-3">
+                                            <BankLogo bankCode={invoice.payment_channel || 'BMRI'} size="md" />
                                             <div>
                                                 <h3 className="font-bold text-foreground">Virtual Account {bankName}</h3>
                                                 <p className="text-xs text-muted-foreground">Transfer Otomatis Terverifikasi</p>
@@ -375,6 +376,9 @@ export default function CheckoutPending({ invoice }: PendingProps) {
                                     <div className={`my-6 rounded-2xl p-6 text-center border ${
                                         isOverdue || isFailed ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900' : 'bg-muted/30'
                                     }`}>
+                                        <div className="mb-3 flex justify-center">
+                                            <BankLogo bankCode={invoice.payment_channel || 'BMRI'} size="lg" />
+                                        </div>
                                         <span className="text-xs uppercase tracking-wider text-muted-foreground">
                                             Nomor Rekening Virtual Account
                                         </span>
