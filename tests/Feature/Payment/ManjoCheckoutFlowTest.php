@@ -962,4 +962,174 @@ class ManjoCheckoutFlowTest extends TestCase
         // Verifikasi tidak ada panggilan gateway kedua ke Manjo
         Http::assertNothingSent();
     }
+
+    /**
+     * 18. Test Invoice Manjo tidak memanggil API Xendit saat dibatalkan atau kedaluwarsa
+     */
+    public function test_manjo_invoice_cancel_and_expire_does_not_call_xendit_even_with_null_key()
+    {
+        // Pastikan Xendit API key kosong (kondisi di mana Xendit biasanya melempar No API Key detected)
+        config(['xendit.API_KEY' => null]);
+
+        // 1. Manjo Invoice Cancel
+        $manjoInvoice = Invoice::create([
+            'user_id' => $this->user->id,
+            'invoice_code' => 'LUC-TEST-MANJO-CANCEL',
+            'amount' => 105000,
+            'nett_amount' => 100000,
+            'status' => 'pending',
+            'payment_method' => 'manjo',
+            'payment_channel' => 'qris',
+            'payment_reference' => 'REF-CANCEL-TEST',
+            'expires_at' => Carbon::now()->addHour(),
+        ]);
+
+        \App\Models\EnrollmentCourse::create([
+            'invoice_id' => $manjoInvoice->id,
+            'course_id' => $this->course->id,
+            'price' => 100000,
+        ]);
+
+        $cancelRes = $this->actingAs($this->user)->postJson(route('invoice.cancel', $manjoInvoice->id));
+        $cancelRes->assertStatus(200);
+        $this->assertEquals('failed', $manjoInvoice->fresh()->status);
+
+        // 2. Manjo Invoice Expiration via scheduler/expireOldInvoices
+        $expiredManjoInvoice = Invoice::create([
+            'user_id' => $this->user->id,
+            'invoice_code' => 'LUC-TEST-MANJO-EXPIRED',
+            'amount' => 105000,
+            'nett_amount' => 100000,
+            'status' => 'pending',
+            'payment_method' => 'manjo',
+            'payment_channel' => 'qris',
+            'payment_reference' => 'REF-EXPIRED-TEST',
+            'expires_at' => Carbon::now()->subMinutes(10),
+        ]);
+
+        $controller = app(\App\Http\Controllers\InvoiceController::class);
+        $expireRes = $controller->expireOldInvoices();
+        $this->assertEquals(200, $expireRes->getStatusCode());
+        $this->assertEquals('failed', $expiredManjoInvoice->fresh()->status);
+    }
+
+    /**
+     * 19. Test QRIS dan VA tidak saling memblokir secara tidak semestinya
+     */
+    public function test_qris_and_va_do_not_block_each_other()
+    {
+        $this->fakeVaSuccess('TRX-VA-SUCCESS', '8888000123456789', 'bca');
+
+        // Simulasikan ada transaksi QRIS pending yang belum memiliki referensi gateway (misal timeout ambigu)
+        $unconfirmedQrisInvoice = Invoice::create([
+            'user_id' => $this->user->id,
+            'invoice_code' => 'LUC-UNCONFIRMED-QRIS',
+            'amount' => 105000,
+            'nett_amount' => 100000,
+            'transaction_fee' => 5000,
+            'status' => 'pending',
+            'payment_method' => 'manjo',
+            'payment_channel' => 'qris',
+            'payment_reference' => null,
+            'va_number' => null,
+            'expires_at' => Carbon::now()->addMinutes(15),
+        ]);
+
+        \App\Models\EnrollmentCourse::create([
+            'invoice_id' => $unconfirmedQrisInvoice->id,
+            'course_id' => $this->course->id,
+            'price' => 100000,
+        ]);
+
+        // User beralih memilih Virtual Account BCA untuk item yang sama
+        $response = $this->actingAs($this->user)->postJson(route('invoice.store'), [
+            'type' => 'course',
+            'id' => $this->course->id,
+            'discount_amount' => 50000,
+            'nett_amount' => 100000,
+            'total_amount' => 105000,
+            'payment_channel' => 'bca',
+        ]);
+
+        // VA checkout tidak terhalang oleh pending QRIS
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'payment_method' => 'manjo',
+            'payment_channel' => 'bca',
+            'status' => 'pending',
+        ]);
+
+        $createdVaInvoice = Invoice::findOrFail($response->json('invoice_id'));
+        $this->assertEquals('8888000123456789', $createdVaInvoice->va_number);
+        $this->assertEquals('TRX-VA-SUCCESS', $createdVaInvoice->payment_reference);
+    }
+
+    /**
+     * 20. Test Invoice paid tidak dapat diubah menjadi failed oleh proses kedaluwarsa
+     */
+    public function test_paid_invoice_cannot_be_changed_to_failed_by_expire_old_invoices()
+    {
+        $paidInvoice = Invoice::create([
+            'user_id' => $this->user->id,
+            'invoice_code' => 'LUC-PAID-IMMUTABLE',
+            'amount' => 105000,
+            'nett_amount' => 100000,
+            'status' => 'paid',
+            'payment_method' => 'manjo',
+            'payment_channel' => 'qris',
+            'payment_reference' => 'REF-PAID-IMMUTABLE',
+            'paid_at' => Carbon::now()->subDays(1),
+            'expires_at' => Carbon::now()->subHours(2), // Waktu kedaluwarsa sudah lewat
+        ]);
+
+        $controller = app(\App\Http\Controllers\InvoiceController::class);
+        $res = $controller->expireOldInvoices();
+        $this->assertEquals(200, $res->getStatusCode());
+
+        $this->assertEquals('paid', $paidInvoice->fresh()->status);
+    }
+
+    /**
+     * 21. Test Kegagalan Konfigurasi / Pembacaan RSA Private Key Menandai Invoice Gagal dan Merefund Poin
+     */
+    public function test_rsa_key_failure_marks_invoice_failed_and_refunds_points()
+    {
+        $initialPoints = $this->user->point_balance;
+
+        // Mock ManjoService agar melempar exception kegagalan RSA private key
+        $this->mock(\App\Services\ManjoService::class, function ($mock) {
+            $mock->shouldReceive('generateQrisMpm')
+                ->once()
+                ->andThrow(new \RuntimeException('Gagal memuat Manjo RSA Private Key: error:0909006C:PEM routines:get_name:no start line'));
+        });
+
+        $res = $this->actingAs($this->user)->postJson(route('invoice.store'), [
+            'type' => 'course',
+            'id' => $this->course->id,
+            'discount_amount' => 50000,
+            'points_redeemed' => 10000,
+            'nett_amount' => 90000,
+            'total_amount' => 95000,
+            'payment_channel' => 'qris',
+        ]);
+
+        $res->assertStatus(422);
+        $res->assertJson([
+            'success' => false,
+        ]);
+
+        // Invoice harus ditandai failed, bukan tertinggal pending
+        $invoice = Invoice::where('user_id', $this->user->id)
+            ->where('points_redeemed', 10000)
+            ->latest()
+            ->first();
+
+        $this->assertNotNull($invoice);
+        $this->assertEquals('failed', $invoice->status);
+
+        // Poin harus dikembalikan secara utuh
+        $this->assertEquals($initialPoints, $this->user->fresh()->point_balance);
+    }
 }
+

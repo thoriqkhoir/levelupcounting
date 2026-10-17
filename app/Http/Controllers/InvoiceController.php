@@ -465,6 +465,7 @@ class InvoiceController extends Controller
                 ->where('is_installment', false)
                 ->where('payment_method', 'manjo')
                 ->where('payment_channel', $paymentChannel)
+                ->where('amount', $expectedTotal)
                 ->where('expires_at', '>', Carbon::now())
                 ->where(function ($q) {
                     $q->where(function ($sub) {
@@ -489,11 +490,13 @@ class InvoiceController extends Controller
                 ], 200);
             }
 
-            // 3. Cegah checkout ulang jika ada transaksi Manjo pending yang belum terkonfirmasi (ambigu / timeout)
+            // 3. Cegah checkout ulang jika ada transaksi Manjo pending yang belum terkonfirmasi (ambigu / timeout) pada kanal dan nominal yang sama
             $unconfirmedInvoice = Invoice::where('user_id', $userId)
                 ->where('status', 'pending')
                 ->where('is_installment', false)
                 ->where('payment_method', 'manjo')
+                ->where('payment_channel', $paymentChannel)
+                ->where('amount', $expectedTotal)
                 ->where('expires_at', '>', Carbon::now())
                 ->where(function ($q) {
                     $q->whereNull('payment_reference')->orWhere('payment_reference', '');
@@ -520,6 +523,10 @@ class InvoiceController extends Controller
             try {
                 $invoice_code = $this->generateInvoiceCode();
 
+                $expiresAt = $paymentChannel === 'qris'
+                    ? Carbon::now()->addSeconds((int) config('manjo.qris.validity_period', 900))
+                    : Carbon::now()->addMinutes((int) config('manjo.va.expiry_minutes', 1440));
+
                 $invoice = Invoice::create([
                     'user_id' => $userId,
                     'referred_by_user_id' => $referredByUserId,
@@ -530,7 +537,7 @@ class InvoiceController extends Controller
                     'nett_amount' => $expectedNettAmount,
                     'transaction_fee' => $validatedFee,
                     'points_redeemed' => $pointsRedeemed,
-                    'expires_at' => Carbon::now()->addHours(24),
+                    'expires_at' => $expiresAt,
                     'payment_method' => 'manjo',
                     'payment_channel' => $paymentChannel,
                     'status' => 'pending',
@@ -595,12 +602,21 @@ class InvoiceController extends Controller
                     ]);
                 }
             } catch (\Throwable $gatewayError) {
-                // Penolakan definitif (4xx / parameter tidak valid)
+                $errMsg = $gatewayError->getMessage();
+                // Penolakan definitif (4xx / parameter tidak valid / kegagalan config lokal seperti RSA key)
                 $isDefiniteFailure = ($gatewayError instanceof \InvalidArgumentException) ||
-                    (str_contains($gatewayError->getMessage(), '400') ||
-                     str_contains($gatewayError->getMessage(), '401') ||
-                     str_contains($gatewayError->getMessage(), '422') ||
-                     str_contains($gatewayError->getMessage(), 'Nominal transaksi'));
+                    str_contains($errMsg, 'Private Key') ||
+                    str_contains($errMsg, 'belum dikonfigurasi') ||
+                    str_contains($errMsg, 'RSA signature') ||
+                    str_contains($errMsg, 'tidak ditemukan') ||
+                    str_contains($errMsg, '400') ||
+                    str_contains($errMsg, '401') ||
+                    str_contains($errMsg, '403') ||
+                    str_contains($errMsg, '404') ||
+                    str_contains($errMsg, '422') ||
+                    str_contains($errMsg, 'Nominal transaksi') ||
+                    str_contains($errMsg, 'Gagal membuat transaksi Virtual Account Manjo') ||
+                    str_contains($errMsg, 'Gagal generate Manjo QRIS MPM');
 
                 if ($isDefiniteFailure) {
                     DB::transaction(function () use ($invoice, $discountCode) {
@@ -847,6 +863,7 @@ class InvoiceController extends Controller
                 ->where('is_installment', false)
                 ->where('payment_method', 'manjo')
                 ->where('payment_channel', $paymentChannel)
+                ->where('amount', $expectedTotal)
                 ->where('expires_at', '>', Carbon::now())
                 ->where(function ($q) {
                     $q->where(function ($sub) {
@@ -871,11 +888,13 @@ class InvoiceController extends Controller
                 ], 200);
             }
 
-            // 3. Cegah checkout ulang jika ada transaksi bundle Manjo yang belum terkonfirmasi (ambigu / timeout)
+            // 3. Cegah checkout ulang jika ada transaksi bundle Manjo yang belum terkonfirmasi (ambigu / timeout) pada kanal dan nominal yang sama
             $unconfirmedInvoice = Invoice::where('user_id', $userId)
                 ->where('status', 'pending')
                 ->where('is_installment', false)
                 ->where('payment_method', 'manjo')
+                ->where('payment_channel', $paymentChannel)
+                ->where('amount', $expectedTotal)
                 ->where('expires_at', '>', Carbon::now())
                 ->where(function ($q) {
                     $q->whereNull('payment_reference')->orWhere('payment_reference', '');
@@ -906,7 +925,9 @@ class InvoiceController extends Controller
             ) {
                 $invoice_code = $this->generateInvoiceCode();
 
-                $expiresAt = Carbon::now()->addHours(24);
+                $expiresAt = $paymentChannel === 'qris'
+                    ? Carbon::now()->addSeconds((int) config('manjo.qris.validity_period', 900))
+                    : Carbon::now()->addMinutes((int) config('manjo.va.expiry_minutes', 1440));
 
                 $invoice = Invoice::create([
                     'user_id' => $userId,
@@ -985,12 +1006,21 @@ class InvoiceController extends Controller
                     ]);
                 }
             } catch (\Throwable $gatewayError) {
-                // Penolakan definitif (4xx / parameter tidak valid)
+                $errMsg = $gatewayError->getMessage();
+                // Penolakan definitif (4xx / parameter tidak valid / kegagalan config lokal seperti RSA key)
                 $isDefiniteFailure = ($gatewayError instanceof \InvalidArgumentException) ||
-                    (str_contains($gatewayError->getMessage(), '400') ||
-                     str_contains($gatewayError->getMessage(), '401') ||
-                     str_contains($gatewayError->getMessage(), '422') ||
-                     str_contains($gatewayError->getMessage(), 'Nominal transaksi'));
+                    str_contains($errMsg, 'Private Key') ||
+                    str_contains($errMsg, 'belum dikonfigurasi') ||
+                    str_contains($errMsg, 'RSA signature') ||
+                    str_contains($errMsg, 'tidak ditemukan') ||
+                    str_contains($errMsg, '400') ||
+                    str_contains($errMsg, '401') ||
+                    str_contains($errMsg, '403') ||
+                    str_contains($errMsg, '404') ||
+                    str_contains($errMsg, '422') ||
+                    str_contains($errMsg, 'Nominal transaksi') ||
+                    str_contains($errMsg, 'Gagal membuat transaksi Virtual Account Manjo') ||
+                    str_contains($errMsg, 'Gagal generate Manjo QRIS MPM');
 
                 if ($isDefiniteFailure) {
                     DB::transaction(function () use ($invoice, $discountCode) {
@@ -1341,6 +1371,8 @@ class InvoiceController extends Controller
      */
     public function cancel($id)
     {
+        $invoiceCodeToExpireInXendit = null;
+
         DB::beginTransaction();
         try {
             $isAdmin = Auth::user() && Auth::user()->hasRole('admin');
@@ -1355,7 +1387,9 @@ class InvoiceController extends Controller
 
             $invoice = $query->lockForUpdate()->firstOrFail();
 
-            $this->expireInvoiceInXendit($invoice->invoice_code);
+            if ($invoice->payment_method && strtolower($invoice->payment_method) === 'xendit') {
+                $invoiceCodeToExpireInXendit = $invoice->invoice_code;
+            }
 
             if ($invoice->points_redeemed > 0) {
                 app(PointService::class)->refundPoints($invoice);
@@ -1430,6 +1464,11 @@ class InvoiceController extends Controller
             $invoice->update(['status' => 'failed']);
 
             DB::commit();
+
+            // Panggil API gateway luar setelah DB commit agar tidak menahan row lock
+            if ($invoiceCodeToExpireInXendit) {
+                $this->expireInvoiceInXendit($invoiceCodeToExpireInXendit);
+            }
 
             if (request()->header('X-Inertia')) {
                 return redirect()->back()->with('success', 'Transaksi berhasil dibatalkan.');
@@ -1718,6 +1757,10 @@ class InvoiceController extends Controller
      */
     private function expireInvoiceInXendit($externalId)
     {
+        if (empty(config('xendit.API_KEY'))) {
+            return;
+        }
+
         try {
             $xendit_api_instance = new InvoiceApi();
 
@@ -1747,7 +1790,9 @@ class InvoiceController extends Controller
 
         $count = 0;
         foreach ($expiredInvoices as $invoice) {
-            DB::transaction(function () use ($invoice, &$count) {
+            $xenditInvoiceCode = null;
+
+            DB::transaction(function () use ($invoice, &$count, &$xenditInvoiceCode) {
                 $lockedInvoice = Invoice::with(['discountUsage.discountCode'])
                     ->where('id', $invoice->id)
                     ->where('status', 'pending')
@@ -1758,7 +1803,9 @@ class InvoiceController extends Controller
                     return;
                 }
 
-                $this->expireInvoiceInXendit($lockedInvoice->invoice_code);
+                if ($lockedInvoice->payment_method && strtolower($lockedInvoice->payment_method) === 'xendit') {
+                    $xenditInvoiceCode = $lockedInvoice->invoice_code;
+                }
 
                 if ($lockedInvoice->points_redeemed > 0) {
                     app(PointService::class)->refundPoints($lockedInvoice);
@@ -1775,6 +1822,11 @@ class InvoiceController extends Controller
                 $lockedInvoice->update(['status' => 'failed']);
                 $count++;
             });
+
+            // Eksekusi pemanggilan Xendit di luar DB transaction
+            if ($xenditInvoiceCode) {
+                $this->expireInvoiceInXendit($xenditInvoiceCode);
+            }
         }
 
         return response()->json([
