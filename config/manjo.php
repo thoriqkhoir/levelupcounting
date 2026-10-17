@@ -39,6 +39,7 @@ return [
         'terminal_id' => env('MANJO_QRIS_TERMINAL_ID', '01'),
         'store_id' => env('MANJO_QRIS_STORE_ID'),
         'channel_id' => env('MANJO_QRIS_CHANNEL_ID', '05'),
+        'ip_address' => env('MANJO_QRIS_IP_ADDRESS', ''),
 
         // Path ke file RSA Private Key merchant (.key / .pem)
         'private_key_path' => env('MANJO_QRIS_PRIVATE_KEY_PATH'),
