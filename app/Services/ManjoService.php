@@ -192,7 +192,7 @@ class ManjoService
         }
 
         $endpointUrl = $this->qrisBaseUrl . '/v1.0/qr/qr-mpm-generate';
-        $endpointPath = parse_url($endpointUrl, PHP_URL_PATH) ?: '/v1.0/qr/qr-mpm-generate';
+        $endpointPath = '/v1.0/qr/qr-mpm-generate';
         $timestamp = now()->toIso8601String();
         $externalId = Str::substr(preg_replace('/[^A-Za-z0-9]/', '', (string) ($params['externalId'] ?? (string) Str::uuid())), 0, 36);
 
