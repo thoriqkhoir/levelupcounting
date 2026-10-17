@@ -251,11 +251,18 @@ class ManjoService
                 throw new \RuntimeException("Gagal generate Manjo QRIS MPM [{$responseCode}]: {$msg}");
             }
 
+            $referenceNo = $resJson['referenceNo'] ?? null;
+            $qrContent = $resJson['qrContent'] ?? null;
+
+            if (empty($referenceNo) || empty($qrContent)) {
+                throw new \RuntimeException("Respons Manjo QRIS MPM tidak lengkap: referenceNo atau qrContent kosong.");
+            }
+
             return [
                 'success' => true,
-                'reference_no' => $resJson['referenceNo'] ?? null,
+                'reference_no' => $referenceNo,
                 'partner_reference_no' => $resJson['partnerReferenceNo'] ?? $partnerReferenceNo,
-                'qr_content' => $resJson['qrContent'] ?? null,
+                'qr_content' => $qrContent,
                 'qr_url' => (!empty($resJson['qrUrl']) && $resJson['qrUrl'] !== '-') ? $resJson['qrUrl'] : null,
                 'qr_image' => (!empty($resJson['qrImage']) && $resJson['qrImage'] !== '-') ? $resJson['qrImage'] : null,
                 'redirect_url' => (!empty($resJson['redirectUrl']) && $resJson['redirectUrl'] !== '-') ? $resJson['redirectUrl'] : null,

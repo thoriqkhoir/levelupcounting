@@ -299,4 +299,35 @@ class ManjoServiceTest extends TestCase
         $this->expectExceptionMessage('4017300');
         $service->getQrisAccessToken();
     }
+
+    public function test_it_throws_exception_when_qris_response_is_missing_reference_no_or_qr_content()
+    {
+        Http::fake([
+            '*/v1.0/access-token/b2b' => Http::response([
+                'responseCode' => '2007300',
+                'responseMessage' => 'Successful',
+                'tokenType' => 'Bearer',
+                'accessToken' => 'MOCK_TOKEN',
+                'expiresIn' => '900',
+            ], 200),
+            '*/v1.0/qr/qr-mpm-generate' => Http::response([
+                'responseCode' => '2004700',
+                'responseMessage' => 'Successful',
+                'referenceNo' => null, // referenceNo kosong
+                'partnerReferenceNo' => 'LUC-TEST',
+                'qrContent' => '', // qrContent kosong
+            ], 200),
+        ]);
+
+        $service = new ManjoService();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Respons Manjo QRIS MPM tidak lengkap: referenceNo atau qrContent kosong.');
+
+        $service->generateQrisMpm([
+            'partnerReferenceNo' => 'LUC-TEST',
+            'amount' => 100000,
+        ]);
+    }
 }
+

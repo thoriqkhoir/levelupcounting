@@ -603,12 +603,13 @@ class InvoiceController extends Controller
                 }
             } catch (\Throwable $gatewayError) {
                 $errMsg = $gatewayError->getMessage();
-                // Penolakan definitif (4xx / parameter tidak valid / kegagalan config lokal seperti RSA key)
+                // Penolakan definitif (4xx / parameter tidak valid / kegagalan config lokal seperti RSA key / respons tidak lengkap)
                 $isDefiniteFailure = ($gatewayError instanceof \InvalidArgumentException) ||
                     str_contains($errMsg, 'Private Key') ||
                     str_contains($errMsg, 'belum dikonfigurasi') ||
                     str_contains($errMsg, 'RSA signature') ||
                     str_contains($errMsg, 'tidak ditemukan') ||
+                    str_contains($errMsg, 'tidak lengkap') ||
                     str_contains($errMsg, '400') ||
                     str_contains($errMsg, '401') ||
                     str_contains($errMsg, '403') ||
@@ -657,10 +658,20 @@ class InvoiceController extends Controller
             try {
                 DB::transaction(function () use ($invoice, $paymentChannel, $manjoRes) {
                     if ($paymentChannel === 'qris') {
-                        $validitySeconds = (int) ($manjoRes['raw_response']['validityPeriod'] ?? config('manjo.qris.validity_period', 900));
-                        $expiryTime = Carbon::now()->addSeconds($validitySeconds);
+                        if (empty($manjoRes['reference_no']) || empty($manjoRes['qr_content'])) {
+                            throw new \RuntimeException('Respons Manjo QRIS tidak lengkap: referenceNo atau qrContent tidak tersedia.');
+                        }
 
-                        Cache::put("manjo_qris_{$invoice->id}", $manjoRes['qr_content'], now()->addSeconds($validitySeconds));
+                        $expiryTime = $this->resolveQrisExpiryTime($manjoRes);
+                        $ttlSeconds = Carbon::now()->diffInSeconds($expiryTime, false);
+                        if ($ttlSeconds <= 0) {
+                            $ttlSeconds = (int) ($manjoRes['raw_response']['validityPeriod'] ?? config('manjo.qris.validity_period', 900));
+                            if ($ttlSeconds <= 0) {
+                                $ttlSeconds = 900;
+                            }
+                        }
+
+                        Cache::put("manjo_qris_{$invoice->id}", $manjoRes['qr_content'], now()->addSeconds($ttlSeconds));
 
                         $invoice->update([
                             'payment_reference' => $manjoRes['reference_no'],
@@ -1007,12 +1018,13 @@ class InvoiceController extends Controller
                 }
             } catch (\Throwable $gatewayError) {
                 $errMsg = $gatewayError->getMessage();
-                // Penolakan definitif (4xx / parameter tidak valid / kegagalan config lokal seperti RSA key)
+                // Penolakan definitif (4xx / parameter tidak valid / kegagalan config lokal seperti RSA key / respons tidak lengkap)
                 $isDefiniteFailure = ($gatewayError instanceof \InvalidArgumentException) ||
                     str_contains($errMsg, 'Private Key') ||
                     str_contains($errMsg, 'belum dikonfigurasi') ||
                     str_contains($errMsg, 'RSA signature') ||
                     str_contains($errMsg, 'tidak ditemukan') ||
+                    str_contains($errMsg, 'tidak lengkap') ||
                     str_contains($errMsg, '400') ||
                     str_contains($errMsg, '401') ||
                     str_contains($errMsg, '403') ||
@@ -1061,10 +1073,20 @@ class InvoiceController extends Controller
             try {
                 DB::transaction(function () use ($invoice, $paymentChannel, $manjoRes) {
                     if ($paymentChannel === 'qris') {
-                        $validitySeconds = (int) ($manjoRes['raw_response']['validityPeriod'] ?? config('manjo.qris.validity_period', 900));
-                        $expiryTime = Carbon::now()->addSeconds($validitySeconds);
+                        if (empty($manjoRes['reference_no']) || empty($manjoRes['qr_content'])) {
+                            throw new \RuntimeException('Respons Manjo QRIS tidak lengkap: referenceNo atau qrContent tidak tersedia.');
+                        }
 
-                        Cache::put("manjo_qris_{$invoice->id}", $manjoRes['qr_content'], now()->addSeconds($validitySeconds));
+                        $expiryTime = $this->resolveQrisExpiryTime($manjoRes);
+                        $ttlSeconds = Carbon::now()->diffInSeconds($expiryTime, false);
+                        if ($ttlSeconds <= 0) {
+                            $ttlSeconds = (int) ($manjoRes['raw_response']['validityPeriod'] ?? config('manjo.qris.validity_period', 900));
+                            if ($ttlSeconds <= 0) {
+                                $ttlSeconds = 900;
+                            }
+                        }
+
+                        Cache::put("manjo_qris_{$invoice->id}", $manjoRes['qr_content'], now()->addSeconds($ttlSeconds));
 
                         $invoice->update([
                             'payment_reference' => $manjoRes['reference_no'],
@@ -1716,6 +1738,52 @@ class InvoiceController extends Controller
             'reset_on_prefix_change' => true,
             'prefix' => 'LUC-' . date('y'),
         ]);
+    }
+
+    /**
+     * Resolve masa berlaku (expiry time) untuk transaksi QRIS Manjo.
+     * Mengutamakan additionalInfo.expireDate dari respons gateway jika tersedia dan valid,
+     * dengan fallback ke validityPeriod respons / config.
+     *
+     * @param array $manjoRes
+     * @return Carbon
+     */
+    private function resolveQrisExpiryTime(array $manjoRes): Carbon
+    {
+        $expireDateRaw = $manjoRes['additional_info']['expireDate']
+            ?? $manjoRes['raw_response']['additionalInfo']['expireDate']
+            ?? null;
+
+        if (!empty($expireDateRaw) && is_string($expireDateRaw)) {
+            $expireDateRaw = trim($expireDateRaw);
+            try {
+                if (preg_match('/^\d{14}$/', $expireDateRaw)) {
+                    // Format yyyyMMddHHmmss (e.g. 20261017133500)
+                    $parsed = Carbon::createFromFormat('YmdHis', $expireDateRaw, 'Asia/Jakarta');
+                } elseif (is_numeric($expireDateRaw)) {
+                    // Timestamp in seconds
+                    $parsed = Carbon::createFromTimestamp((int) $expireDateRaw, 'Asia/Jakarta');
+                } else {
+                    $parsed = Carbon::parse($expireDateRaw);
+                }
+
+                if ($parsed && $parsed->isValid()) {
+                    return $parsed;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Format additionalInfo.expireDate Manjo QRIS tidak dapat di-parse, menggunakan fallback', [
+                    'raw_expire_date' => $expireDateRaw,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $validitySeconds = (int) ($manjoRes['raw_response']['validityPeriod'] ?? config('manjo.qris.validity_period', 900));
+        if ($validitySeconds <= 0) {
+            $validitySeconds = 900;
+        }
+
+        return Carbon::now()->addSeconds($validitySeconds);
     }
 
     private function calculateTransactionFee($channelCode, $nettAmount): int

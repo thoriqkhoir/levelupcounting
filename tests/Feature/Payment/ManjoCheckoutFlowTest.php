@@ -118,8 +118,27 @@ class ManjoCheckoutFlowTest extends TestCase
     /**
      * Helper untuk fake request QRIS sukses
      */
-    protected function fakeQrisSuccess(string $referenceNo = 'REF-QRIS-999', string $qrContent = '00020101021226580016ID.CO.MANJO.WWW011893600999000000000152045411530336054061050005802ID5908LEVEL_UP6007JAKARTA6304ABCD', int $validitySeconds = 900)
-    {
+    protected function fakeQrisSuccess(
+        string $referenceNo = 'REF-QRIS-999',
+        string $qrContent = '00020101021226580016ID.CO.MANJO.WWW011893600999000000000152045411530336054061050005802ID5908LEVEL_UP6007JAKARTA6304ABCD',
+        int $validitySeconds = 900,
+        ?string $expireDate = null
+    ) {
+        $qrisResponse = [
+            'responseCode' => '2004700',
+            'responseMessage' => 'Successful',
+            'referenceNo' => $referenceNo,
+            'partnerReferenceNo' => 'LUC-TEST',
+            'qrContent' => $qrContent,
+            'validityPeriod' => (string) $validitySeconds,
+        ];
+
+        if ($expireDate) {
+            $qrisResponse['additionalInfo'] = [
+                'expireDate' => $expireDate,
+            ];
+        }
+
         Http::fake([
             '*/v1.0/access-token/b2b' => Http::response([
                 'responseCode' => '2007300',
@@ -128,14 +147,7 @@ class ManjoCheckoutFlowTest extends TestCase
                 'tokenType' => 'Bearer',
                 'expiresIn' => '900',
             ], 200),
-            '*/v1.0/qr/qr-mpm-generate' => Http::response([
-                'responseCode' => '2004700',
-                'responseMessage' => 'Successful',
-                'referenceNo' => $referenceNo,
-                'partnerReferenceNo' => 'LUC-TEST',
-                'qrContent' => $qrContent,
-                'validityPeriod' => (string) $validitySeconds,
-            ], 200),
+            '*/v1.0/qr/qr-mpm-generate' => Http::response($qrisResponse, 200),
         ]);
     }
 
@@ -1131,5 +1143,122 @@ class ManjoCheckoutFlowTest extends TestCase
         // Poin harus dikembalikan secara utuh
         $this->assertEquals($initialPoints, $this->user->fresh()->point_balance);
     }
+
+    /**
+     * 22. Test QRIS checkout uses additionalInfo.expireDate when provided
+     */
+    public function test_qris_checkout_uses_additional_info_expire_date_when_provided()
+    {
+        $targetExpireDate = Carbon::now()->addMinutes(25)->setMicrosecond(0);
+        $expireDateIso = $targetExpireDate->toIso8601String();
+        $expectedQrContent = '0002010102122658_CUSTOM_EXPIRE_QR';
+
+        $this->fakeQrisSuccess('REF-EXPIRE-DATE-001', $expectedQrContent, 900, $expireDateIso);
+
+        $response = $this->actingAs($this->user)->postJson(route('invoice.store'), [
+            'type' => 'course',
+            'id' => $this->course->id,
+            'discount_amount' => 50000,
+            'nett_amount' => 100000,
+            'total_amount' => 105000,
+            'payment_channel' => 'qris',
+        ]);
+
+        $response->assertStatus(200);
+
+        $invoice = Invoice::findOrFail($response->json('invoice_id'));
+        $this->assertEquals('pending', $invoice->status);
+        $this->assertEquals('REF-EXPIRE-DATE-001', $invoice->payment_reference);
+
+        // Pastikan expires_at mengikuti additionalInfo.expireDate dari respons gateway
+        $this->assertEquals($targetExpireDate->timestamp, $invoice->expires_at->timestamp);
+
+        // Pastikan QR content disimpan di cache dengan key manjo_qris_{invoice_id}
+        $cachedQr = Cache::get("manjo_qris_{$invoice->id}");
+        $this->assertEquals($expectedQrContent, $cachedQr);
+    }
+
+    /**
+     * 23. Test QRIS bundle checkout uses additionalInfo.expireDate when provided
+     */
+    public function test_qris_bundle_checkout_uses_additional_info_expire_date()
+    {
+        $targetExpireDate = Carbon::now()->addMinutes(30)->setMicrosecond(0);
+        $expireDateIso = $targetExpireDate->toIso8601String();
+        $expectedQrContent = '0002010102122658_BUNDLE_EXPIRE_QR';
+
+        $this->fakeQrisSuccess('REF-BUNDLE-EXPIRE-001', $expectedQrContent, 900, $expireDateIso);
+
+        $response = $this->actingAs($this->user)->postJson(route('invoice.store.bundle'), [
+            'bundle_id' => $this->bundle->id,
+            'discount_amount' => 100000,
+            'nett_amount' => 200000,
+            'total_amount' => 205000,
+            'payment_channel' => 'qris',
+        ]);
+
+        $response->assertStatus(200);
+
+        $invoice = Invoice::findOrFail($response->json('invoice_id'));
+        $this->assertEquals('pending', $invoice->status);
+        $this->assertEquals('REF-BUNDLE-EXPIRE-001', $invoice->payment_reference);
+        $this->assertEquals($targetExpireDate->timestamp, $invoice->expires_at->timestamp);
+
+        $cachedQr = Cache::get("manjo_qris_{$invoice->id}");
+        $this->assertEquals($expectedQrContent, $cachedQr);
+    }
+
+    /**
+     * 24. Test QRIS checkout fails definitively when gateway returns incomplete response (missing referenceNo or qrContent)
+     */
+    public function test_qris_checkout_fails_definitively_when_gateway_response_is_missing_reference_no_or_qr_content()
+    {
+        $initialPoints = $this->user->point_balance;
+
+        // Respons 2004700 dari gateway namun referenceNo atau qrContent kosong
+        Http::fake([
+            '*/v1.0/access-token/b2b' => Http::response([
+                'responseCode' => '2007300',
+                'responseMessage' => 'Successful',
+                'accessToken' => 'fake_b2b_token_test',
+                'tokenType' => 'Bearer',
+                'expiresIn' => '900',
+            ], 200),
+            '*/v1.0/qr/qr-mpm-generate' => Http::response([
+                'responseCode' => '2004700',
+                'responseMessage' => 'Successful',
+                'referenceNo' => null,
+                'partnerReferenceNo' => 'LUC-TEST',
+                'qrContent' => '', // kosong
+                'validityPeriod' => '900',
+            ], 200),
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson(route('invoice.store'), [
+            'type' => 'course',
+            'id' => $this->course->id,
+            'discount_amount' => 50000,
+            'points_redeemed' => 10000,
+            'nett_amount' => 90000,
+            'total_amount' => 95000,
+            'payment_channel' => 'qris',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'success' => false,
+        ]);
+
+        // Invoice harus ditandai failed dan poin dikembalikan
+        $failedInvoice = Invoice::where('user_id', $this->user->id)
+            ->where('points_redeemed', 10000)
+            ->latest()
+            ->first();
+
+        $this->assertNotNull($failedInvoice);
+        $this->assertEquals('failed', $failedInvoice->status);
+        $this->assertEquals($initialPoints, $this->user->fresh()->point_balance);
+    }
 }
+
 
