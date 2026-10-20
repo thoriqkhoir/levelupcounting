@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -29,11 +30,14 @@ class ManjoService
     protected string $qrisSignatureEncoding;
     protected int $qrisTokenCacheTtl;
     protected string $qrisValidityPeriod;
+    protected ?string $qrisCallbackUrl;
+    protected ?string $qrisEndpointUrl;
 
     // Virtual Account Dashboard API Configs
     protected string $vaBaseUrl;
     protected ?string $vaApiKey;
     protected ?string $vaCallbackUrl;
+    protected string $vaIpWhitelist;
     protected int $vaExpiryMinutes;
 
     public function __construct()
@@ -58,11 +62,14 @@ class ManjoService
         $this->qrisSignatureEncoding = (string) config('manjo.qris.signature_encoding', 'hex');
         $this->qrisTokenCacheTtl = (int) config('manjo.qris.token_cache_ttl', 840);
         $this->qrisValidityPeriod = (string) config('manjo.qris.validity_period', '900');
+        $this->qrisCallbackUrl = config('manjo.qris.callback_url');
+        $this->qrisEndpointUrl = config('manjo.qris.endpoint_url');
 
         // VA
         $this->vaBaseUrl = rtrim((string) config('manjo.va.base_url', 'https://uat-api-dashboard.manjo.co.id'), '/');
         $this->vaApiKey = config('manjo.va.api_key');
         $this->vaCallbackUrl = config('manjo.va.callback_url');
+        $this->vaIpWhitelist = (string) config('manjo.va.ip_whitelist', '');
         $this->vaExpiryMinutes = (int) config('manjo.va.expiry_minutes', 1440);
     }
 
@@ -525,9 +532,12 @@ class ManjoService
         string $endpointUrl,
         string $accessToken,
         string $bodyJson,
-        string $timestamp
+        string $timestamp,
+        ?string $secret = null
     ): string {
-        if (empty($this->qrisClientSecret)) {
+        $secretKey = $secret ?: $this->qrisClientSecret;
+
+        if (empty($secretKey)) {
             throw new \InvalidArgumentException('Manjo QRIS client_secret belum dikonfigurasi.');
         }
 
@@ -540,7 +550,7 @@ class ManjoService
 
         $stringToSign = strtoupper($httpMethod) . ':' . $endpointUrl . ':' . $cleanToken . ':' . $bodyHash . ':' . $timestamp;
 
-        return hash_hmac('sha512', $stringToSign, $this->qrisClientSecret);
+        return hash_hmac('sha512', $stringToSign, $secretKey);
     }
 
     /**
@@ -552,6 +562,7 @@ class ManjoService
      * @param string $accessToken
      * @param string $bodyJson
      * @param string $timestamp
+     * @param string|null $secret
      * @return bool
      */
     public function verifySymmetricSignature(
@@ -560,10 +571,191 @@ class ManjoService
         string $endpointUrl,
         string $accessToken,
         string $bodyJson,
-        string $timestamp
+        string $timestamp,
+        ?string $secret = null
     ): bool {
-        $expectedSignature = $this->generateSymmetricSignature($httpMethod, $endpointUrl, $accessToken, $bodyJson, $timestamp);
-        return hash_equals($expectedSignature, strtolower(trim($incomingSignature)));
+        $expectedSignature = $this->generateSymmetricSignature($httpMethod, $endpointUrl, $accessToken, $bodyJson, $timestamp, $secret);
+        return hash_equals(strtolower($expectedSignature), strtolower(trim($incomingSignature)));
+    }
+
+    /**
+     * Memverifikasi request notification QRIS dari Manjo:
+     * 1. Kelengkapan header wajib (Authorization, X-TIMESTAMP, X-SIGNATURE, X-PARTNER-ID, X-EXTERNAL-ID, CHANNEL-ID)
+     * 2. Format token Bearer
+     * 3. Validasi HMAC-SHA512 signature dengan timing-safe comparison
+     * 4. Dukungan multi-kandidat EndpointUrl (path terdaftar, default path SNAP BI, atau full url)
+     * 5. Validasi secret (clientSecret utama, atau X-PARTNER-ID jika gateway menggunakannya)
+     *
+     * @param Request $request
+     * @return array ['valid' => bool, 'error_type' => ?string, 'field' => ?string, 'message' => ?string, 'secret_type' => ?string, 'endpoint_used' => ?string]
+     */
+    public function verifyQrisNotification(Request $request): array
+    {
+        $requiredHeaders = [
+            'Authorization' => 'Authorization',
+            'X-TIMESTAMP' => 'X-TIMESTAMP',
+            'X-SIGNATURE' => 'X-SIGNATURE',
+            'X-PARTNER-ID' => 'X-PARTNER-ID',
+            'X-EXTERNAL-ID' => 'X-EXTERNAL-ID',
+            'CHANNEL-ID' => 'CHANNEL-ID',
+        ];
+
+        foreach ($requiredHeaders as $headerKey => $headerName) {
+            $val = $request->header($headerKey);
+            if ($val === null || $val === '') {
+                return [
+                    'valid' => false,
+                    'error_type' => 'mandatory_header',
+                    'field' => $headerName,
+                    'message' => "Header wajib [{$headerName}] tidak ditemukan.",
+                ];
+            }
+        }
+
+        $authHeader = (string) $request->header('Authorization');
+        if (!str_starts_with($authHeader, 'Bearer ')) {
+            return [
+                'valid' => false,
+                'error_type' => 'unauthorized',
+                'field' => 'Authorization',
+                'message' => 'Format Authorization header harus diawali dengan "Bearer ".',
+            ];
+        }
+
+        $accessToken = trim(substr($authHeader, 7));
+        if ($accessToken === '') {
+            return [
+                'valid' => false,
+                'error_type' => 'unauthorized',
+                'field' => 'Authorization',
+                'message' => 'Access token pada Authorization header kosong.',
+            ];
+        }
+
+        $timestamp = (string) $request->header('X-TIMESTAMP');
+        $incomingSignature = (string) $request->header('X-SIGNATURE');
+        $incomingPartnerId = (string) $request->header('X-PARTNER-ID');
+
+        // Validasi kesesuaian partner ID jika dikonfigurasi
+        $expectedPartnerId = (string) ($this->qrisPartnerId ?: $this->qrisMerchantId);
+        if (!empty($expectedPartnerId) && $incomingPartnerId !== $expectedPartnerId) {
+            Log::warning('Manjo QRIS notification: incoming X-PARTNER-ID mismatch with configured partner_id', [
+                'expected' => $expectedPartnerId,
+                'received' => $incomingPartnerId,
+            ]);
+        }
+
+        $rawBody = (string) $request->getContent();
+        $decoded = json_decode($rawBody, true);
+        $minifiedBody = is_array($decoded) ? json_encode($decoded, JSON_UNESCAPED_SLASHES) : trim($rawBody);
+
+        $bodyHashMinified = strtolower(hash('sha256', $minifiedBody));
+        $bodyHashRaw = strtolower(hash('sha256', trim($rawBody)));
+        $bodyHashes = array_unique([$bodyHashMinified, $bodyHashRaw]);
+
+        // Daftar kandidat Endpoint URL
+        $candidateUrls = [];
+
+        if (!empty($this->qrisEndpointUrl)) {
+            $candidateUrls[] = $this->qrisEndpointUrl;
+        }
+
+        if (!empty($this->qrisCallbackUrl)) {
+            $parsedPath = parse_url($this->qrisCallbackUrl, PHP_URL_PATH);
+            if (!empty($parsedPath)) {
+                $candidateUrls[] = $parsedPath;
+            }
+            $candidateUrls[] = $this->qrisCallbackUrl;
+        }
+
+        $candidateUrls[] = '/' . ltrim($request->path(), '/');
+        $candidateUrls[] = '/v1.0/qr/qr-mpm-notify';
+        $candidateUrls[] = $request->url();
+
+        $candidateUrls = array_values(array_unique(array_filter($candidateUrls)));
+
+        // Dukungan secret: client_secret (utama) dan partner_id (jika gateway menggunakannya)
+        $secrets = [];
+        if (!empty($this->qrisClientSecret)) {
+            $secrets['client_secret'] = $this->qrisClientSecret;
+        }
+        if (!empty($this->qrisPartnerId) && $this->qrisPartnerId !== $this->qrisClientSecret) {
+            $secrets['partner_id'] = $this->qrisPartnerId;
+        }
+
+        if (empty($secrets)) {
+            throw new \RuntimeException('Manjo QRIS client_secret belum dikonfigurasi.');
+        }
+
+        $httpMethod = strtoupper($request->method());
+
+        foreach ($secrets as $secretType => $secretValue) {
+            foreach ($candidateUrls as $url) {
+                foreach ($bodyHashes as $bHash) {
+                    $stringToSign = $httpMethod . ':' . $url . ':' . $accessToken . ':' . $bHash . ':' . $timestamp;
+                    $expectedSignature = hash_hmac('sha512', $stringToSign, $secretValue);
+
+                    if (hash_equals(strtolower($expectedSignature), strtolower(trim($incomingSignature)))) {
+                        if ($secretType === 'partner_id') {
+                            Log::notice('Manjo QRIS notification: Signature terverifikasi menggunakan X-PARTNER-ID bukan client_secret.');
+                        }
+
+                        return [
+                            'valid' => true,
+                            'secret_type' => $secretType,
+                            'endpoint_used' => $url,
+                            'hash_used' => $bHash,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return [
+            'valid' => false,
+            'error_type' => 'signature',
+            'field' => 'X-SIGNATURE',
+            'message' => 'Signature QRIS tidak valid atau tidak cocok.',
+        ];
+    }
+
+    /**
+     * Memeriksa apakah IP klien diizinkan berdasarkan whitelist Manjo VA.
+     *
+     * @param string $clientIp
+     * @return bool
+     */
+    public function isVaIpAllowed(string $clientIp): bool
+    {
+        if (empty($this->vaIpWhitelist)) {
+            return true;
+        }
+
+        $allowedIps = array_filter(array_map('trim', explode(',', $this->vaIpWhitelist)));
+        if (empty($allowedIps)) {
+            return true;
+        }
+
+        foreach ($allowedIps as $allowed) {
+            if ($allowed === $clientIp) {
+                return true;
+            }
+
+            if (str_contains($allowed, '/')) {
+                [$subnet, $bits] = explode('/', $allowed, 2);
+                $ipLong = ip2long($clientIp);
+                $subnetLong = ip2long($subnet);
+                if ($ipLong !== false && $subnetLong !== false) {
+                    $mask = -1 << (32 - (int) $bits);
+                    $subnetMasked = $subnetLong & $mask;
+                    if (($ipLong & $mask) === $subnetMasked) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

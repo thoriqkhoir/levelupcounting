@@ -59,6 +59,10 @@ return [
 
         // Default masa berlaku QRIS dalam detik (contoh: 900 = 15 menit)
         'validity_period' => env('MANJO_QRIS_VALIDITY_PERIOD', '900'),
+
+        // Callback URL yang didaftarkan ke Manjo untuk notifikasi QRIS
+        'callback_url' => env('MANJO_QRIS_CALLBACK_URL'),
+        'endpoint_url' => env('MANJO_QRIS_ENDPOINT_URL'),
     ],
 
     /*
@@ -74,6 +78,8 @@ return [
         'base_url' => env('MANJO_VA_BASE_URL', 'https://uat-api-dashboard.manjo.co.id'),
         'api_key' => env('MANJO_VA_API_KEY'),
         'callback_url' => env('MANJO_VA_CALLBACK_URL'),
+        // Daftar IP yang diizinkan untuk menerima callback VA (dipisahkan koma)
+        'ip_whitelist' => env('MANJO_VA_IP_WHITELIST', ''),
         // Masa berlaku default transaksi VA dalam menit (contoh: 1440 = 24 jam)
         'expiry_minutes' => (int) env('MANJO_VA_EXPIRY_MINUTES', 1440),
     ],
