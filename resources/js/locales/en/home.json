@@ -1,0 +1,180 @@
+{
+  "hero": {
+    "badge": "Educate, Innovate and Lead",
+    "title1": "Learn Without Limits",
+    "title2": "Grow Without",
+    "titleHighlight": "Boundaries",
+    "desc": "We provide practical, certification-based, and online training in Accounting and Tax to prepare you for the professional world.",
+    "browseProgram": "Browse Programs",
+    "getInTouch": "Get In Touch",
+    "successRate": "Success Rate",
+    "totalStudents": "30k+ Total Students"
+  },
+  "about": {
+    "badge": "Why Choose Level Up Accounting?",
+    "title1": "Solutions",
+    "title2": "carefully designed for",
+    "titleHighlight": "learning",
+    "title3": "made simple",
+    "webDev": {
+      "title": "Web & App Development",
+      "desc": "Build responsive and high-performance web and mobile applications"
+    },
+    "dataScience": {
+      "title": "Data Science",
+      "desc": "Analyze data to gain valuable and actionable insights"
+    },
+    "graphicDesign": {
+      "title": "Graphic Design",
+      "desc": "Design attractive, engaging, and functional user interfaces"
+    },
+    "accounting": {
+      "title": "Accounting, Finance, & Tax",
+      "desc": "Manage finances and prepare reliable financial statements"
+    },
+    "title": "Start Your Professional Career From Here",
+    "desc": "We provide practical, certification-based, and online training in Accounting and Tax to prepare you for the professional world.",
+    "knowMore": "Get to Know Us",
+    "journeyTitle": "Our Journey",
+    "journeyDesc": "We have helped thousands of participants improve their accounting and tax competencies through practice-based training. “Producing Accounting & Tax Talents Ready for the Professional World”",
+    "onlineTraining": "Online Trainings",
+    "trainedAlumni": "Trained Alumni & Participants",
+    "partners": "Partnerships",
+    "satisfaction": "Participant Satisfaction"
+  },
+  "program": {
+    "badge": "Our Programs",
+    "programsTitle": "Level Up Accounting Programs",
+    "subtitle": "Choose the program that fits your needs and elevate your accounting skills with experts.",
+    "learnNow": "Learn Now",
+    "course": {
+      "title": "Online Courses",
+      "subtitle": "Master in-demand skills with one-time payment, hands-on practice, and certificates.",
+      "point1": "Flexible learning via video lessons, projects, and case studies",
+      "point2": "Practical & actionable. Structured from Beginner to Advanced levels",
+      "point3": "Lifetime community discussion groups. Free classes every month"
+    },
+    "bootcamp": {
+      "title": "Bootcamp",
+      "subtitle": "Intensive live classes with experts. Practical & comprehensive.",
+      "point1": "Hands-on case studies and real practice in every session. Basic to advanced",
+      "point2": "Semi-private group mentoring to build your job-ready portfolio",
+      "point3": "Curated expert mentors with over 30,000 satisfied alumni"
+    },
+    "webinar": {
+      "title": "Webinar",
+      "subtitle": "Explore current topics taught by industry experts.",
+      "point1": "Gain insightful learning from seasoned domain experts",
+      "point2": "Practical & Actionable. Step-by-step from Basic to Advanced",
+      "point3": "Lifetime discussion community. Free classes every month"
+    }
+  },
+  "tools": {
+    "badge": "Tools & Frameworks",
+    "title": "Up-to-date tools & frameworks used"
+  },
+  "latest": {
+    "badge": "Latest Products",
+    "recentTraining": "Latest Training",
+    "title": "Latest Courses, Bootcamps, Webinars, Private & Bundles from Level Up Accounting",
+    "popularTitle": "Most Popular Classes",
+    "popularDesc": "Upgrade your knowledge and skills here",
+    "unlock": "Unlock New Possibilities",
+    "registrationOpen": "Open Registration",
+    "registerNow": "Register Now",
+    "empty": "No products are currently available.",
+    "allOwned": "You already have access to all our latest products! 😁🙏",
+    "thankYou": "Thank you for being part of Level Up Accounting!",
+    "save": "Save {{discount}}%",
+    "free": "Free",
+    "lifetimeAccess": "Lifetime Access",
+    "registerBefore": "Register within {{days}} days",
+    "registrationClosed": "Registration closed",
+    "registerUntil": "Register until {{date}}",
+    "viewMore": "View More...",
+    "registeredMentors": "{{count}} registered mentors",
+    "noBio": "No bio available",
+    "startsPrefix": "Starts: ",
+    "registrationDeadlinePrefix": "Registration Deadline: ",
+    "badges": {
+      "course": "Online Course",
+      "bootcamp": "Bootcamp",
+      "webinar": "Webinar",
+      "bundle": "Bundle",
+      "certification": "Certification Program",
+      "private": "Private",
+      "scholarship": "Scholarship",
+      "regular": "Regular"
+    },
+    "levels": {
+      "beginner": "Beginner Level",
+      "intermediate": "Intermediate Level",
+      "advanced": "Advanced Level"
+    }
+  },
+  "mentor": {
+    "title": "Meet Our Mentor",
+    "badge": "MENTOR",
+    "roleTax": "Tax Mentor"
+  },
+  "carousel": {
+    "slide": "Slide {{number}}"
+  },
+  "testimony": {
+    "badge": "Testimonials",
+    "title": "What They Say",
+    "subtitle": "What our customers say about us",
+    "heading": "Trusted by leaders",
+    "headingHighlight": "from various industries",
+    "desc": "Learn why professionals trust our solutions to complete their customer journeys."
+  },
+  "faq": {
+    "badge": "FAQ",
+    "titlePrefix": "Explore the ",
+    "titleHighlight": "Frequently Asked",
+    "titleSuffix": " Questions",
+    "description": "Learning tax, brevet, or accounting can be confusing, especially with technical material! Have questions about webinars, online classes, or tax and accounting certification?",
+    "q1": "What is Level Up Accounting?",
+    "a1": "Level Up Accounting is an institution focused on developing competencies in taxation and accounting. Our programs are designed practically and applicably to help participants understand tax and prepare for the professional world.",
+    "q2": "What programs are available at Level Up Accounting?",
+    "a2": "Level Up Accounting provides online classes, certifications, and training in taxation and accounting designed according to industry and workforce needs.",
+    "q3": "Who can participate in Level Up Accounting programs?",
+    "a3": "Level Up Accounting programs are open to college students, fresh graduates, employees, MSME owners, and practitioners who want to improve their knowledge and skills in taxation and accounting.",
+    "q4": "How can I get more information about Level Up Accounting?",
+    "a4_part1": "For more information, you can contact the Level Up Accounting admin via WhatsApp at ",
+    "a4_phone": "+6287775764475",
+    "a4_part2": ". We are also active on social media such as Instagram, TikTok, and LinkedIn to share program updates and the latest study tips."
+  },
+  "cta": {
+    "title": "Let's Get In Touch.",
+    "desc": "We are here to ease your online learning journey. We are ready to assist you.",
+    "redefineProfit": "Let's Redefine Profit Together",
+    "connectWithUs": "Connect with us to your financial journey today.",
+    "contactUs": "Contact Us",
+    "address": "Address",
+    "contactInfo": "Contact Info",
+    "getInTouch": "Get in Touch",
+    "exploreBootcamp": "Explore Our Bootcamp",
+    "joinedAlumni": "Join 1,000+ alumni",
+    "registerNow": "Register for Classes Now",
+    "descLong": "Join thousands of other participants who have benefited from our courses. Get access to high quality materials, experienced mentors, and a supportive community.",
+    "exploreClass": "Explore Courses"
+  },
+  "notification": {
+    "justPurchased": "Just purchased {{type}}: "
+  },
+  "promotion": {
+    "alt": "Level Up Accounting Promotion",
+    "clickForDetail": "Click for details",
+    "clickToClose": "Click to close"
+  },
+  "galery": {
+    "title": "Level Up Accounting Gallery",
+    "item1": "Coretax Training UIN Malang",
+    "item2": "Coretax Training UIN Semarang",
+    "item3": "Coretax Training SMKN 1 Kota Malang",
+    "item4": "Online Training",
+    "item5": "Online Training",
+    "item6": "Online Training"
+  }
+}

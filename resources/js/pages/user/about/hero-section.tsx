@@ -1,40 +1,43 @@
 import { motion } from 'framer-motion';
 import { Award, Target, Users, Sparkles, CheckCircle, TrendingUp } from 'lucide-react';
-
-const stats = [
-    {
-        icon: Award,
-        value: '100%',
-        label: 'Mentor Tersertifikasi',
-        color: 'text-primary',
-        bg: 'bg-primary/10',
-        accent: 'bg-blue-50 dark:bg-blue-900/20',
-    },
-    {
-        icon: Users,
-        value: '5.000+',
-        label: 'Pengguna Terdaftar',
-        color: 'text-secondary',
-        bg: 'bg-secondary/10',
-        accent: 'bg-indigo-50 dark:bg-indigo-900/20',
-    },
-    {
-        icon: Target,
-        value: '95%',
-        label: 'Tingkat Kepuasan',
-        color: 'text-rose-600',
-        bg: 'bg-rose-500/10',
-        accent: 'bg-rose-50 dark:bg-rose-900/20',
-    },
-];
-
-const highlights = [
-    { icon: CheckCircle, label: 'Kurikulum Berbasis Industri', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.6 },
-    { icon: TrendingUp, label: 'Update Regulasi Terkini', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.75 },
-    { icon: Award, label: 'Sertifikat Diakui Industri', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', delay: 0.9 },
-];
+import { useTranslation } from 'react-i18next';
 
 export function HeroSection() {
+    const { t } = useTranslation('user');
+
+    const stats = [
+        {
+            icon: Award,
+            value: '100%',
+            label: t('about.hero.certifiedMentors', 'Mentor Tersertifikasi'),
+            color: 'text-primary',
+            bg: 'bg-primary/10',
+            accent: 'bg-blue-50 dark:bg-blue-900/20',
+        },
+        {
+            icon: Users,
+            value: '5.000+',
+            label: t('about.hero.registeredUsers', 'Pengguna Terdaftar'),
+            color: 'text-secondary',
+            bg: 'bg-secondary/10',
+            accent: 'bg-indigo-50 dark:bg-indigo-900/20',
+        },
+        {
+            icon: Target,
+            value: '95%',
+            label: t('about.hero.satisfactionRate', 'Tingkat Kepuasan'),
+            color: 'text-rose-600',
+            bg: 'bg-rose-500/10',
+            accent: 'bg-rose-50 dark:bg-rose-900/20',
+        },
+    ];
+
+    const highlights = [
+        { icon: CheckCircle, label: t('about.hero.industryCurriculum', 'Kurikulum Berbasis Industri'), color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.6 },
+        { icon: TrendingUp, label: t('about.hero.latestRegulations', 'Update Regulasi Terkini'), color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.75 },
+        { icon: Award, label: t('about.hero.industryCertificate', 'Sertifikat Diakui Industri'), color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', delay: 0.9 },
+    ];
+
     return (
         <section className="relative overflow-hidden py-20 text-gray-900 dark:text-white">
             <div className="relative z-10 mx-auto max-w-7xl px-4">
@@ -48,7 +51,7 @@ export function HeroSection() {
                 >
                     <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
                         <Sparkles className="h-4 w-4 animate-pulse" />
-                        Tentang Level Up Accounting
+                        {t('about.hero.badge', 'Tentang Level Up Accounting')}
                     </span>
                 </motion.div>
 
@@ -59,14 +62,14 @@ export function HeroSection() {
                     transition={{ duration: 0.7, delay: 0.25 }}
                     className="font-av-estiana mx-auto mb-6 max-w-4xl text-center text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
                 >
-                    Platform Edukasi Pajak{' '}
+                    {t('about.hero.title1', 'Platform Edukasi Pajak')}{' '}
                     <span className="relative inline-block">
                         <span className="bg-gradient-to-r from-primary via-indigo-500 to-secondary bg-clip-text text-transparent relative z-10">
-                            Terdepan
+                            {t('about.hero.titleHighlight', 'Terdepan')}
                         </span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
                     </span>{' '}
-                    di Indonesia
+                    {t('about.hero.title2', 'di Indonesia')}
                 </motion.h1>
 
                 {/* Subtext */}
@@ -76,7 +79,7 @@ export function HeroSection() {
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="mx-auto mb-10 max-w-2xl text-center text-base text-gray-600 dark:text-gray-300 md:text-lg"
                 >
-                    Level Up Accounting hadir sebagai solusi pendidikan dan pelatihan perpajakan modern. Kami berfokus pada peningkatan kompetensi aplikatif di bidang akuntansi dan perpajakan untuk membantu mahasiswa, karyawan, hingga praktisi mencapai puncak karir mereka.
+                    {t('about.hero.desc', 'Level Up Accounting hadir sebagai solusi pendidikan dan pelatihan perpajakan modern. Kami berfokus pada peningkatan kompetensi aplikatif di bidang akuntansi dan perpajakan untuk membantu mahasiswa, karyawan, hingga praktisi mencapai puncak karir mereka.')}
                 </motion.p>
 
                 {/* Logo / Visual */}
@@ -96,13 +99,7 @@ export function HeroSection() {
                             <img
                                 src="/assets/images/logo-primary.png"
                                 alt="Logo Level Up Accounting"
-                                className="h-auto w-full dark:hidden"
-                                draggable={false}
-                            />
-                            <img
-                                src="/assets/images/logo-secondary.png"
-                                alt="Logo Level Up Accounting"
-                                className="hidden h-auto w-full dark:block"
+                                className="h-auto w-full"
                                 draggable={false}
                             />
                         </motion.div>

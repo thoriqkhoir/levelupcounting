@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 
 interface ProgramCardProps {
     title: string;
@@ -7,10 +8,11 @@ interface ProgramCardProps {
     imageSrc: string;
     imageAlt: string;
     href: string;
+    learnNowText: string;
     reverse?: boolean;
 }
 
-function ProgramCard({ title, description, icon, imageSrc, imageAlt, href, reverse = false }: ProgramCardProps) {
+function ProgramCard({ title, description, icon, imageSrc, imageAlt, href, learnNowText, reverse = false }: ProgramCardProps) {
     return (
         <div
             className={`relative z-2 flex flex-col md:items-center gap-5 md:gap-8 p-4 md:min-h-[280px] ${reverse ? 'md:flex-row-reverse' : 'md:flex-row'}`}
@@ -30,7 +32,7 @@ function ProgramCard({ title, description, icon, imageSrc, imageAlt, href, rever
                     href={href}
                     className="mt-1.5 inline-block rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 px-6 py-2.5 text-sm font-semibold text-white no-underline"
                 >
-                    Pelajari Sekarang →
+                    {learnNowText} →
                 </Link>
             </div>
         </div>
@@ -38,10 +40,36 @@ function ProgramCard({ title, description, icon, imageSrc, imageAlt, href, rever
 }
 
 export default function ProgramSection() {
+    const { t } = useTranslation('home');
+
     const programs = [
-        { title: 'Bootcamp Intensif', description: 'Intensive Live Class bersama Experts. Praktikal & Mendalam. Kombinasi Case Study, Praktik di Tiap Sesi dari Basic to Advanced.', icon: '🖐', imageSrc: '/assets/images/bootcamp.svg', imageAlt: 'Bootcamp Intensif', href: '/bootcamp', reverse: false },
-        { title: 'Online Class', description: 'Pelajari berbagai skill sekali bayar, praktik, dan bersertifikat. Belajar fleksibel via Video Materi, Project dan Studi Kasus.', icon: '🏆', imageSrc: '/assets/images/class.svg', imageAlt: 'Online Class', href: '/course', reverse: true },
-        { title: 'Interactive Webinar', description: 'Pelajari berbagai topik terkini dari para ahli di bidangnya. Belajar insightful dengan pembicara yang expert di bidangnya.', icon: '🖐', imageSrc: '/assets/images/webinar.svg', imageAlt: 'Interactive Webinar', href: '/webinar', reverse: false },
+        {
+            title: t('program.bootcamp.title', 'Bootcamp Intensif'),
+            description: `${t('program.bootcamp.subtitle', 'Intensive Live Class bersama Experts. Praktikal & Mendalam.')} ${t('program.bootcamp.point1', 'Kombinasi Case Study, Praktik di Tiap Sesi dari Basic to Advanced.')}`,
+            icon: '🖐',
+            imageSrc: '/assets/images/bootcamp.svg',
+            imageAlt: 'Bootcamp Intensif',
+            href: '/bootcamp',
+            reverse: false,
+        },
+        {
+            title: t('program.course.title', 'Online Class'),
+            description: `${t('program.course.subtitle', 'Pelajari berbagai skill sekali bayar, praktik, dan bersertifikat.')} ${t('program.course.point1', 'Belajar fleksibel via Video Materi, Project dan Studi Kasus.')}`,
+            icon: '🏆',
+            imageSrc: '/assets/images/class.svg',
+            imageAlt: 'Online Class',
+            href: '/course',
+            reverse: true,
+        },
+        {
+            title: t('program.webinar.title', 'Interactive Webinar'),
+            description: `${t('program.webinar.subtitle', 'Pelajari berbagai topik terkini dari para ahli di bidangnya.')} ${t('program.webinar.point1', 'Belajar insightful dengan pembicara yang expert di bidangnya.')}`,
+            icon: '🖐',
+            imageSrc: '/assets/images/webinar.svg',
+            imageAlt: 'Interactive Webinar',
+            href: '/webinar',
+            reverse: false,
+        },
     ];
 
     return (
@@ -49,7 +77,7 @@ export default function ProgramSection() {
             <div className="mb-12 text-center">
                 <div className="mb-4 flex justify-center">
                     <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
-                        🎯 Program Unggulan
+                        🎯 {t('program.badge', 'Program Unggulan')}
                     </span>
                 </div>
                 <h2 className="font-av-estiana mb-3 text-2xl font-extrabold md:text-3xl">
@@ -60,14 +88,16 @@ export default function ProgramSection() {
                     </span>
                 </h2>
                 <p className="mx-auto max-w-[460px] text-sm leading-relaxed text-gray-500 md:text-base">
-                    Pilih program yang sesuai dengan kebutuhanmu dan tingkatkan kemampuan akuntansimu bersama para ahli.
+                    {t('program.subtitle', 'Pilih program yang sesuai dengan kebutuhanmu dan tingkatkan kemampuan akuntansimu bersama para ahli.')}
                 </p>
             </div>
             <div className="relative mx-auto max-w-6xl">
                 {/* Cards */}
                 <div className=" relative flex flex-col gap-2 md:gap-4">
                     {programs.map((p) => (
-                        <div key={p.title}><ProgramCard {...p} /></div>
+                        <div key={p.title}>
+                            <ProgramCard {...p} learnNowText={t('program.learnNow', 'Pelajari Sekarang')} />
+                        </div>
                     ))}
                 </div>
             </div>

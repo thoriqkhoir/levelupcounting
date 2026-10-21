@@ -4,6 +4,7 @@ import { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BadgeCheck, CalendarDays, ChartArea, Clock, Hourglass, MapPin, Users, Sparkles, AlertCircle, Check, Percent } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Webinar {
     title: string;
@@ -19,6 +20,7 @@ interface Webinar {
 }
 
 export default function RegisterSection({ webinar }: { webinar: Webinar }) {
+    const { t, i18n } = useTranslation();
     const { auth } = usePage<SharedData>().props;
 
     const isLoggedIn = !!auth.user;
@@ -29,7 +31,7 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
     let warningMessage: string | null = null;
     
     registrationUrl = webinar.registration_url;
-    buttonText = 'Gabung Sekarang';
+    buttonText = t('webinar.detail.btnJoinNow');
     warningMessage = null;
 
 
@@ -58,14 +60,14 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                     <div className="mb-4 flex items-center justify-center gap-2">
                         <Sparkles className="h-6 w-6 text-primary" />
                         <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                            Webinar Eksklusif
+                            {t('webinar.detail.exclusiveWebinar')}
                         </span>
                     </div>
                     <h2 className="dark:text-primary-foreground mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl">
-                        Jangan Lewatkan Kesempatan Ini!
+                        {t('webinar.detail.dontMissOpportunity')}
                     </h2>
                     <p className="text-md text-gray-600 dark:text-gray-400">
-                        Investasi waktu terbaik untuk menambah wawasan dan koneksi profesional
+                        {t('webinar.detail.registerSubtitle')}
                     </p>
                 </motion.div>
 
@@ -84,7 +86,7 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                 <div className="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-3 text-center">
                                     <div className="flex items-center justify-center gap-2 text-white">
                                         <Percent className="h-5 w-5" />
-                                        <span className="text-lg font-bold">Hemat {discount}% - Promo Terbatas!</span>
+                                        <span className="text-lg font-bold">{t('webinar.detail.savePercentPromo', { percent: discount })}</span>
                                     </div>
                                 </div>
                             )}
@@ -93,25 +95,25 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                 {/* Price */}
                                 <div className="mb-6 text-center">
                                     <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                        Investasi Terjangkau untuk Wawasan Berharga
+                                        {t('webinar.detail.affordableInvestment')}
                                     </p>
                                     {webinar.price > 0 ? (
                                         <>
                                             {webinar.strikethrough_price > 0 && (
                                                 <span className="block text-xl text-red-500 line-through">
-                                                    Rp {webinar.strikethrough_price.toLocaleString('id-ID')}
+                                                    Rp {webinar.strikethrough_price.toLocaleString(i18n.language === 'id' ? 'id-ID' : 'en-US')}
                                                 </span>
                                             )}
                                             <span className="block text-4xl font-extrabold text-primary">
-                                                Rp {webinar.price.toLocaleString('id-ID')}
+                                                Rp {webinar.price.toLocaleString(i18n.language === 'id' ? 'id-ID' : 'en-US')}
                                             </span>
                                             <span className="mt-2 inline-block rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
-                                                Termasuk Rekaman & Materi
+                                                {t('webinar.detail.recordingAndMaterialIncluded')}
                                             </span>
                                         </>
                                     ) : (
                                         <span className="block text-5xl font-extrabold text-green-600">
-                                            GRATIS
+                                            {t('webinar.detail.free')}
                                         </span>
                                     )}
                                 </div>
@@ -121,29 +123,29 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                 {/* Quick Info */}
                                 <div className="mb-6 space-y-3">
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Platform</span>
-                                        <span className="font-bold text-gray-900 dark:text-white">Google Meet/Zoom</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('webinar.detail.platform')}</span>
+                                        <span className="font-bold text-gray-900 dark:text-white">{t('webinar.detail.onlinePlatform')}</span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Batch</span>
-                                        <span className="font-bold text-gray-900 dark:text-white">{webinar.batch || '-'}</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('webinar.detail.batchLabel')}</span>
+                                        <span className="font-bold text-gray-900 dark:text-white">{webinar.batch ? t('webinar.detail.batch', { batch: webinar.batch }) : '-'}</span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Kuota</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('webinar.detail.quota')}</span>
                                         <span className="font-bold text-gray-900 dark:text-white">
-                                            {webinar.quota ? `${webinar.quota} Peserta` : 'Tidak Terbatas'}
+                                            {webinar.quota ? t('webinar.detail.quotaParticipants', { quota: webinar.quota }) : t('webinar.detail.unlimitedQuota')}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Durasi</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('webinar.detail.duration')}</span>
                                         <span className="font-bold text-gray-900 dark:text-white">
-                                            {durationHours} Jam
+                                            {t('webinar.detail.durationVal', { hours: durationHours })}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Deadline</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('webinar.detail.deadline')}</span>
                                         <span className="font-bold text-red-600">
-                                            {new Date(webinar.registration_deadline).toLocaleDateString('id-ID', {
+                                            {new Date(webinar.registration_deadline).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                                 day: 'numeric',
                                                 month: 'short',
                                             })}
@@ -160,7 +162,7 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                 )}
 
                                 {/* CTA Button */}
-                                {isRegistrationOpen ? (
+                                 {isRegistrationOpen ? (
                                     <Button className="w-full py-4 text-md font-bold shadow-lg" size="lg" asChild>
                                         <Link href={registrationUrl}>
                                             <Sparkles className="mr-2 h-5 w-5" />
@@ -169,7 +171,7 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                     </Button>
                                 ) : (
                                     <Button className="w-full py-4 text-md font-bold" size="lg" disabled>
-                                        Pendaftaran Ditutup
+                                        {t('webinar.detail.registrationClosed')}
                                     </Button>
                                 )}
 
@@ -177,15 +179,15 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                 <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Terpercaya</span>
+                                        <span>{t('webinar.detail.trusted')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Aman</span>
+                                        <span>{t('webinar.detail.secure')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Berkualitas</span>
+                                        <span>{t('webinar.detail.highQuality')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -199,7 +201,7 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                             className="mt-4 text-center"
                         >
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                🔒 Pembayaran aman & terpercaya
+                                {t('webinar.detail.securePayment')}
                             </p>
                         </motion.div>
                     </motion.div>
@@ -224,14 +226,14 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                         <div className="rounded-2xl border-2 p-6 shadow-lg dark:border-zinc-700">
                             <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
                                 <CalendarDays className="h-6 w-6 text-primary" />
-                                Jadwal Webinar
+                                {t('webinar.detail.webinarSchedule')}
                             </h3>
 
                             {/* Date & Time */}
                             <div className="mb-4 rounded-lg bg-primary/5 p-4">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Waktu Pelaksanaan</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{t('webinar.detail.eventTime')}</p>
                                 <p className="font-bold text-gray-900 dark:text-white">
-                                    {new Date(webinar.start_time).toLocaleDateString('id-ID', {
+                                    {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                         weekday: 'long',
                                         day: 'numeric',
                                         month: 'long',
@@ -239,18 +241,18 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                     })}
                                 </p>
                                 <p className="text-sm font-medium text-primary">
-                                    {new Date(webinar.start_time).toLocaleTimeString('id-ID', {
+                                    {new Date(webinar.start_time).toLocaleTimeString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                         hour: '2-digit',
                                         minute: '2-digit',
                                         timeZone: 'Asia/Jakarta',
                                     })}{' '}
                                     -{' '}
-                                    {new Date(webinar.end_time).toLocaleTimeString('id-ID', {
+                                    {new Date(webinar.end_time).toLocaleTimeString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                         hour: '2-digit',
                                         minute: '2-digit',
                                         timeZone: 'Asia/Jakarta',
                                     })}{' '}
-                                    WIB
+                                    {t('webinar.detail.timeZoneWib')}
                                 </p>
                             </div>
 
@@ -267,10 +269,10 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                     </div>
                                     <div className="flex-1">
                                         <p className="font-semibold text-gray-900 dark:text-white">
-                                            Materi Relevan dengan Industri
+                                            {t('webinar.detail.relevantMaterial')}
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            Topik terkini yang sesuai kebutuhan pasar kerja
+                                            {t('webinar.detail.relevantMaterialDesc')}
                                         </p>
                                     </div>
                                 </motion.li>
@@ -286,10 +288,10 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                     </div>
                                     <div className="flex-1">
                                         <p className="font-semibold text-gray-900 dark:text-white">
-                                            Pemateri Profesional
+                                            {t('webinar.detail.professionalSpeaker')}
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            Langsung dari praktisi berpengalaman
+                                            {t('webinar.detail.professionalSpeakerDesc')}
                                         </p>
                                     </div>
                                 </motion.li>
@@ -305,10 +307,10 @@ export default function RegisterSection({ webinar }: { webinar: Webinar }) {
                                     </div>
                                     <div className="flex-1">
                                         <p className="font-semibold text-gray-900 dark:text-white">
-                                            Tersedia Rekaman Webinar
+                                            {t('webinar.detail.recordingAvailable')}
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            Dapat diakses kapan saja setelah webinar
+                                            {t('webinar.detail.recordingAvailableDesc')}
                                         </p>
                                     </div>
                                 </motion.li>

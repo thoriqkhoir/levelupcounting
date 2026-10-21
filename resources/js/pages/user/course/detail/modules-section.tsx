@@ -2,6 +2,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ChevronUp, FileText, Layers, Lock, PlayCircle, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Course {
     modules?: {
@@ -25,6 +26,7 @@ const lessonTypeIcon = (type: string) => {
 };
 
 export default function ModulesSection({ course }: { course: Course }) {
+    const { t } = useTranslation('user');
     const [expanded, setExpanded] = useState<React.Key | null>('0');
 
     const totalLessons = course.modules?.reduce((t, m) => t + (m.lessons?.length ?? 0), 0) ?? 0;
@@ -41,17 +43,17 @@ export default function ModulesSection({ course }: { course: Course }) {
             >
                 <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
                     <Layers className="h-4 w-4" />
-                    Kurikulum Kelas
+                    {t('course.detail.curriculumBadge', 'Kurikulum Kelas')}
                 </span>
                 <h2 className="mt-3 text-2xl font-extrabold text-gray-900 dark:text-white md:text-3xl">
-                    Modul{' '}
+                    {t('course.detail.modulesTitlePrefix', 'Modul')}{' '}
                     <span className="relative inline-block">
-                        <span className="relative z-10 text-primary">Pembelajaran</span>
+                        <span className="relative z-10 text-primary">{t('course.detail.modulesTitleHighlight', 'Pembelajaran')}</span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                     </span>
                 </h2>
                 <p className="mt-2 text-gray-500 dark:text-gray-400">
-                    {totalModules} modul · {totalLessons} materi pembelajaran terstruktur
+                    {t('course.detail.modulesSummary', { modules: totalModules, lessons: totalLessons, defaultValue: `${totalModules} modul · ${totalLessons} materi pembelajaran terstruktur` })}
                 </p>
             </motion.div>
 
@@ -66,15 +68,15 @@ export default function ModulesSection({ course }: { course: Course }) {
                 <div className="grid grid-cols-3 divide-x divide-gray-100 text-center dark:divide-zinc-700">
                     <div className="py-4 px-2">
                         <p className="text-2xl font-extrabold text-primary">{totalModules}</p>
-                        <p className="text-xs text-gray-500">Modul</p>
+                        <p className="text-xs text-gray-500">{t('course.detail.modulesCountLabel', 'Modul')}</p>
                     </div>
                     <div className="py-4 px-2">
                         <p className="text-2xl font-extrabold text-secondary">{totalLessons}</p>
-                        <p className="text-xs text-gray-500">Materi</p>
+                        <p className="text-xs text-gray-500">{t('course.detail.lessonsCountLabel', 'Materi')}</p>
                     </div>
                     <div className="py-4 px-2">
                         <p className="text-2xl font-extrabold text-green-600">∞</p>
-                        <p className="text-xs text-gray-500">Akses</p>
+                        <p className="text-xs text-gray-500">{t('course.detail.accessCountLabel', 'Akses')}</p>
                     </div>
                 </div>
             </motion.div>
@@ -106,7 +108,9 @@ export default function ModulesSection({ course }: { course: Course }) {
                                         </div>
                                         <div>
                                             <p className="font-semibold text-gray-900 dark:text-white md:text-lg">{module.title}</p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">{module.lessons?.length ?? 0} materi</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                {t('course.detail.moduleLessonsCount', { count: module.lessons?.length ?? 0, defaultValue: `${module.lessons?.length ?? 0} materi` })}
+                                            </p>
                                         </div>
                                     </div>
                                     <ChevronUp className="h-5 w-5 flex-shrink-0 text-gray-400 transition-transform duration-200 group-data-expanded:-rotate-180" />
@@ -116,7 +120,7 @@ export default function ModulesSection({ course }: { course: Course }) {
                                 <div className="border-t border-gray-100 dark:border-zinc-700">
                                     <ul className="space-y-1 p-3">
                                         {module.lessons?.length ? (
-                                            module.lessons.map((lesson, lidx) => (
+                                             module.lessons.map((lesson, lidx) => (
                                                 <motion.li
                                                     key={lidx}
                                                     initial={{ opacity: 0, x: -8 }}
@@ -130,7 +134,7 @@ export default function ModulesSection({ course }: { course: Course }) {
                                                     </div>
                                                     {lesson.is_free ? (
                                                         <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                                            Gratis
+                                                            {t('course.detail.free', 'Gratis')}
                                                         </span>
                                                     ) : (
                                                         <Lock className="h-3.5 w-3.5 text-gray-400" />
@@ -138,7 +142,9 @@ export default function ModulesSection({ course }: { course: Course }) {
                                                 </motion.li>
                                             ))
                                         ) : (
-                                            <li className="py-4 text-center text-sm text-gray-400">Belum ada materi</li>
+                                            <li className="py-4 text-center text-sm text-gray-400">
+                                                {t('course.detail.noLessonsYet', 'Belum ada materi')}
+                                            </li>
                                         )}
                                     </ul>
                                 </div>

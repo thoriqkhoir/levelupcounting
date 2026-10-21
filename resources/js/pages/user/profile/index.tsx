@@ -7,7 +7,8 @@ import ProfileLayout from '@/layouts/profile/layout';
 import UserLayout from '@/layouts/user-layout';
 import { Head, Link } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import {
     BookTextIcon,
     ExternalLink,
@@ -57,18 +58,21 @@ interface ProfileProps {
 }
 
 export default function Profile({ stats, recentProducts }: ProfileProps) {
+    const { t, i18n } = useTranslation('profile');
+    const currentLocale = i18n.language === 'en' ? enLocale : idLocale;
+
     const getProductTypeLabel = (type: string): string => {
         switch (type) {
             case 'course':
-                return 'Kelas Online';
+                return t('dashboard.stats.courses');
             case 'bootcamp':
-                return 'Bootcamp';
+                return t('dashboard.stats.bootcamps');
             case 'webinar':
-                return 'Webinar';
+                return t('dashboard.stats.webinars');
             case 'certification-program':
-                return 'Sertifikasi Program';
+                return t('dashboard.stats.certifications');
             default:
-                return 'Produk';
+                return t('dashboard.table.product');
         }
     };
 
@@ -92,21 +96,21 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
             return (
                 <Badge className="border-green-300 bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm">
                     <CheckCircle2 className="mr-1 h-3 w-3" />
-                    Selesai
+                    {t('dashboard.table.statusCompleted')}
                 </Badge>
             );
         } else if (progress > 0) {
             return (
                 <Badge className="border-blue-300 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
                     <TrendingUp className="mr-1 h-3 w-3" />
-                    Berlangsung
+                    {t('dashboard.table.statusOngoing')}
                 </Badge>
             );
         } else {
             return (
                 <Badge className="border-gray-300 bg-gray-100 text-gray-700">
                     <Clock className="mr-1 h-3 w-3" />
-                    Belum Dimulai
+                    {t('dashboard.table.statusNotStarted')}
                 </Badge>
             );
         }
@@ -115,15 +119,15 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
     const formatSchedule = (product: Product): string => {
         if (product.type === 'bootcamp') {
             if (!product.start_date) return '-';
-            const startDate = format(new Date(product.start_date), 'dd MMM yyyy', { locale: id });
-            const endDate = product.end_date ? format(new Date(product.end_date), 'dd MMM yyyy', { locale: id }) : '';
+            const startDate = format(new Date(product.start_date), 'dd MMM yyyy', { locale: currentLocale });
+            const endDate = product.end_date ? format(new Date(product.end_date), 'dd MMM yyyy', { locale: currentLocale }) : '';
             return endDate ? `${startDate} - ${endDate}` : startDate;
         }
 
         if (product.type === 'webinar') {
             if (!product.start_time) return '-';
-            const startTime = format(new Date(product.start_time), 'dd MMM yyyy, HH:mm', { locale: id });
-            const endTime = product.end_time ? format(new Date(product.end_time), 'HH:mm', { locale: id }) : '';
+            const startTime = format(new Date(product.start_time), 'dd MMM yyyy, HH:mm', { locale: currentLocale });
+            const endTime = product.end_time ? format(new Date(product.end_time), 'HH:mm', { locale: currentLocale }) : '';
             return endTime ? `${startTime} - ${endTime}` : startTime;
         }
 
@@ -141,41 +145,41 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
 
     const statsCards = [
         {
-            title: 'Total Produk',
+            title: t('dashboard.stats.total'),
             value: stats.total,
-            description: 'Total item yang Anda ikuti',
+            description: t('dashboard.stats.totalDesc'),
             icon: GraduationCap,
             gradient: 'from-purple-500 to-purple-600',
             bgGradient: 'from-purple-50 to-purple-100',
         },
         {
-            title: 'Kelas Online',
+            title: t('dashboard.stats.courses'),
             value: stats.courses,
-            description: 'Kelas yang telah Anda beli',
+            description: t('dashboard.stats.coursesDesc'),
             icon: BookTextIcon,
             gradient: 'from-blue-500 to-blue-600',
             bgGradient: 'from-blue-50 to-blue-100',
         },
         {
-            title: 'Bootcamp',
+            title: t('dashboard.stats.bootcamps'),
             value: stats.bootcamps,
-            description: 'Bootcamp yang Anda ikuti',
+            description: t('dashboard.stats.bootcampsDesc'),
             icon: Presentation,
             gradient: 'from-green-500 to-green-600',
             bgGradient: 'from-green-50 to-green-100',
         },
         {
-            title: 'Webinar',
+            title: t('dashboard.stats.webinars'),
             value: stats.webinars,
-            description: 'Webinar yang Anda ikuti',
+            description: t('dashboard.stats.webinarsDesc'),
             icon: MonitorPlay,
             gradient: 'from-orange-500 to-orange-600',
             bgGradient: 'from-orange-50 to-orange-100',
         },
         {
-            title: 'Sertifikasi Program',
+            title: t('dashboard.stats.certifications'),
             value: stats.certificationPrograms,
-            description: 'Sertifikasi program yang Anda ikuti',
+            description: t('dashboard.stats.certificationsDesc'),
             icon: BriefcaseBusiness,
             gradient: 'from-teal-500 to-teal-600',
             bgGradient: 'from-teal-50 to-teal-100',
@@ -184,11 +188,11 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
 
     return (
         <UserLayout>
-            <Head title="Profil" />
+            <Head title={t('sidebar.dashboard')} />
             <ProfileLayout>
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                    <Heading title="Dashboard" description="Pantau aktivitas dan progres belajar Anda di sini." />
+                    <Heading title={t('dashboard.title')} description={t('dashboard.description')} />
                 </motion.div>
 
                 {/* Stats Cards */}
@@ -233,7 +237,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                     transition={{ duration: 0.5, delay: 0.5 }}
                     className="mt-8"
                 >
-                    <Heading title="Produk Saya" description="Daftar produk yang telah Anda beli dan ikuti." />
+                    <Heading title={t('dashboard.myProducts')} description={t('dashboard.myProductsDesc')} />
 
                     {recentProducts.length > 0 ? (
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -258,7 +262,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                         variant="outline"
                                                         className="border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-950/50"
                                                     >
-                                                        {product.is_scholarship ? 'Beasiswa' : 'Reguler'}
+                                                        {product.is_scholarship ? t('dashboard.table.scholarship') : t('dashboard.table.regular')}
                                                     </Badge>
                                                 )}
                                                 {product.type !== 'course' && product.type !== 'certification-program' && (
@@ -266,7 +270,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                         variant="outline"
                                                         className="border-green-200 bg-green-50 text-green-700 dark:bg-green-950/50"
                                                     >
-                                                        Terdaftar
+                                                        {t('dashboard.table.statusRegistered')}
                                                     </Badge>
                                                 )}
                                             </div>
@@ -291,7 +295,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                                 : 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50'
                                                         }
                                                     >
-                                                        {product.is_fully_paid ? 'Cicilan Lunas' : product.is_suspended ? 'Cicilan Dibekukan' : 'Cicilan Aktif'}
+                                                        {product.is_fully_paid ? t('dashboard.table.installmentPaid') : product.is_suspended ? t('dashboard.table.installmentSuspended') : t('dashboard.table.installmentActive')}
                                                     </Badge>
                                                 </div>
                                             )}
@@ -302,7 +306,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                             {product.type === 'course' && (
                                                 <div className="space-y-2">
                                                     <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                                                        <span>Progress Belajar</span>
+                                                        <span>{t('dashboard.learningProgress')}</span>
                                                         <span className="font-bold">{product.progress || 0}%</span>
                                                     </div>
                                                     <Progress value={product.progress || 0} className="h-2" />
@@ -314,8 +318,8 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                 <div className="flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-800">
                                                     <BriefcaseBusiness className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
                                                     <div>
-                                                        <p className="font-medium">Program</p>
-                                                        <p className="text-gray-600 dark:text-gray-400">Pendaftaran Sertifikasi</p>
+                                                        <p className="font-medium">{t('dashboard.info')}</p>
+                                                        <p className="text-gray-600 dark:text-gray-400">{t('dashboard.table.certRegistration')}</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -325,7 +329,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                 <div className="flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-800">
                                                     <Calendar className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
                                                     <div>
-                                                        <p className="font-medium">Jadwal</p>
+                                                        <p className="font-medium">{t('dashboard.schedule')}</p>
                                                         <p className="text-gray-600 dark:text-gray-400">{formatSchedule(product)}</p>
                                                     </div>
                                                 </div>
@@ -341,7 +345,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                         className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950/50"
                                                     >
                                                         <Link href={route('profile.installments')}>
-                                                            Cicilan
+                                                            {t('dashboard.table.btnInstallment')}
                                                         </Link>
                                                     </Button>
                                                 )}
@@ -350,7 +354,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                     <Button asChild size="sm" className="flex-1 shadow-sm">
                                                         <Link href={route('profile.course.detail', { course: product.slug })}>
                                                             <Play className="mr-2 h-4 w-4" />
-                                                            Mulai Belajar
+                                                            {t('dashboard.btnStartLearning')}
                                                         </Link>
                                                     </Button>
                                                 ) : (
@@ -358,14 +362,14 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                                         <Button asChild size="sm" variant="outline" className="flex-1">
                                                             <Link href={getProductDetailUrl(product)}>
                                                                 <ExternalLink className="mr-1 h-4 w-4" />
-                                                                Detail
+                                                                {t('dashboard.table.btnDetail')}
                                                             </Link>
                                                         </Button>
                                                         {product.group_url && (
                                                             <Button asChild size="sm" className="flex-1 shadow-sm">
                                                                 <a href={formatExternalUrl(product.group_url)} target="_blank" rel="noopener noreferrer">
                                                                     <MessageCircle className="mr-1 h-4 w-4" />
-                                                                    Grup WA
+                                                                    {t('dashboard.table.btnGroup')}
                                                                 </a>
                                                             </Button>
                                                         )}
@@ -375,7 +379,7 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
 
                                             {/* Enrolled Date */}
                                             <div className="border-t pt-3 text-xs text-gray-500 dark:text-gray-400">
-                                                Terdaftar: {format(new Date(product.enrolled_at), 'dd MMM yyyy', { locale: id })}
+                                                {t('dashboard.enrolled', { date: format(new Date(product.enrolled_at), 'dd MMM yyyy', { locale: currentLocale }) })}
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -393,14 +397,14 @@ export default function Profile({ stats, recentProducts }: ProfileProps) {
                                     <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
                                         <GraduationCap className="h-10 w-10 text-gray-400" />
                                     </div>
-                                    <h3 className="mb-2 text-lg font-semibold">Belum Ada Produk</h3>
+                                    <h3 className="mb-2 text-lg font-semibold">{t('dashboard.emptyTitle')}</h3>
                                     <p className="text-muted-foreground mb-6 text-center text-sm">
-                                        Anda belum membeli produk apapun. Mulai jelajahi dan pilih kelas yang sesuai untuk Anda!
+                                        {t('dashboard.emptyDesc')}
                                     </p>
                                     <Button asChild size="lg" className="shadow-lg">
                                         <Link href={route('course.index')}>
                                             <BookTextIcon className="mr-2 h-4 w-4" />
-                                            Jelajahi Kelas
+                                            {t('dashboard.table.browseCourses')}
                                         </Link>
                                     </Button>
                                 </CardContent>

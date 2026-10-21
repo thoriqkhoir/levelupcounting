@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { enUS, id } from 'date-fns/locale';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Mentor {
     id: string;
@@ -34,6 +35,8 @@ interface CertificationProgram {
 }
 
 export default function HeroSection({ program }: { program: CertificationProgram }) {
+    const { t, i18n } = useTranslation();
+    const currentLocale = i18n.language === 'en' ? enUS : id;
     const deadlineDate = program.registration_deadline ? new Date(program.registration_deadline) : null;
 
     return (
@@ -70,7 +73,7 @@ export default function HeroSection({ program }: { program: CertificationProgram
                             transition={{ duration: 0.5, delay: 0.25 }}
                             className="ml-2 mb-4 inline-block rounded-full border border-purple-300 bg-purple-50 px-3 py-1 text-sm font-medium text-purple-700 shadow-xs dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
                         >
-                            🎓 Beasiswa
+                            🎓 {t('certificationProgram.detail.hero.badgeScholarship')}
                         </motion.span>
                     )}
 
@@ -82,7 +85,7 @@ export default function HeroSection({ program }: { program: CertificationProgram
                             transition={{ duration: 0.5, delay: 0.25 }}
                             className="ml-2 mb-4 inline-block rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-sm font-medium text-gray-700 shadow-xs dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300"
                         >
-                            Batch {program.batch}
+                            {t('certificationProgram.detail.hero.batch', { batch: program.batch })}
                         </motion.span>
                     )}
 
@@ -116,7 +119,7 @@ export default function HeroSection({ program }: { program: CertificationProgram
                             transition={{ duration: 0.5, delay: 0.5 }}
                             className="mb-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
                         >
-                            ⏰ Daftar sebelum: {format(deadlineDate, 'dd MMMM yyyy, HH:mm', { locale: id })} WIB
+                            {t('certificationProgram.detail.hero.registerBefore', { deadline: format(deadlineDate, 'dd MMMM yyyy, HH:mm', { locale: currentLocale }) })}
                         </motion.div>
                     )}
 
@@ -128,10 +131,10 @@ export default function HeroSection({ program }: { program: CertificationProgram
                         className="flex flex-wrap gap-4"
                     >
                         <a href="#register">
-                            <Button>Daftar Sekarang</Button>
+                            <Button>{t('certificationProgram.detail.hero.btnRegisterNow')}</Button>
                         </a>
                         <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
-                            <Button variant="outline">Hubungi Kami</Button>
+                            <Button variant="outline">{t('certificationProgram.detail.hero.btnContactUs')}</Button>
                         </a>
                     </motion.div>
                 </motion.div>

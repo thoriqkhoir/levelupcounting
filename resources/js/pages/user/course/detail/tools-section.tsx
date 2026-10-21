@@ -1,11 +1,14 @@
 import { Wrench } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Course {
     tools?: { name: string; description?: string | null; icon: string | null }[];
 }
 
 export default function ToolsSection({ course }: { course: Course }) {
+    const { t } = useTranslation('user');
+
     return (
         <section className="mx-auto w-full max-w-7xl px-4" id="tools">
             <motion.div
@@ -14,13 +17,12 @@ export default function ToolsSection({ course }: { course: Course }) {
                 transition={{ duration: 0.6 }}
                 className="mb-6 flex items-center gap-3"
             >
-                
                 <div>
                     <h2 className="dark:text-primary-foreground mb-2 text-2xl font-bold text-gray-900 md:text-3xl">
-                        Tools Pendukung
+                        {t('course.detail.supportingTools', 'Tools Pendukung')}
                     </h2>
                     <p className="text-md text-gray-600 dark:text-gray-400">
-                        Tools yang akan kamu gunakan di kelas ini
+                        {t('course.detail.toolsSubtitle', 'Tools yang akan kamu gunakan di kelas ini')}
                     </p>
                 </div>
             </motion.div>
@@ -65,7 +67,7 @@ export default function ToolsSection({ course }: { course: Course }) {
                         <Wrench className="h-10 w-10 text-gray-400" />
                     </div>
                     <p className="text-center text-gray-500 dark:text-gray-400">
-                        Belum ada tools yang tersedia untuk kelas ini
+                        {t('course.detail.noToolsAvailable', 'Belum ada tools yang tersedia untuk kelas ini')}
                     </p>
                 </motion.div>
             )}

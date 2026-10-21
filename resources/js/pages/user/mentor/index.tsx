@@ -6,6 +6,7 @@ import UserLayout from '@/layouts/user-layout';
 import { Head, Link } from '@inertiajs/react';
 import { BookOpen, BookText, FileText, Users, Award, Star, Sparkles, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface Mentor {
     id: string;
@@ -35,16 +36,17 @@ const cardVariants = {
 };
 
 export default function MentorIndex({ mentors }: MentorIndexProps) {
+    const { t } = useTranslation('user');
     const getInitials = useInitials();
 
     const getTotalContent = (mentor: Mentor) =>
         mentor.total_courses + mentor.total_articles + mentor.total_webinars + mentor.total_bootcamps;
 
     const globalStats = [
-        { icon: Users, value: mentors.length, label: 'Mentor Aktif', color: 'text-primary', bg: 'bg-primary/10' },
-        { icon: BookText, value: mentors.reduce((s, m) => s + m.total_courses, 0), label: 'Total Kelas', color: 'text-blue-600', bg: 'bg-blue-500/10' },
-        { icon: BookOpen, value: mentors.reduce((s, m) => s + m.total_bootcamps, 0), label: 'Total Bootcamp', color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
-        { icon: FileText, value: mentors.reduce((s, m) => s + m.total_articles, 0), label: 'Total Artikel', color: 'text-violet-600', bg: 'bg-violet-500/10' },
+        { icon: Users, value: mentors.length, label: t('mentor.activeMentors'), color: 'text-primary', bg: 'bg-primary/10' },
+        { icon: BookText, value: mentors.reduce((s, m) => s + m.total_courses, 0), label: t('mentor.totalCourses'), color: 'text-blue-600', bg: 'bg-blue-500/10' },
+        { icon: BookOpen, value: mentors.reduce((s, m) => s + m.total_bootcamps, 0), label: t('mentor.totalBootcamps'), color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+        { icon: FileText, value: mentors.reduce((s, m) => s + m.total_articles, 0), label: t('mentor.totalArticles'), color: 'text-violet-600', bg: 'bg-violet-500/10' },
     ];
 
     return (
@@ -59,7 +61,7 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
             <div className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]" style={{ backgroundImage: GRID_PATTERN }} />
 
             <UserLayout>
-                <Head title="Mentor Kami" />
+                <Head title={t('mentor.headTitle')} />
 
                 {/* ── Hero Section ── */}
                 <section className="relative z-10 overflow-hidden py-20">
@@ -73,7 +75,7 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                         >
                             <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
                                 <Award className="h-4 w-4" />
-                                Mentor Profesional
+                                {t('mentor.proBadge')}
                             </span>
                         </motion.div>
 
@@ -84,12 +86,12 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                             transition={{ duration: 0.7, delay: 0.25 }}
                             className="font-av-estiana mx-auto mb-6 max-w-4xl text-center text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
                         >
-                            Belajar dari{' '}
+                            {t('mentor.heroTitle1')}{' '}
                             <span className="relative inline-block">
-                                <span className="relative z-10 text-primary">Expert</span>
+                                <span className="relative z-10 text-primary">{t('mentor.heroHighlight')}</span>
                                 <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                             </span>{' '}
-                            Terbaik
+                            {t('mentor.heroTitle2')}
                         </motion.h1>
 
                         {/* Subtext */}
@@ -99,7 +101,7 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="mx-auto mb-10 max-w-2xl text-center text-base text-muted-foreground md:text-lg"
                         >
-                            Raih kesuksesan bersama mentor berpengalaman yang siap membimbing perjalanan belajar Anda di bidang perpajakan dan akuntansi.
+                            {t('mentor.heroDesc')}
                         </motion.p>
 
                         {/* Floating badges */}
@@ -110,9 +112,9 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                             className="mb-14 flex flex-wrap justify-center gap-3"
                         >
                             {[
-                                { icon: Star, label: '100% Tersertifikasi', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.55 },
-                                { icon: TrendingUp, label: 'Berpengalaman Industri', color: 'text-primary', bg: 'bg-primary/5', delay: 0.7 },
-                                { icon: Sparkles, label: 'Kurikulum Praktis', color: 'text-secondary', bg: 'bg-secondary/10', delay: 0.85 },
+                                { icon: Star, label: t('mentor.certified'), color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.55 },
+                                { icon: TrendingUp, label: t('mentor.industryExp'), color: 'text-primary', bg: 'bg-primary/5', delay: 0.7 },
+                                { icon: Sparkles, label: t('mentor.practicalCurriculum'), color: 'text-secondary', bg: 'bg-secondary/10', delay: 0.85 },
                             ].map((b) => (
                                 <motion.div
                                     key={b.label}
@@ -193,16 +195,16 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                                                 <div className="mb-4 text-center">
                                                     <h3 className="mb-1 text-xl font-bold text-foreground transition-colors group-hover:text-primary">{mentor.name}</h3>
                                                     <p className="line-clamp-2 text-sm text-muted-foreground">
-                                                        {mentor.bio || 'Mentor Profesional di Level Up Accounting'}
+                                                        {mentor.bio || t('mentor.defaultBio')}
                                                     </p>
                                                 </div>
 
                                                 {/* Stats mini grid */}
                                                 <div className="mb-4 grid grid-cols-3 gap-2">
                                                     {[
-                                                        { icon: BookText, value: mentor.total_courses, label: 'Kelas', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-                                                        { icon: BookOpen, value: mentor.total_bootcamps, label: 'Bootcamp', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-                                                        { icon: FileText, value: mentor.total_articles, label: 'Artikel', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+                                                        { icon: BookText, value: mentor.total_courses, label: t('mentor.stats.courses'), color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                                                        { icon: BookOpen, value: mentor.total_bootcamps, label: t('mentor.stats.bootcamps'), color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+                                                        { icon: FileText, value: mentor.total_articles, label: t('mentor.stats.articles'), color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
                                                     ].map((s) => (
                                                         <div key={s.label} className={`flex flex-col items-center gap-1 rounded-xl px-2 py-3 ${s.bg}`}>
                                                             <s.icon className={`h-4 w-4 ${s.color}`} />
@@ -215,13 +217,13 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                                                 {/* Total & CTA */}
                                                 <div className="mb-4 flex items-center justify-center gap-2 rounded-xl bg-primary/5 px-4 py-2.5">
                                                     <TrendingUp className="h-4 w-4 text-primary" />
-                                                    <span className="text-sm text-muted-foreground">Total Konten</span>
+                                                    <span className="text-sm text-muted-foreground">{t('mentor.totalContent')}</span>
                                                     <span className="text-lg font-extrabold text-primary">{getTotalContent(mentor)}</span>
                                                 </div>
 
                                                 <Button className="w-full rounded-xl bg-primary/10 text-primary transition-all hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/30 dark:bg-primary/20">
                                                     <span className="flex items-center gap-2">
-                                                        Lihat Profil
+                                                        {t('mentor.viewProfile')}
                                                         <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                                         </svg>
@@ -241,12 +243,12 @@ export default function MentorIndex({ mentors }: MentorIndexProps) {
                             className="flex min-h-[500px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-gray-200 bg-white/50 backdrop-blur-sm dark:border-white/10 dark:bg-white/5"
                         >
                             <div className="mb-6 text-8xl">👨‍🏫</div>
-                            <h3 className="mb-2 text-2xl font-bold">Belum Ada Mentor</h3>
+                            <h3 className="mb-2 text-2xl font-bold">{t('mentor.noMentors')}</h3>
                             <p className="mb-8 max-w-md text-center text-muted-foreground">
-                                Mentor profesional kami akan segera hadir untuk membimbing perjalanan belajar Anda
+                                {t('mentor.noMentorsDesc2')}
                             </p>
                             <Button variant="outline" size="lg" asChild>
-                                <Link href="/">Kembali ke Beranda</Link>
+                                <Link href="/">{t('mentor.backHome')}</Link>
                             </Button>
                         </motion.div>
                     )}

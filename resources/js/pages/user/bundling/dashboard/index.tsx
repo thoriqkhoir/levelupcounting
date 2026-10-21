@@ -1,5 +1,6 @@
 import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import BundlingSection from './bundling-section';
 import HeroSection from './hero-section';
 
@@ -34,6 +35,8 @@ interface BundlingDashboardProps {
 }
 
 export default function BundlingDashboard({ bundles }: BundlingDashboardProps) {
+    const { t } = useTranslation('user');
+
     return (
         <div className="relative min-h-screen bg-background">
             {/* Global Decorative Background — Blobs */}
@@ -50,7 +53,7 @@ export default function BundlingDashboard({ bundles }: BundlingDashboardProps) {
             />
 
         <UserLayout>
-            <Head title="Paket Bundling - Hemat Lebih Banyak" />
+            <Head title={t('bundling.dashboard.headTitle')} />
 
             <HeroSection />
             <BundlingSection bundles={bundles} />

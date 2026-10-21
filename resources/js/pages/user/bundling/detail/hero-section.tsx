@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import { Calendar, Package, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface Bundle {
     title: string;
@@ -19,6 +20,7 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ bundle, discountPercentage }: HeroSectionProps) {
+    const { t, i18n } = useTranslation('user');
     const deadlineDate = bundle.registration_deadline ? new Date(bundle.registration_deadline) : null;
 
     return (
@@ -44,22 +46,22 @@ export default function HeroSection({ bundle, discountPercentage }: HeroSectionP
                     >
                         <span className="text-primary border-primary bg-background mb-4 inline-flex w-fit items-center gap-2 rounded-full border bg-gradient-to-t from-[#D9E5FF] to-white px-4 py-1 text-sm font-medium shadow-xs">
                             <Sparkles size={14} className="mr-1" />
-                            Paket Bundling
+                            {t('bundling.detail.hero.badge')}
                         </span>
                         {bundle.batch && (
                             <span className="text-secondary border-secondary bg-background mb-4 inline-flex w-fit items-center gap-2 rounded-full border bg-gradient-to-t from-[#FED6AD] to-white px-4 py-1 text-sm font-medium shadow-xs">
                                 <Calendar size={14} className="mr-1" />
-                                {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : `Batch ${bundle.batch}`}
+                                {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : t('bundling.detail.hero.batch', { batch: bundle.batch })}
                             </span>
                         )}
                         {discountPercentage > 0 && (
                             <span className="text-secondary border-secondary bg-background mb-4 inline-flex w-fit items-center rounded-full border bg-gradient-to-t from-[#FED6AD] to-white px-3 py-1 text-sm font-medium shadow-xs hover:text-[#FF925B]">
-                                Hemat {discountPercentage}%
+                                {t('bundling.detail.hero.savePercent', { percent: discountPercentage })}
                             </span>
                         )}
                         <span className="text-primary border-primary bg-background mb-4 inline-flex w-fit items-center gap-2 rounded-full border bg-gradient-to-t from-[#D9E5FF] to-white px-4 py-1 text-sm font-medium shadow-xs">
                             <Package size={14} className="mr-1" />
-                            {bundle.bundle_items_count} Program
+                            {t('bundling.detail.hero.programsCount', { count: bundle.bundle_items_count })}
                         </span>
                     </motion.div>
 
@@ -93,7 +95,7 @@ export default function HeroSection({ bundle, discountPercentage }: HeroSectionP
                             transition={{ duration: 0.5, delay: 0.5 }}
                             className="mb-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
                         >
-                            ⏰ Daftar sebelum: {format(deadlineDate, 'dd MMMM yyyy, HH:mm', { locale: id })} WIB
+                            {t('bundling.detail.hero.registerBefore', { date: format(deadlineDate, 'dd MMMM yyyy, HH:mm', { locale: i18n.language === 'id' ? idLocale : enLocale }) })}
                         </motion.div>
                     )}
 
@@ -107,12 +109,12 @@ export default function HeroSection({ bundle, discountPercentage }: HeroSectionP
                         <a href="#register">
                             <Button size="lg">
                                 <Package className="mr-2 h-4 w-4" />
-                                Daftar Sekarang
+                                {t('bundling.detail.hero.btnRegisterNow')}
                             </Button>
                         </a>
                         <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                             <Button size="lg" variant="outline">
-                                Hubungi Kami
+                                {t('bundling.detail.hero.btnContactUs')}
                             </Button>
                         </a>
                     </motion.div>

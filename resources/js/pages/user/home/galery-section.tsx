@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 
 interface GalleryItem {
   id: number;
@@ -9,40 +10,41 @@ interface GalleryItem {
 }
 
 export default function GalerySection() {
+  const { t } = useTranslation('home');
   const galleryItems: GalleryItem[] = [
     {
       id: 1,
-      title: 'Pelatihan Coretax UIN Malang',
+      title: t('galery.item1', 'Pelatihan Coretax UIN Malang'),
       image: '/assets/images/galery-1.jpg',
       size: 'small'
     },
     {
       id: 2,
-      title: 'Pelatihan Coretax UIN Semarang',
+      title: t('galery.item2', 'Pelatihan Coretax UIN Semarang'),
       image: '/assets/images/galery-2.jpg',
       size: 'medium'
     },
     {
       id: 3,
-      title: 'Pelatihan Coretax SMKN 1 Kota Malang',
+      title: t('galery.item3', 'Pelatihan Coretax SMKN 1 Kota Malang'),
       image: '/assets/images/galery-3.jpg',
       size: 'small'
     },
     {
       id: 4,
-      title: 'Pelatihan Online',
+      title: t('galery.item4', 'Pelatihan Online'),
       image: '/assets/images/galery-4.jpg',
       size: 'medium'
     },
     {
       id: 5,
-      title: 'Pelatihan Online',
+      title: t('galery.item5', 'Pelatihan Online'),
       image: '/assets/images/galery-5.jpg',
       size: 'large'
     },
     {
       id: 6,
-      title: 'Pelatihan Online',
+      title: t('galery.item6', 'Pelatihan Online'),
       image: '/assets/images/galery-6.jpg',
       size: 'small'
     },
@@ -51,7 +53,7 @@ export default function GalerySection() {
   return (
   <section className="mx-auto mb-4 w-full max-w-7xl px-4 sm:mb-8">
     <div className="mx-auto text-center mb-6">
-      <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">Galeri Level Up Accounting</h2>
+      <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white">{t('galery.title')}</h2>
     </div>
 
     {/* Gallery Grid */}

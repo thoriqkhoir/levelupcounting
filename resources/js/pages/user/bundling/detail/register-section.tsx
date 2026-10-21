@@ -6,9 +6,10 @@ import { rupiahFormatter } from '@/lib/utils';
 import { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import { AlertTriangle, Calendar, Check, Package, Sparkles, BadgeCheck, InfinityIcon, Percent, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface Bundle {
     id: string;
@@ -45,6 +46,7 @@ export default function RegisterSection({
     hasOwnedItems,
     ownedItems,
 }: RegisterSectionProps) {
+    const { t, i18n } = useTranslation('user');
     const { auth } = usePage<SharedData>().props;
 
     const deadline = bundle.registration_deadline ? new Date(bundle.registration_deadline) : null;
@@ -58,7 +60,7 @@ export default function RegisterSection({
     let isDisabled = false;
 
     registrationUrl = bundle.registration_url;
-    buttonText = 'Daftar Sekarang';
+    buttonText = t('bundling.detail.register.btnRegisterNow');
     warningMessage = null;
 
     return (
@@ -74,13 +76,13 @@ export default function RegisterSection({
                     <div className="mb-4 flex items-center justify-center gap-2">
                         <Sparkles className="h-6 w-6 text-primary" />
                         <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                            Penawaran Terbatas
+                            {t('bundling.detail.register.limitedOffer')}
                         </span>
                     </div>
                     <h2 className="dark:text-primary-foreground mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl">
-                        Mulai Perjalanan Belajarmu Sekarang!
+                        {t('bundling.detail.register.startJourneyTitle')}
                     </h2>
-                    <p className="text-md text-gray-600 dark:text-gray-400">Investasi terbaik untuk masa depan karirmu</p>
+                    <p className="text-md text-gray-600 dark:text-gray-400">{t('bundling.detail.register.startJourneySubtitle')}</p>
                 </motion.div>
 
                 {/* Warning if user already owns items */}
@@ -94,7 +96,7 @@ export default function RegisterSection({
                         <Alert variant="destructive">
                             <AlertTriangle className="h-4 w-4" />
                             <AlertDescription>
-                                <p className="mb-2 font-semibold">Anda sudah memiliki produk berikut dalam bundle ini:</p>
+                                <p className="mb-2 font-semibold">{t('bundling.detail.register.ownedWarningTitle')}</p>
                                 <ul className="ml-4 list-disc space-y-1">
                                     {ownedItems.map((item) => (
                                         <li key={item.id}>
@@ -102,7 +104,7 @@ export default function RegisterSection({
                                         </li>
                                     ))}
                                 </ul>
-                                <p className="mt-2 text-sm">Untuk menghindari duplikasi, Anda tidak dapat membeli bundle ini.</p>
+                                <p className="mt-2 text-sm">{t('bundling.detail.register.ownedWarningDesc')}</p>
                             </AlertDescription>
                         </Alert>
                     </motion.div>
@@ -123,7 +125,7 @@ export default function RegisterSection({
                                 <div className="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-3 text-center">
                                     <div className="flex items-center justify-center gap-2 text-white">
                                         <Percent className="h-5 w-5" />
-                                        <span className="text-lg font-bold">Hemat {discountPercentage}% - Promo Terbatas!</span>
+                                        <span className="text-lg font-bold">{t('bundling.detail.register.saveLimitedPromo', { percent: discountPercentage })}</span>
                                     </div>
                                 </div>
                             )}
@@ -131,7 +133,7 @@ export default function RegisterSection({
                             <div className="p-8">
                                 {/* Price */}
                                 <div className="mb-6 text-center">
-                                    <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">Investasi untuk Masa Depanmu</p>
+                                    <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">{t('bundling.detail.register.investmentDesc')}</p>
                                     {bundle.price > 0 ? (
                                         <>
                                             {totalOriginalPrice > 0 && (
@@ -143,11 +145,11 @@ export default function RegisterSection({
                                                 {rupiahFormatter.format(bundle.price)}
                                             </span>
                                             <span className="mt-2 inline-block rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
-                                                Bayar Sekali, Akses Selamanya
+                                                {t('bundling.detail.register.payOnceLifetime')}
                                             </span>
                                         </>
                                     ) : (
-                                        <span className="block text-5xl font-extrabold text-green-600">GRATIS</span>
+                                        <span className="block text-5xl font-extrabold text-green-600">{t('bundling.detail.register.free')}</span>
                                     )}
                                 </div>
 
@@ -157,29 +159,29 @@ export default function RegisterSection({
                                 <div className="mb-6 space-y-3">
                                     {bundle.batch && (
                                         <div className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3 dark:bg-zinc-800/50 backdrop-blur-sm">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">Batch</span>
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">{t('bundling.detail.register.batchLabel')}</span>
                                             <span className="font-bold text-gray-900 dark:text-white">
-                                                {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : `Batch ${bundle.batch}`}
+                                                {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : t('bundling.detail.register.batch', { batch: bundle.batch })}
                                             </span>
                                         </div>
                                     )}
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3 dark:bg-zinc-800/50 backdrop-blur-sm">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Total Program</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('bundling.detail.register.totalProgramsLabel')}</span>
                                         <span className="font-bold text-gray-900 dark:text-white">
-                                            {bundle.bundle_items_count} Program
+                                            {t('bundling.detail.register.programsCount', { count: bundle.bundle_items_count })}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3 dark:bg-zinc-800/50 backdrop-blur-sm">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Hemat</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('bundling.detail.register.saveLabel')}</span>
                                         <span className="font-bold text-green-600">
                                             {rupiahFormatter.format(discountAmount)}
                                         </span>
                                     </div>
                                     {deadline && (
                                         <div className="flex items-center justify-between rounded-lg bg-gray-50/50 p-3 dark:bg-zinc-800/50 backdrop-blur-sm">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">Deadline</span>
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">{t('bundling.detail.register.deadlineLabel')}</span>
                                             <span className="font-bold text-red-600">
-                                                {format(deadline, 'dd MMM yyyy', { locale: id })}
+                                                {format(deadline, 'dd MMM yyyy', { locale: i18n.language === 'id' ? idLocale : enLocale })}
                                             </span>
                                         </div>
                                     )}
@@ -209,15 +211,15 @@ export default function RegisterSection({
                                 <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Terpercaya</span>
+                                        <span>{t('bundling.detail.register.trustTrusted')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Aman</span>
+                                        <span>{t('bundling.detail.register.trustSecure')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Berkualitas</span>
+                                        <span>{t('bundling.detail.register.trustQuality')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -230,7 +232,7 @@ export default function RegisterSection({
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="mt-4 text-center"
                         >
-                            <p className="text-sm text-gray-600 dark:text-gray-400">🔒 Pembayaran aman & terpercaya</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{t('bundling.detail.register.securePayment')}</p>
                         </motion.div>
                     </motion.div>
 
@@ -254,33 +256,33 @@ export default function RegisterSection({
                         <div className="rounded-2xl border border-white/40 bg-white/60 p-6 shadow-xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60">
                             <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
                                 <Check className="h-6 w-6 text-green-600" />
-                                Yang Akan Kamu Dapatkan
+                                {t('bundling.detail.register.whatYouWillGet')}
                             </h3>
                             <ul className="space-y-3">
                                 {[
                                     {
                                         icon: Package,
-                                        text: `${bundle.bundle_items_count} Program Pembelajaran`,
+                                        text: t('bundling.detail.register.itemPrograms', { count: bundle.bundle_items_count }),
                                         color: 'text-blue-600',
                                     },
                                     {
                                         icon: InfinityIcon,
-                                        text: 'Akses Selamanya',
+                                        text: t('bundling.detail.register.itemLifetime'),
                                         color: 'text-purple-600',
                                     },
                                     {
                                         icon: BadgeCheck,
-                                        text: 'Sertifikat untuk Semua Program',
+                                        text: t('bundling.detail.register.itemCertificate'),
                                         color: 'text-green-600',
                                     },
                                     {
                                         icon: Sparkles,
-                                        text: 'Hemat ' + discountPercentage + '% dari Harga Normal',
+                                        text: t('bundling.detail.register.itemSave', { percent: discountPercentage }),
                                         color: 'text-orange-600',
                                     },
                                     {
                                         icon: BadgeCheck,
-                                        text: 'Materi Selalu Update',
+                                        text: t('bundling.detail.register.itemUpdates'),
                                         color: 'text-pink-600',
                                     },
                                 ].map((item, index) => (

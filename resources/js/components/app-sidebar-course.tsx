@@ -10,6 +10,7 @@ import { Progress } from './ui/progress';
 import { useMemo, useState, useEffect } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useTranslation } from 'react-i18next';
 
 interface Lesson {
     id: string;
@@ -34,6 +35,7 @@ interface AppSidebarCourseProps {
 }
 
 export function AppSidebarCourse({ courseSlug, modules, selectedLesson, setSelectedLesson, onLessonComplete, onProgressUpdate }: AppSidebarCourseProps) {
+    const { t } = useTranslation('user');
     const [expandedModule, setExpandedModule] = useState<React.Key | null>(null);
     const { state } = useSidebar(); // Ambil state sidebar (expanded/collapsed)
 
@@ -46,7 +48,7 @@ export function AppSidebarCourse({ courseSlug, modules, selectedLesson, setSelec
 
     const footerNavItems: NavItem[] = [
         {
-            title: 'Keluar Kelas',
+            title: t('coursePlayer.exitClass'),
             href: `/profile/my-courses/${courseSlug}`,
             icon: LogOut,
         },
@@ -128,9 +130,7 @@ export function AppSidebarCourse({ courseSlug, modules, selectedLesson, setSelec
                         <SidebarMenuItem>
                             <SidebarMenuButton size="lg" asChild>
                                 <Link href="/admin/dashboard" prefetch>
-                                    <img src="/assets/images/logo-primary.png" alt="Level Up Accounting" className="block w-32 fill-current dark:hidden" />
-                                    {/* Logo untuk dark mode */}
-                                    <img src="/assets/images/logo-secondary.png" alt="Level Up Accounting" className="hidden w-32 fill-current dark:block" />
+                                    <img src="/assets/images/logo-primary.png" alt="Level Up Accounting" className="block w-32 fill-current" />
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -144,7 +144,7 @@ export function AppSidebarCourse({ courseSlug, modules, selectedLesson, setSelec
                     <div className="px-4 py-3 border-b">
                         <div className="mb-2">
                             <div className="flex items-center justify-between text-sm">
-                                <span className="font-medium">Progress Pembelajaran</span>
+                                <span className="font-medium">{t('coursePlayer.learningProgress')}</span>
                                 <span className="text-muted-foreground">
                                     {progressData.completedLessons}/{progressData.totalLessons}
                                 </span>
@@ -154,7 +154,7 @@ export function AppSidebarCourse({ courseSlug, modules, selectedLesson, setSelec
                             </div>
                             <div className="mt-1 text-right">
                                 <span className="text-xs text-muted-foreground">
-                                    {Math.round(progressData.progressPercentage)}% selesai
+                                    {t('coursePlayer.percentCompleted', { percent: Math.round(progressData.progressPercentage) })}
                                 </span>
                             </div>
                         </div>
@@ -223,7 +223,7 @@ export function AppSidebarCourse({ courseSlug, modules, selectedLesson, setSelec
                                                             </TooltipTrigger>
                                                             {!accessible && (
                                                                 <TooltipContent side="right">
-                                                                    Silahkan selesaikan materi sebelumnya terlebih dahulu
+                                                                    {t('coursePlayer.completePreviousLesson')}
                                                                 </TooltipContent>
                                                             )}
                                                         </Tooltip>

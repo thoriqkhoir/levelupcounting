@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { useInitials } from '@/hooks/use-initials';
 import { BookOpen, Calendar, Clock, MapPin, Sparkles, Users, ArrowDown } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Mentor {
     id: string;
@@ -21,6 +22,7 @@ interface Bootcamp {
 }
 
 export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
+    const { t, i18n } = useTranslation('user');
     const getInitials = useInitials();
     const mentors = bootcamp.mentors ?? [];
 
@@ -36,10 +38,10 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
     const curriculumCount = bootcamp.curriculum ? (bootcamp.curriculum.match(/<li>/g) ?? []).length : 0;
 
     const stats = [
-        { icon: Clock, label: 'Durasi', value: durationDays < 7 ? `${durationDays} Hari` : `${Math.ceil(durationDays / 7)} Minggu`, color: 'text-primary', bg: 'bg-primary/10' },
-        { icon: BookOpen, label: 'Modul', value: curriculumCount > 0 ? `${curriculumCount}` : '10+', color: 'text-secondary', bg: 'bg-secondary/10' },
-        { icon: Users, label: 'Mentor', value: mentors.length > 0 ? `${mentors.length}` : '1', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
-        { icon: MapPin, label: 'Format', value: 'Online', color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30' },
+        { icon: Clock, label: t('bootcamp.detail.durationLabel'), value: durationDays < 7 ? t('bootcamp.detail.daysCount', { count: durationDays }) : t('bootcamp.detail.weeksCount', { count: Math.ceil(durationDays / 7) }), color: 'text-primary', bg: 'bg-primary/10' },
+        { icon: BookOpen, label: t('bootcamp.detail.moduleLabel'), value: curriculumCount > 0 ? `${curriculumCount}` : '10+', color: 'text-secondary', bg: 'bg-secondary/10' },
+        { icon: Users, label: t('bootcamp.detail.mentorLabel'), value: mentors.length > 0 ? `${mentors.length}` : '1', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
+        { icon: MapPin, label: t('bootcamp.detail.formatLabel'), value: t('bootcamp.detail.online'), color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30' },
     ];
 
     return (
@@ -90,7 +92,7 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
                                         <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
                                     </span>
-                                    🔥 Pendaftaran Terbuka
+                                    {t('bootcamp.detail.registrationOpen')}
                                 </span>
                             </motion.div>
 
@@ -100,11 +102,11 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-4 w-4 flex-shrink-0" />
                                         <span className="text-xs font-semibold md:text-sm">
-                                            {new Date(bootcamp.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            {new Date(bootcamp.start_date).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         </span>
                                     </div>
                                     <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-sm border border-white/30">
-                                        {durationDays} Hari
+                                        {t('bootcamp.detail.daysCount', { count: durationDays })}
                                     </span>
                                 </div>
                             </div>
@@ -144,7 +146,7 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
                         >
                             <span className="inline-flex items-center gap-2 rounded-full border-2 border-primary/30 bg-white px-4 py-1.5 text-sm font-semibold shadow-lg dark:bg-zinc-900">
                                 <Sparkles className="h-3.5 w-3.5 text-primary" />
-                                <span className="text-gray-900 dark:text-white">Bootcamp Intensif</span>
+                                <span className="text-gray-900 dark:text-white">{t('bootcamp.detail.intensiveBadge')}</span>
                             </span>
                         </motion.div>
 
@@ -167,8 +169,7 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
                             transition={{ duration: 0.6, delay: 0.28 }}
                             className="text-base leading-relaxed text-gray-600 dark:text-gray-300 md:text-lg"
                         >
-                            {bootcamp.description ||
-                                'Bergabunglah dengan bootcamp kami untuk meningkatkan keterampilan Anda dalam bidang teknologi. Pelajari dari para ahli dan tingkatkan karir Anda dengan pengetahuan praktis yang relevan.'}
+                            {bootcamp.description || t('bootcamp.detail.heroDefaultDesc')}
                         </motion.p>
 
                         {/* Mentors cluster */}
@@ -200,11 +201,11 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-gray-900 dark:text-white">
-                                        {mentors.length === 1 ? '1 mentor' : `${mentors.length} mentor`} bootcamp
+                                        {mentors.length === 1 ? t('bootcamp.detail.mentorSingle') : t('bootcamp.detail.mentorMultiple', { count: mentors.length })}
                                     </p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">
                                         {mentors.slice(0, 2).map((m) => m.name).join(', ')}
-                                        {mentors.length > 2 ? ` +${mentors.length - 2} lainnya` : ''}
+                                        {mentors.length > 2 ? t('bootcamp.detail.andOtherMentors', { count: mentors.length - 2 }) : ''}
                                     </p>
                                 </div>
                             </motion.div>
@@ -218,8 +219,8 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
                             className="grid grid-cols-2 gap-3"
                         >
                             {[
-                                { icon: Calendar, label: 'Mulai', value: new Date(bootcamp.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }), color: 'text-primary', bg: 'bg-primary/10' },
-                                { icon: Clock, label: 'Selesai', value: new Date(bootcamp.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }), color: 'text-secondary', bg: 'bg-secondary/10' },
+                                { icon: Calendar, label: t('bootcamp.detail.startDate'), value: new Date(bootcamp.start_date).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }), color: 'text-primary', bg: 'bg-primary/10' },
+                                { icon: Clock, label: t('bootcamp.detail.endDate'), value: new Date(bootcamp.end_date).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }), color: 'text-secondary', bg: 'bg-secondary/10' },
                             ].map(({ icon: Icon, label, value, color, bg }) => (
                                 <div key={label} className="flex items-center gap-3 rounded-xl border-2 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                                     <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${bg}`}>
@@ -243,13 +244,13 @@ export default function HeroSection({ bootcamp }: { bootcamp: Bootcamp }) {
                             <a href="#register">
                                 <Button size="lg" className="gap-2 px-8 font-bold shadow-lg shadow-primary/30">
                                     <Sparkles className="h-4 w-4" />
-                                    Daftar Sekarang
+                                    {t('bootcamp.detail.btnRegisterNow')}
                                 </Button>
                             </a>
                             <a href="#curriculum">
                                 <Button size="lg" variant="outline" className="gap-2 px-6 font-semibold">
                                     <ArrowDown className="h-4 w-4" />
-                                    Lihat Kurikulum
+                                    {t('bootcamp.detail.viewCurriculum')}
                                 </Button>
                             </a>
                         </motion.div>

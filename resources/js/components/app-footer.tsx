@@ -1,53 +1,53 @@
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { OtherItem, ProductItem, ServiceItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { Instagram, Mail } from 'lucide-react';
-
-const productItems: ProductItem[] = [
-    {
-        title: 'Kelas Online',
-        href: '/course',
-    },
-    {
-        title: 'Bootcamp',
-        href: '/bootcamp',
-    },
-    // {
-    //     title: 'Webinar',
-    //     href: '/webinar',
-    // },
-    {
-        title: 'Bundling',
-        href: '/bundle',
-    },
-    {
-        title: 'Sertifikasi',
-        href: '/certification-program',
-    },
-];
-
-const serviceItems: ServiceItem[] = [
-    {
-        title: 'Pusat Bantuan',
-        href: 'https://wa.me/+6287775764475',
-    },
-];
-
-const otherItems: OtherItem[] = [
-    {
-        title: 'Artikel & Blog',
-        href: '/article',
-    },
-    {
-        title: 'Syarat & Ketentuan',
-        href: '/terms-and-conditions',
-    },
-    {
-        title: 'Kebijakan Privasi',
-        href: '/privacy-policy',
-    },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function AppFooter() {
+    const { t } = useTranslation('common');
+
+    const productItems: ProductItem[] = [
+        {
+            title: t('footer.links.course', 'Kelas Online'),
+            href: '/course',
+        },
+        {
+            title: t('footer.links.bootcamp', 'Bootcamp'),
+            href: '/bootcamp',
+        },
+        {
+            title: t('footer.links.bundle', 'Bundling'),
+            href: '/bundle',
+        },
+        {
+            title: t('footer.links.certification', 'Sertifikasi'),
+            href: '/certification-program',
+        },
+    ];
+
+    const serviceItems: ServiceItem[] = [
+        {
+            title: t('footer.links.helpCenter', 'Pusat Bantuan'),
+            href: 'https://wa.me/+6287775764475',
+        },
+    ];
+
+    const otherItems: OtherItem[] = [
+        {
+            title: t('footer.links.article', 'Artikel & Blog'),
+            href: '/article',
+        },
+        {
+            title: t('footer.links.terms', 'Syarat & Ketentuan'),
+            href: '/terms-and-conditions',
+        },
+        {
+            title: t('footer.links.privacy', 'Kebijakan Privasi'),
+            href: '/privacy-policy',
+        },
+    ];
+
     return (
         <footer className="relative rounded-t-3xl text-black">
             {/* Decorative blobs for continuity with CTA section */}
@@ -62,26 +62,25 @@ export default function AppFooter() {
                         <div className="lg:col-span-5">
                             {/* Logo */}
                             <div className="mb-4">
-                                <img src="/assets/images/logo-footer.svg" alt="Logo Level Up Accounting" className="block h-16 w-auto dark:hidden" />
-                                <img
-                                    src="/assets/images/logo-secondary2.png"
-                                    alt="Logo Level Up Accounting"
-                                    className="hidden h-10 w-auto dark:block"
-                                />
+                                <img src="/assets/images/logo-footer.svg" alt="Logo Level Up Accounting" className="block h-16 w-auto" />
                             </div>
 
                             {/* Tagline */}
                             <p className="mb-6 text-base font-semibold">Learn Without Limits Grow Without Boundaries</p>
+
+                            <div className="mt-4">
+                                <LanguageSwitcher variant="segmented" />
+                            </div>
                         </div>
 
                         {/* Links Section - 7 columns */}
                         <div className="grid gap-8 sm:grid-cols-2 lg:col-span-7 lg:grid-cols-4">
                             {/* Produk */}
                             <div>
-                                <h4 className="mb-4 text-sm font-bold tracking-wider uppercase opacity-90">Produk</h4>
+                                <h4 className="mb-4 text-sm font-bold tracking-wider uppercase opacity-90">{t('footer.products', 'Produk')}</h4>
                                 <ul className="space-y-3">
                                     {productItems.map((item) => (
-                                        <li key={item.title}>
+                                        <li key={item.href}>
                                             <Link
                                                 href={item.href}
                                                 className="inline-block text-sm transition-all hover:translate-x-1 hover:opacity-70"
@@ -95,7 +94,7 @@ export default function AppFooter() {
 
                             {/* Layanan */}
                             <div>
-                                <h4 className="mb-4 text-sm font-bold tracking-wider uppercase opacity-90">Layanan</h4>
+                                <h4 className="mb-4 text-sm font-bold tracking-wider uppercase opacity-90">{t('footer.services', 'Layanan')}</h4>
                                 <ul className="space-y-3">
                                     {serviceItems.map((item) => (
                                         <li key={item.title}>
@@ -114,10 +113,10 @@ export default function AppFooter() {
 
                             {/* Lainnya */}
                             <div>
-                                <h4 className="mb-4 text-sm font-bold tracking-wider uppercase opacity-90">Lainnya</h4>
+                                <h4 className="mb-4 text-sm font-bold tracking-wider uppercase opacity-90">{t('footer.others', 'Lainnya')}</h4>
                                 <ul className="space-y-3">
                                     {otherItems.map((item) => (
-                                        <li key={item.title}>
+                                        <li key={item.href}>
                                             <Link
                                                 href={item.href}
                                                 className="inline-block text-sm transition-all hover:translate-x-1 hover:opacity-70"
@@ -129,7 +128,7 @@ export default function AppFooter() {
                                 </ul>
                             </div>
                             <div>
-                                <h4 className="mb-4 text-sm font-bold tracking-wider uppercase opacity-90">Sosial Media</h4>
+                                <h4 className="mb-4 text-sm font-bold tracking-wider uppercase opacity-90">{t('footer.social', 'Sosial Media')}</h4>
                                 <div className="flex items-center gap-3">
                                     <a href="mailto:levelupacc4@gmail.com" target="_blank" rel="noopener noreferrer" aria-label="Email">
                                         <Mail className="h-5 w-5" />
@@ -167,7 +166,7 @@ export default function AppFooter() {
                 <div className="relative z-0 mx-auto max-w-7xl border-t border-black">
                     <div className="mx-auto max-w-7xl px-4 py-6">
                         <div className="flex items-center justify-center gap-4 text-center sm:flex-row sm:text-left">
-                            <p className="text-sm opacity-70">&copy; {new Date().getFullYear()} LevelUpAccounting. All rights reserved.</p>
+                            <p className="text-sm opacity-70">&copy; {new Date().getFullYear()} LevelUpAccounting. {t('footer.allRightsReserved', 'All rights reserved.')}</p>
                         </div>
                     </div>
                 </div>

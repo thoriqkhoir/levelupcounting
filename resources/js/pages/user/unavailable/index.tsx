@@ -4,6 +4,8 @@ import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle, ArrowLeft, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 
+import { useTranslation } from 'react-i18next';
+
 interface UnavailableItem {
     title?: string;
     slug?: string;
@@ -25,8 +27,9 @@ export default function UnavailablePage({
     backUrl?: string;
     backLabel?: string;
 }) {
-    const pageTitle = title || 'Tidak Tersedia';
-    const itemTitle = item?.title ? `"${item.title}"` : 'Halaman ini';
+    const { t } = useTranslation('user');
+    const pageTitle = title || t('unavailable.title');
+    const itemTitle = item?.title ? `"${item.title}"` : t('unavailable.thisPage');
 
     return (
         <div className="from-primary/10 to-secondary/10 relative min-h-screen bg-gradient-to-br via-white dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
@@ -62,7 +65,7 @@ export default function UnavailablePage({
                                     {pageTitle}
                                 </span>
                             </h1>
-                            <p className="text-base text-gray-600 md:text-lg dark:text-gray-300">{itemTitle} saat ini belum bisa diakses.</p>
+                            <p className="text-base text-gray-600 md:text-lg dark:text-gray-300">{itemTitle} {t('unavailable.currentlyNotAccessible')}</p>
                         </motion.div>
                     </div>
                 </section>
@@ -98,10 +101,10 @@ export default function UnavailablePage({
                                     className="space-y-3"
                                 >
                                     <h2 className="text-xl font-bold text-gray-900 md:text-2xl dark:text-white">
-                                        {message || 'Tidak tersedia. Silahkan hubungi admin.'}
+                                        {message || t('unavailable.defaultMessage')}
                                     </h2>
                                     <p className="mx-auto max-w-md text-sm text-gray-600 md:text-base dark:text-gray-400">
-                                        Jika Anda merasa ini kesalahan, silakan hubungi admin untuk bantuan lebih lanjut.
+                                        {t('unavailable.errorHint')}
                                     </p>
                                 </motion.div>
 
@@ -120,12 +123,12 @@ export default function UnavailablePage({
                                         {backUrl ? (
                                             <Link href={backUrl} className="flex items-center justify-center gap-2">
                                                 <ArrowLeft className="h-5 w-5" />
-                                                {backLabel || 'Kembali'}
+                                                {backLabel || t('unavailable.back')}
                                             </Link>
                                         ) : (
                                             <Link href="/" className="flex items-center justify-center gap-2">
                                                 <ArrowLeft className="h-5 w-5" />
-                                                {backLabel || 'Kembali'}
+                                                {backLabel || t('unavailable.back')}
                                             </Link>
                                         )}
                                     </Button>
@@ -140,7 +143,7 @@ export default function UnavailablePage({
                                             className="flex items-center justify-center gap-2"
                                         >
                                             <MessageCircle className="h-5 w-5" />
-                                            Hubungi Admin
+                                            {t('unavailable.contactAdmin')}
                                         </a>
                                     </Button>
                                 </motion.div>

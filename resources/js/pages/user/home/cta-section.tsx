@@ -1,8 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
 import { Mail, Phone } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function CtaSection() {
+    const { t } = useTranslation('home');
+
     return (
         <section className="mx-auto mb-4 w-full max-w-7xl px-4 sm:mb-8">
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0a1e5e] to-[#1a56db] px-8 py-12 sm:px-12 sm:py-8">
@@ -11,14 +14,10 @@ export default function CtaSection() {
                     {/* Left column - CTA Text */}
                     <div className="flex-1 text-center md:text-left">
                         <h2 className="mb-4 font-av-estiana text-3xl font-bold text-white sm:text-3xl lg:text-4xl">
-                            Let's Redefine
-                            <br />
-                            Profit Together
+                            {t('cta.redefineProfit')}
                         </h2>
                         <p className="mb-6 text-base text-white/80 sm:text-lg">
-                            Connect with us to your
-                            <br />
-                            financial journey today.
+                            {t('cta.connectWithUs')}
                         </p>
                         <Button
                             asChild
@@ -30,7 +29,7 @@ export default function CtaSection() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                Contact Us
+                                {t('cta.contactUs')}
                             </Link>
                         </Button>
                     </div>
@@ -48,7 +47,7 @@ export default function CtaSection() {
                     {/* Right column - Address & Contact Info */}
                     <div className="flex-1 text-center md:text-left">
                         <div className="mb-6">
-                            <h3 className="mb-2 text-xl font-bold text-white">Adress</h3>
+                            <h3 className="mb-2 text-xl font-bold text-white">{t('cta.address')}</h3>
                             <p className="text-base leading-relaxed text-white/80">
                                 Perumahan Permata Permadani, Blok B1.
                                 <br />
@@ -58,7 +57,7 @@ export default function CtaSection() {
                             </p>
                         </div>
                         <div>
-                            <h3 className="mb-3 text-xl font-bold text-white">Contact Info</h3>
+                            <h3 className="mb-3 text-xl font-bold text-white">{t('cta.contactInfo')}</h3>
                             <div className="flex flex-col items-center gap-2 md:items-start">
                                 <a
                                     href="tel:087754764475"

@@ -1,5 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -36,28 +37,8 @@ import {
     Users,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SearchCommand } from './search-command';
-
-const serviceItems = [
-    {
-        title: 'Kelas Online',
-        href: '/course',
-        icon: BookText,
-        description: 'Belajar dengan video pembelajaran terstruktur',
-    },
-    {
-        title: 'Bootcamp',
-        href: '/bootcamp',
-        icon: Presentation,
-        description: 'Program intensif dengan mentor profesional',
-    },
-    {
-        title: 'Webinar',
-        href: '/webinar',
-        icon: MonitorPlay,
-        description: 'Seminar online dengan berbagai topik up to date',
-    },
-];
 
 const activeItemStyles = 'text-primary bg-primary/10 dark:text-white dark:bg-primary/50';
 
@@ -160,11 +141,33 @@ function ListItem({
 }
 
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
+    const { t } = useTranslation('common');
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
     const [searchOpen, setSearchOpen] = useState(false);
     const [servicesOpen, setServicesOpen] = useState(false);
+
+    const serviceItems = [
+        {
+            title: t('nav.course', 'Kelas Online'),
+            href: '/course',
+            icon: BookText,
+            description: t('nav.courseDesc', 'Belajar dengan video pembelajaran terstruktur dan materi lengkap'),
+        },
+        {
+            title: t('nav.bootcamp', 'Bootcamp'),
+            href: '/bootcamp',
+            icon: Presentation,
+            description: t('nav.bootcampDesc', 'Program intensif dengan mentor profesional dan project-based learning'),
+        },
+        {
+            title: t('nav.webinar', 'Webinar'),
+            href: '/webinar',
+            icon: MonitorPlay,
+            description: t('nav.webinarDesc', 'Seminar online dengan topik terkini dan expert speaker'),
+        },
+    ];
 
     const isServicesActive = serviceItems.some((item) => page.url.startsWith(item.href)) || page.url.startsWith('/bundle');
 
@@ -189,6 +192,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     <img src="/assets/images/logo-primary.png" alt="LevelUp Accounting" className="w-32" />
                 </Link>
                 <div className="flex items-center gap-2">
+                    <LanguageSwitcher variant="compact" />
                     {auth.user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -216,8 +220,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
-                        <Button variant="default" asChild className="rounded-full px-6 py-1.5 text-sm">
-                            <Link href={route('login')}>Login</Link>
+                        <Button variant="default" asChild className="rounded-full px-5 py-1.5 text-sm">
+                            <Link href={route('login')}>{t('nav.login', 'Login')}</Link>
                         </Button>
                     )}
                 </div>
@@ -225,43 +229,39 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
             {/* ===== DESKTOP HEADER (visible at lg and above) ===== */}
             <div className="fixed top-0 right-0 left-0 z-40 hidden lg:flex">
-                <div className="absolute inset-0 flex">
-                    <div className="bg-background" style={{ flex: '0 0 calc(50% - 10px)' }} />
-                    <div className="bg-primary flex-1" />
-                </div>
-
-                <div className="relative mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4">
+                <div className="relative mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
                     {/* Logo Section */}
-                    <div className="bg-background flex-shrink-0 pr-82">
+                    <div className="flex-shrink-0">
                         <Link href="/" className="flex items-center space-x-2">
                             <img src="/assets/images/logo-primary.png" alt="LevelUp Accounting" className="block w-40" />
                         </Link>
                     </div>
-            
 
-                    {/* Navigation Section */}
-                    <div className="bg-primary relative flex h-full flex-1 items-center justify-between pl-8">
+                    {/* Navigation Section with blue background & smooth curve */}
+                    <div className="bg-primary relative flex h-full items-center justify-end gap-3 pl-28 pr-4 sm:pr-6">
+                        {/* Curve separator (original shape: white shoulder at top, blue scoops in at bottom) */}
                         <div className="text-background pointer-events-none absolute top-0 -left-2 h-full w-40">
                             <svg viewBox="0 0 160 80" preserveAspectRatio="none" className="h-full w-full" aria-hidden="true">
                                 <path d="M0,0 H90 C70,0 45,80 0,80 Z" fill="currentColor" transform="scale(1,-1) translate(0,-80)" />
                             </svg>
                         </div>
+                        {/* Background filler to the right viewport edge */}
+                        <div className="bg-primary pointer-events-none absolute top-0 left-full h-full w-[200vw]" />
 
-                        <NavigationMenu className="relative z-10 ml-16 flex h-full items-stretch">
+                        <NavigationMenu className="relative z-10 flex h-full items-stretch">
                     
-                            <NavigationMenuList className="flex h-full items-stretch space-x-2">
+                            <NavigationMenuList className="flex h-full items-stretch space-x-1.5">
                                 {/* Home */}
                                 <NavigationMenuItem className="relative flex h-full items-center">
                                     <NavigationMenuLink asChild>
                                         <Link
                                             href="/"
                                             className={cn(
-                                                'rounded-full border border-white/50 px-5 py-2 text-sm font-semibold transition-colors',
+                                                'rounded-full border border-white/50 px-3.5 xl:px-4 py-1.5 text-xs xl:text-sm font-semibold whitespace-nowrap transition-colors',
                                                 isHomepage ? 'text-primary bg-white' : 'text-white hover:bg-white/20',
-                                                
                                             )}
                                         >
-                                            Home
+                                            {t('nav.home', 'Home')}
                                         </Link>
                                     </NavigationMenuLink>
                                 </NavigationMenuItem>
@@ -272,27 +272,24 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         <Link
                                             href="/about"
                                             className={cn(
-                                                'rounded-full border border-white/50 px-5 py-2 text-sm font-semibold transition-colors',
+                                                'rounded-full border border-white/50 px-3.5 xl:px-4 py-1.5 text-xs xl:text-sm font-semibold whitespace-nowrap transition-colors',
                                                 page.url.startsWith('/about') ? 'text-primary bg-white' : 'text-white hover:bg-white/20',
                                             )}
                                         >
-                                            About
-                                            
+                                            {t('nav.about', 'About')}
                                         </Link>
                                     </NavigationMenuLink>
-                                    
                                 </NavigationMenuItem>
 
                                 {/* Program Mega Menu */}
                                 <NavigationMenuItem className="relative flex h-full items-center">
                                     <NavigationMenuTrigger
                                         className={cn(
-                                            'rounded-full border border-white/50 bg-transparent px-5 py-2 text-sm font-semibold transition-colors',
+                                            'rounded-full border border-white/50 bg-transparent px-3.5 xl:px-4 py-1.5 text-xs xl:text-sm font-semibold whitespace-nowrap transition-colors',
                                             isServicesActive ? '!text-primary bg-white' : 'text-white hover:bg-white/20 hover:text-white',
                                         )}
-                                        
                                     >
-                                        Program
+                                        {t('nav.programs', 'Program')}
                                     </NavigationMenuTrigger>
                                     <NavigationMenuContent>
                                         {/* Premium Mega Menu — 3-column layout */}
@@ -305,36 +302,36 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 <div className="border-r border-gray-100 p-5 dark:border-white/10">
                                                     <p className="text-muted-foreground mb-3 flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase">
                                                         <Sparkles className="text-primary h-3 w-3" />
-                                                        Program Edukasi
+                                                        {t('nav.programs', 'Program Edukasi')}
                                                     </p>
                                                     <ul className="space-y-1">
                                                         <ListItem
                                                             href="/course"
-                                                            title="Kelas Online"
+                                                            title={t('nav.course', 'Kelas Online')}
                                                             icon={BookText}
                                                             iconBg="bg-blue-50 dark:bg-blue-900/30"
                                                             iconColor="text-blue-600"
                                                         >
-                                                            Belajar dengan video pembelajaran terstruktur dan materi lengkap
+                                                            {t('nav.courseDesc', 'Belajar dengan video pembelajaran terstruktur dan materi lengkap')}
                                                         </ListItem>
                                                         <ListItem
                                                             href="/bootcamp"
-                                                            title="Bootcamp"
+                                                            title={t('nav.bootcamp', 'Bootcamp')}
                                                             icon={Presentation}
                                                             iconBg="bg-emerald-50 dark:bg-emerald-900/30"
                                                             iconColor="text-emerald-600"
-                                                            badge="Intensif"
+                                                            badge={t('nav.intensive', 'Intensif')}
                                                         >
-                                                            Program intensif dengan mentor profesional dan project-based learning
+                                                            {t('nav.bootcampDesc', 'Program intensif dengan mentor profesional dan project-based learning')}
                                                         </ListItem>
                                                         <ListItem
                                                             href="/webinar"
-                                                            title="Webinar"
+                                                            title={t('nav.webinar', 'Webinar')}
                                                             icon={MonitorPlay}
                                                             iconBg="bg-violet-50 dark:bg-violet-900/30"
                                                             iconColor="text-violet-600"
                                                         >
-                                                            Seminar online dengan topik terkini dan expert speaker
+                                                            {t('nav.webinarDesc', 'Seminar online dengan topik terkini dan expert speaker')}
                                                         </ListItem>
                                                     </ul>
                                                 </div>
@@ -343,60 +340,58 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 <div className="border-r border-gray-100 p-5 dark:border-white/10">
                                                     <p className="text-muted-foreground mb-3 flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase">
                                                         <Award className="text-secondary h-3 w-3" />
-                                                        Penawaran Spesial
+                                                        {t('nav.specialOffer', 'Penawaran Spesial')}
                                                     </p>
                                                     <ul className="from-primary space-y-1 overflow-hidden rounded-xl bg-gradient-to-br to-blue-700">
                                                         <ListItem
                                                             href="/bundle"
-                                                            title="Paket Bundling"
+                                                            title={t('nav.bundling', 'Paket Bundling')}
                                                             icon={Album}
                                                             iconBg="bg-white/20"
                                                             iconColor="text-white"
-                                                            badge="Hemat"
+                                                            badge={t('nav.save', 'Hemat')}
                                                             inverted
                                                         >
-                                        
-                                                            Hemat lebih banyak dengan paket bundling berbagai produk edukasi kami
+                                                            {t('nav.bundlingDesc', 'Hemat lebih banyak dengan paket bundling berbagai produk edukasi kami')}
                                                         </ListItem>
                                                     </ul>
                                                     <ul className="mt-3 space-y-1">
                                                         <ListItem
                                                             href="/certification-program"
-                                                            title="Sertifikasi"
+                                                            title={t('nav.certification', 'Sertifikasi')}
                                                             icon={BriefcaseBusiness}
                                                             iconBg="bg-amber-50 dark:bg-amber-900/30"
                                                             iconColor="text-amber-600"
                                                         >
-                                                            Tingkatkan kredibilitas dengan sertifikasi profesional
+                                                            {t('nav.certificationDesc', 'Tingkatkan kredibilitas dengan sertifikasi profesional')}
                                                         </ListItem>
                                                     </ul>
                                                 </div>
-                        
 
                                                 {/* ── Col 3: Why Level Up ── */}
                                                 <div className="border-l border-gray-100 bg-gray-50/70 p-5 dark:border-white/10 dark:bg-white/[0.03]">
                                                     <p className="text-muted-foreground mb-3 flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase">
                                                         <TrendingUp className="h-3 w-3 text-emerald-600" />
-                                                        Mengapa Kami
+                                                        {t('nav.whyUs', 'Mengapa Kami')}
                                                     </p>
                                                     <ul className="space-y-3">
                                                         {[
                                                             {
                                                                 icon: BadgeCheck,
-                                                                label: 'Mentor Bersertifikat',
+                                                                label: t('nav.mentorCertified', 'Mentor Bersertifikat'),
                                                                 color: 'text-primary',
                                                                 bg: 'bg-primary/10',
                                                             },
-                                                            { icon: Users, label: '5.000+ Alumni', color: 'text-secondary', bg: 'bg-secondary/10' },
+                                                            { icon: Users, label: t('nav.alumniCount', '5.000+ Alumni'), color: 'text-secondary', bg: 'bg-secondary/10' },
                                                             {
                                                                 icon: TrendingUp,
-                                                                label: 'Kurikulum Update',
+                                                                label: t('nav.curriculumUpdated', 'Kurikulum Update'),
                                                                 color: 'text-emerald-600',
                                                                 bg: 'bg-emerald-50 dark:bg-emerald-900/30',
                                                             },
                                                             {
                                                                 icon: Award,
-                                                                label: 'Sertifikat Diakui',
+                                                                label: t('nav.recognizedCertificate', 'Sertifikat Diakui'),
                                                                 color: 'text-amber-600',
                                                                 bg: 'bg-amber-50 dark:bg-amber-900/30',
                                                             },
@@ -416,7 +411,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                             href="/about"
                                                             className="text-primary flex items-center gap-1 text-xs font-semibold transition-all hover:gap-2"
                                                         >
-                                                            Pelajari Lebih Lanjut
+                                                            {t('actions.learnMore', 'Pelajari Lebih Lanjut')}
                                                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path
                                                                     strokeLinecap="round"
@@ -430,12 +425,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 </div>
                                             </div>
                                         </div>
-                                           
                                     </NavigationMenuContent>
-                                   
                                 </NavigationMenuItem>
-
-
 
                                 {/* Artikel */}
                                 <NavigationMenuItem className="relative flex h-full items-center">
@@ -443,11 +434,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         <Link
                                             href="/article"
                                             className={cn(
-                                                'rounded-full border border-white/50 px-5 py-2 text-sm font-semibold transition-colors',
+                                                'rounded-full border border-white/50 px-3.5 xl:px-4 py-1.5 text-xs xl:text-sm font-semibold whitespace-nowrap transition-colors',
                                                 page.url.startsWith('/article') ? 'text-primary bg-white' : 'text-white hover:bg-white/20',
                                             )}
                                         >
-                                            Artikel
+                                            {t('nav.articles', 'Artikel')}
                                         </Link>
                                     </NavigationMenuLink>
                                 </NavigationMenuItem>
@@ -458,13 +449,13 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         <Link
                                             href="/check-certificate"
                                             className={cn(
-                                                'rounded-full border border-white/50 px-5 py-2 text-sm font-semibold transition-colors',
+                                                'rounded-full border border-white/50 px-3.5 xl:px-4 py-1.5 text-xs xl:text-sm font-semibold whitespace-nowrap transition-colors',
                                                 page.url.startsWith('/check-certificate')
                                                     ? 'text-primary bg-white'
                                                     : 'text-white hover:bg-white/20',
                                             )}
                                         >
-                                            Cek Sertifikat
+                                            {t('nav.checkCertificate', 'Cek Sertifikat')}
                                         </Link>
                                     </NavigationMenuLink>
                                 </NavigationMenuItem>
@@ -476,13 +467,13 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             <Link
                                                 href="/profile"
                                                 className={cn(
-                                                    'rounded-full border border-white/50 px-5 py-2 text-sm font-semibold transition-colors',
+                                                    'rounded-full border border-white/50 px-3.5 xl:px-4 py-1.5 text-xs xl:text-sm font-semibold whitespace-nowrap transition-colors',
                                                     page.url.startsWith('/profile')
                                                         ? 'text-primary bg-white'
                                                         : 'text-white hover:bg-white/20',
                                                 )}
                                             >
-                                                Profil Saya
+                                                {t('nav.myProfile', 'Profil Saya')}
                                             </Link>
                                         </NavigationMenuLink>
                                     </NavigationMenuItem>
@@ -490,7 +481,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </NavigationMenuList>
                         </NavigationMenu>
 
-                        <div className="relative z-10 flex items-center">
+                        <div className="relative z-10 flex shrink-0 items-center gap-1.5">
+                            <LanguageSwitcher variant="toggle" />
                             {auth.user ? (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -518,8 +510,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             ) : (
-                                <Button variant="default" asChild className="bg-secondary hover:bg-secondary/90 rounded-full px-8 py-2 text-base">
-                                    <Link href={route('login')}>Login</Link>
+                                <Button variant="default" asChild className="bg-secondary hover:bg-secondary/90 rounded-full px-5 xl:px-7 py-2 text-sm xl:text-base font-semibold whitespace-nowrap">
+                                    <Link href={route('login')}>{t('nav.login', 'Login')}</Link>
                                 </Button>
                             )}
                         </div>
@@ -540,7 +532,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             )}
                         >
                             <Home className="mb-1 h-5 w-6" />
-                            <span className="text-center text-xs leading-none font-medium">Beranda</span>
+                            <span className="text-center text-xs leading-none font-medium">{t('nav.home', 'Beranda')}</span>
                         </Link>
 
                         <Popover open={servicesOpen} onOpenChange={setServicesOpen}>
@@ -554,12 +546,12 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     )}
                                 >
                                     <Album className="mb-1 h-5 w-6" />
-                                    <span className="text-center text-xs leading-none font-medium">Layanan</span>
+                                    <span className="text-center text-xs leading-none font-medium">{t('nav.services', 'Layanan')}</span>
                                 </button>
                             </PopoverTrigger>
                             <PopoverContent side="top" align="center" className="mb-2 w-80 p-3" sideOffset={8}>
                                 <div className="space-y-1">
-                                    <h4 className="mb-3 px-2 text-sm font-semibold">Layanan Kami</h4>
+                                    <h4 className="mb-3 px-2 text-sm font-semibold">{t('nav.ourServices', 'Layanan Kami')}</h4>
                                     {serviceItems.map((service) => {
                                         const isActive = page.url.startsWith(service.href);
                                         return (
@@ -603,9 +595,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             )}
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <p className="mb-1 text-sm leading-none font-medium">Paket Bundling</p>
+                                            <p className="mb-1 text-sm leading-none font-medium">{t('nav.bundling', 'Paket Bundling')}</p>
                                             <p className="text-muted-foreground line-clamp-2 text-xs">
-                                                Paket bundling dengan berbagai produk edukasi
+                                                {t('nav.bundlingDesc', 'Paket bundling dengan berbagai produk edukasi')}
                                             </p>
                                         </div>
                                     </Link>
@@ -628,9 +620,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             )}
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <p className="mb-1 text-sm leading-none font-medium">Sertifikasi</p>
+                                            <p className="mb-1 text-sm leading-none font-medium">{t('nav.certification', 'Sertifikasi')}</p>
                                             <p className="text-muted-foreground line-clamp-2 text-xs">
-                                                Tingkatkan kredibilitas dengan sertifikasi profesional
+                                                {t('nav.certificationDesc', 'Tingkatkan kredibilitas dengan sertifikasi profesional')}
                                             </p>
                                         </div>
                                     </Link>
@@ -654,9 +646,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             )}
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <p className="mb-1 text-sm leading-none font-medium">Cek Sertifikat</p>
+                                            <p className="mb-1 text-sm leading-none font-medium">{t('nav.checkCertificate', 'Cek Sertifikat')}</p>
                                             <p className="text-muted-foreground line-clamp-2 text-xs">
-                                                Lihat sertifikat Anda dengan email dan nomor WA
+                                                {t('nav.checkCertificateDesc', 'Lihat sertifikat Anda dengan email dan nomor WA')}
                                             </p>
                                         </div>
                                     </Link>
@@ -674,7 +666,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             )}
                         >
                             <FileText className="mb-1 h-5 w-6" />
-                            <span className="text-center text-xs leading-none font-medium">Artikel</span>
+                            <span className="text-center text-xs leading-none font-medium">{t('nav.articles', 'Artikel')}</span>
                         </Link>
 
                         <Link
@@ -687,7 +679,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             )}
                         >
                             <Info className="mb-1 h-5 w-6" />
-                            <span className="text-center text-xs leading-none font-medium">Tentang</span>
+                            <span className="text-center text-xs leading-none font-medium">{t('nav.about', 'Tentang')}</span>
                         </Link>
 
                         {auth.user && (
@@ -701,7 +693,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 )}
                             >
                                 <User className="mb-1 h-5 w-6" />
-                                <span className="text-center text-xs leading-none font-medium">Profil</span>
+                                <span className="text-center text-xs leading-none font-medium">{t('nav.profile', 'Profil')}</span>
                             </Link>
                         )}
                     </div>

@@ -1,3 +1,4 @@
+import { parseISO } from 'date-fns';
 import InstallmentOptions, { ActiveInstallmentData, InstallmentTermOption } from '@/components/installment-options';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { BadgeCheck, Calendar, Check, CreditCard, Gift, Hourglass, LoaderCircle, RefreshCw, Tag, User, X } from 'lucide-react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 interface Webinar {
@@ -136,11 +138,25 @@ export default function RegisterWebinar({
     installmentTerms?: InstallmentTermOption[];
     activeInstallment?: ActiveInstallmentData | null;
 }) {
+    const { t, i18n } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const isLoggedIn = !!auth.user;
     const isProfileComplete = isLoggedIn && !!auth.user?.phone_number && !!auth.user?.instance && !!auth.user?.city;
 
     const [activeInstallment, setActiveInstallment] = useState<ActiveInstallmentData | null>(initialActiveInstallment);
+    const isAnyTermOverdue = !initialActiveInstallment && installmentTerms.some((t: any) => {
+        if (!t.due_date) return false;
+        try {
+            const d = typeof t.due_date === 'string' ? parseISO(t.due_date) : new Date(t.due_date);
+            if (isNaN(d.getTime())) return false;
+            const endOfDay = new Date(d);
+            endOfDay.setHours(23, 59, 59, 999);
+            return new Date() > endOfDay;
+        } catch {
+            return false;
+        }
+    });
+
     const [paymentTab, setPaymentTab] = useState<'full' | 'installment'>(initialActiveInstallment ? 'installment' : 'full');
 
     useEffect(() => {
@@ -293,11 +309,11 @@ export default function RegisterWebinar({
                 setReferralError('');
             } else {
                 setReferralData(null);
-                setReferralError(dataRes.message || 'Kode referral tidak valid');
+                setReferralError(dataRes.message || t('webinar.register.errors.invalidReferral'));
             }
         } catch (error: any) {
             setReferralData(null);
-            setReferralError(error.response?.data?.message || 'Terjadi kesalahan saat memvalidasi kode referral');
+            setReferralError(error.response?.data?.message || t('webinar.register.errors.referralValidateError'));
         } finally {
             setReferralLoading(false);
         }
@@ -328,11 +344,11 @@ export default function RegisterWebinar({
                 setPromoError('');
             } else {
                 setDiscountData(null);
-                setPromoError(response.data.message || 'Kode promo tidak valid');
+                setPromoError(response.data.message || t('webinar.register.errors.invalidPromo'));
             }
         } catch (error: any) {
             setDiscountData(null);
-            setPromoError(error.response?.data?.message || 'Terjadi kesalahan saat memvalidasi kode promo');
+            setPromoError(error.response?.data?.message || t('webinar.register.errors.promoValidateError'));
         } finally {
             setPromoLoading(false);
         }
@@ -390,10 +406,10 @@ export default function RegisterWebinar({
                     sessionStorage.removeItem('pendingCheckout');
                     window.location.href = res.data.payment_url;
                 } else {
-                    throw new Error('Payment URL tidak diterima dari server.');
+                    throw new Error(t('webinar.register.errors.paymentUrlNotReceived'));
                 }
             } else {
-                throw new Error(res.data?.message || 'Gagal membuat invoice.');
+                throw new Error(res.data?.message || t('webinar.register.errors.createInvoiceFailed'));
             }
         } catch (error: any) {
             console.error('Payment error:', error);
@@ -405,7 +421,7 @@ export default function RegisterWebinar({
         e.preventDefault();
 
         if (!isProfileComplete) {
-            toast.error('Profil Anda belum lengkap! Harap lengkapi nomor telepon terlebih dahulu.');
+            toast.error(t('webinar.register.errors.phoneRequired'));
             setTimeout(() => {
                 window.location.href = route('profile.edit');
             }, 1500);
@@ -413,7 +429,7 @@ export default function RegisterWebinar({
         }
 
         if (!freeFormData.requirement_1_proof || !freeFormData.requirement_2_proof || !freeFormData.requirement_3_proof) {
-            toast.error('Harap upload semua bukti yang diperlukan!');
+            toast.error(t('webinar.register.errors.uploadAllProof'));
             return;
         }
 
@@ -428,7 +444,7 @@ export default function RegisterWebinar({
 
         router.post(route('enroll.free'), formData, {
             onError: (errors) => {
-                toast.error(errors.message || 'Gagal mendaftar webinar gratis.');
+                toast.error(errors.message || t('webinar.register.errors.enrollFreeFailed'));
             },
             onFinish: () => setLoading(false),
         });
@@ -438,7 +454,7 @@ export default function RegisterWebinar({
         if (isLoggedIn) return true;
 
         if (!data.email || !data.name || !data.phone_number || !data.instance || !data.city) {
-            toast.error('Lengkapi data terlebih dahulu');
+            toast.error(t('webinar.register.errors.completePersonalData'));
             return false;
         }
 
@@ -452,7 +468,7 @@ export default function RegisterWebinar({
                 });
 
                 if (!response.data.success) {
-                    throw new Error(response.data.message || 'Login gagal. Pastikan nomor telepon sesuai.');
+                    throw new Error(response.data.message || t('webinar.register.errors.autoLoginFailed'));
                 }
             } else {
                 const response = await axios.post('/register', {
@@ -467,12 +483,12 @@ export default function RegisterWebinar({
                 });
 
                 if (!(response.data?.success || response.status === 200 || response.status === 201)) {
-                    throw new Error('Registrasi gagal.');
+                    throw new Error(t('webinar.register.errors.registerFailed'));
                 }
             }
             return true;
         } catch (error: any) {
-            toast.error(error.response?.data?.message || error.message || 'Gagal login/registrasi');
+            toast.error(error.response?.data?.message || error.message || t('webinar.register.errors.processLoginFailed'));
             return false;
         }
     };
@@ -481,7 +497,7 @@ export default function RegisterWebinar({
         e.preventDefault();
 
         if (activeInstallment && !activeInstallment.is_fully_paid) {
-            toast.error('Anda memiliki transaksi cicilan yang sedang aktif. Silakan lanjutkan pembayaran termin cicilan Anda.');
+            toast.error(t('webinar.register.errors.activeInstallmentOngoing'));
             setPaymentTab('installment');
             return;
         }
@@ -489,7 +505,7 @@ export default function RegisterWebinar({
         // 1. Jika belum login, lakukan registrasi / login terlebih dahulu
         if (!isLoggedIn) {
             if (!termsAccepted && !isFree) {
-                toast.error('Anda harus menyetujui syarat dan ketentuan!');
+                toast.error(t('webinar.register.errors.termsRequired'));
                 return;
             }
 
@@ -511,14 +527,14 @@ export default function RegisterWebinar({
                 await submitPayment(createInvoicePayload());
             } catch (error: any) {
                 setLoading(false);
-                toast.error(error.response?.data?.message || error.message || 'Gagal memproses pembayaran');
+                toast.error(error.response?.data?.message || error.message || t('webinar.register.errors.paymentFailed'));
             }
             return;
         }
 
         // 2. Jika sudah login
         if (!termsAccepted && !isFree) {
-            toast.error('Anda harus menyetujui syarat dan ketentuan!');
+            toast.error(t('webinar.register.errors.termsRequired'));
             return;
         }
 
@@ -536,7 +552,7 @@ export default function RegisterWebinar({
         try {
             await submitPayment(createInvoicePayload());
         } catch (error: any) {
-            toast.error(error.response?.data?.message || error.message || 'Terjadi kesalahan saat proses pembayaran.');
+            toast.error(error.response?.data?.message || error.message || t('webinar.register.errors.paymentFailed'));
             setLoading(false);
             submitInFlightRef.current = false;
         }
@@ -559,7 +575,7 @@ export default function RegisterWebinar({
         const fiveMinutes = 5 * 60 * 1000;
         if (Date.now() - (checkoutData.timestamp || 0) > fiveMinutes) {
             sessionStorage.removeItem('pendingCheckout');
-            toast.error('Sesi checkout telah kadaluarsa');
+            toast.error(t('webinar.register.checkoutSessionExpired'));
             return;
         }
 
@@ -585,7 +601,7 @@ export default function RegisterWebinar({
             try {
                 await submitPayment(createInvoicePayload(checkoutData.discountData ?? null));
             } catch (error: any) {
-                toast.error(error.message || 'Terjadi kesalahan saat proses pembayaran.');
+                toast.error(error.message || t('webinar.register.errors.paymentFailed'));
                 sessionStorage.removeItem('pendingCheckout');
                 setLoading(false);
                 submitInFlightRef.current = false;
@@ -613,7 +629,7 @@ export default function RegisterWebinar({
             setFileErrors((prev) => ({ ...prev, [fieldName]: true }));
             const input = document.querySelector(`input[data-field="${fieldName}"]`) as HTMLInputElement;
             if (input) input.value = '';
-            toast.error('Ukuran file terlalu besar. Maksimal 2MB.');
+            toast.error(t('webinar.register.errors.fileTooLarge'));
             return;
         }
 
@@ -621,13 +637,13 @@ export default function RegisterWebinar({
             setFileErrors((prev) => ({ ...prev, [fieldName]: true }));
             const input = document.querySelector(`input[data-field="${fieldName}"]`) as HTMLInputElement;
             if (input) input.value = '';
-            toast.error('Hanya file gambar (JPG, PNG, GIF, dll) yang diperbolehkan.');
+            toast.error(t('webinar.register.errors.fileMustBeImage'));
             return;
         }
 
         setFreeFormData((prev) => ({ ...prev, [fieldName]: file }));
         setFileErrors((prev) => ({ ...prev, [fieldName]: false }));
-        toast.success('File berhasil diunggah.');
+        toast.success(t('webinar.register.errors.fileUploaded'));
     };
 
     const formatExpiryTime = (expiresAt: string): { time: string; status: 'expired' | 'urgent' | 'normal' } => {
@@ -635,23 +651,23 @@ export default function RegisterWebinar({
         const expiry = new Date(expiresAt);
         const diff = expiry.getTime() - now.getTime();
 
-        if (diff <= 0) return { time: 'Sudah kadaluarsa', status: 'expired' };
+        if (diff <= 0) return { time: t('webinar.register.alreadyExpired'), status: 'expired' };
 
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-        if (hours < 1) return { time: `${minutes} menit lagi`, status: 'urgent' };
-        return { time: `${hours} jam ${minutes} menit lagi`, status: hours < 3 ? 'urgent' : 'normal' };
+        if (hours < 1) return { time: t('webinar.register.minutesLeft', { count: minutes }), status: 'urgent' };
+        return { time: t('webinar.register.hoursMinutesLeft', { hours, minutes }), status: hours < 3 ? 'urgent' : 'normal' };
     };
 
     const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text).then(() => toast.success('Berhasil menyalin ke clipboard!'));
+        navigator.clipboard.writeText(text).then(() => toast.success(t('webinar.register.copiedToClipboard')));
     };
 
     if (isLoggedIn && !isProfileComplete) {
         return (
             <UserLayout>
-                <Head title="Lengkapi Profil" />
+                <Head title={t('webinar.register.incompleteProfileTitle')} />
 
                 <section className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-700 to-red-700 px-4 py-16">
                     <div className="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]" />
@@ -666,7 +682,7 @@ export default function RegisterWebinar({
                             className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm"
                         >
                             <User className="h-4 w-4 text-white" />
-                            <span className="text-sm font-medium text-white">Profil Belum Lengkap</span>
+                            <span className="text-sm font-medium text-white">{t('webinar.register.incompleteProfileTitle')}</span>
                         </motion.div>
 
                         <motion.h1
@@ -684,7 +700,7 @@ export default function RegisterWebinar({
                             transition={{ delay: 0.3 }}
                             className="text-lg text-orange-100"
                         >
-                            Lengkapi profil Anda terlebih dahulu untuk melanjutkan
+                            {t('webinar.register.completeProfileDesc')}
                         </motion.p>
                     </motion.div>
                 </section>
@@ -697,9 +713,9 @@ export default function RegisterWebinar({
                                     <User className="h-10 w-10 text-white" />
                                 </div>
 
-                                <h2 className="mb-3 text-center text-2xl font-bold">Lengkapi Profil Anda</h2>
+                                <h2 className="mb-3 text-center text-2xl font-bold">{t('webinar.register.completeProfileTitle')}</h2>
                                 <p className="mb-6 text-center text-gray-600 dark:text-gray-400">
-                                    Kami memerlukan nomor telepon, instansi, dan kota domisili Anda untuk melanjutkan pendaftaran webinar ini.
+                                    {t('webinar.register.completeProfileNotice')}
                                 </p>
 
                                 <Button
@@ -709,7 +725,7 @@ export default function RegisterWebinar({
                                 >
                                     <Link href={route('profile.edit', { redirect: window.location.href })}>
                                         <User className="mr-2 h-4 w-4" />
-                                        Lengkapi Profil Sekarang
+                                        {t('webinar.register.completeProfileNow')}
                                     </Link>
                                 </Button>
                             </div>
@@ -722,7 +738,7 @@ export default function RegisterWebinar({
 
     return (
         <UserLayout>
-            <Head title={`Checkout - ${webinar.title}`} />
+            <Head title={t('webinar.register.pageTitle', { title: webinar.title })} />
 
             <section className="from-primary to-primary-foreground relative overflow-hidden bg-gradient-to-br px-4 py-12">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto max-w-7xl">
@@ -735,7 +751,7 @@ export default function RegisterWebinar({
                                 className="inline-flex items-center gap-1.5 rounded-full border border-green-500/20 bg-white px-3 py-1.5 text-sm font-medium text-green-600 backdrop-blur-sm"
                             >
                                 <Gift className="h-3.5 w-3.5" />
-                                Gratis
+                                {t('webinar.detail.freeLower')}
                             </motion.div>
                         )}
 
@@ -747,7 +763,7 @@ export default function RegisterWebinar({
                                 className="inline-flex items-center gap-1.5 rounded-full border border-red-700 bg-red-200 px-3 py-1.5 text-sm font-medium text-red-600 backdrop-blur-sm"
                             >
                                 <Tag className="h-3.5 w-3.5" />
-                                Diskon {Math.round(((webinar.strikethrough_price - webinar.price) / webinar.strikethrough_price) * 100)}%
+                                {t('webinar.register.discountBadge', { percent: Math.round(((webinar.strikethrough_price - webinar.price) / webinar.strikethrough_price) * 100) })}
                             </motion.div>
                         )}
 
@@ -758,8 +774,8 @@ export default function RegisterWebinar({
                             className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/20 px-3 py-1.5 text-sm font-medium text-white shadow-lg backdrop-blur-md"
                         >
                             <Calendar className="h-3.5 w-3.5" />
-                            {new Date(webinar.start_time).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })} -{' '}
-                            {new Date(webinar.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                            {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'long' })} -{' '}
+                            {new Date(webinar.start_time).toLocaleTimeString(i18n.language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit' })} {t('webinar.detail.timeZoneWib')}
                         </motion.div>
                     </div>
 
@@ -790,17 +806,17 @@ export default function RegisterWebinar({
                             <TabsList className="grid w-full grid-cols-1">
                                 <TabsTrigger value="detail" className="gap-2">
                                     <BadgeCheck className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Detail Webinar</span>
-                                    <span className="sm:hidden">Detail</span>
+                                    <span className="hidden sm:inline">{t('webinar.register.tabDetail')}</span>
+                                    <span className="sm:hidden">{t('webinar.register.tabDetail')}</span>
                                 </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="detail" className="mt-4">
                                 <Card className="p-6">
                                     <div className="mb-6">
-                                        <h2 className="mb-2 text-2xl font-bold">Yang Akan Kamu Dapatkan</h2>
+                                        <h2 className="mb-2 text-2xl font-bold">{t('webinar.register.whatYouWillGet')}</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            Manfaat yang akan kamu peroleh setelah mengikuti webinar ini
+                                            {t('webinar.register.whatYouWillGetDesc')}
                                         </p>
                                     </div>
 
@@ -827,9 +843,9 @@ export default function RegisterWebinar({
                         {!isLoggedIn && (
                             <Card className="mt-6">
                                 <form className="flex flex-col gap-6 p-6 pt-0" onSubmit={submit}>
-                                    <h1 className="text-xl font-bold">Masukkan Data Diri Anda</h1>
+                                    <h1 className="text-xl font-bold">{t('webinar.register.enterPersonalData')}</h1>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="email">Email</Label>
+                                        <Label htmlFor="email">{t('webinar.register.emailLabel')}</Label>
                                         <div className="flex gap-2">
                                             <div className="relative flex-1">
                                                 <Input
@@ -862,7 +878,7 @@ export default function RegisterWebinar({
                                                 disabled={checkingEmail || !data.email}
                                                 onClick={async () => {
                                                     if (!data.email || !data.email.includes('@')) {
-                                                        toast.error('Masukkan email yang valid');
+                                                        toast.error(t('webinar.register.enterValidEmail'));
                                                         return;
                                                     }
 
@@ -875,14 +891,14 @@ export default function RegisterWebinar({
                                                             setData('phone_number', response.data.phone_number || '');
                                                             setData('instance', response.data.instance || '');
                                                             setData('city', response.data.city || '');
-                                                            toast.success('Email ditemukan!');
+                                                            toast.success(t('webinar.register.emailFoundToast'));
                                                         } else {
                                                             setEmailExists(false);
-                                                            toast.info('Email tidak terdaftar');
+                                                            toast.info(t('webinar.register.emailNotFoundToast'));
                                                         }
                                                     } catch {
                                                         setEmailExists(false);
-                                                        toast.error('Gagal mengecek email');
+                                                        toast.error(t('webinar.register.emailCheckFailed'));
                                                     } finally {
                                                         setCheckingEmail(false);
                                                     }
@@ -891,13 +907,13 @@ export default function RegisterWebinar({
                                                 <RefreshCw className="h-4 w-4" />
                                             </Button>
                                         </div>
-                                        {emailExists && <p className="text-xs text-green-600">Email ditemukan, data terisi otomatis</p>}
+                                        {emailExists && <p className="text-xs text-green-600">{t('webinar.register.emailAutoFillNotice')}</p>}
                                         <InputError message={errors.email} />
                                     </div>
 
                                     <div className="grid gap-6">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="name">Nama</Label>
+                                            <Label htmlFor="name">{t('webinar.register.nameLabel')}</Label>
                                             <Input
                                                 id="name"
                                                 type="text"
@@ -907,13 +923,13 @@ export default function RegisterWebinar({
                                                 value={data.name}
                                                 onChange={(e) => setData('name', e.target.value)}
                                                 disabled={processing || emailExists}
-                                                placeholder="Nama lengkap Anda"
+                                                placeholder={t('webinar.register.namePlaceholder')}
                                             />
                                             <InputError message={errors.name} className="mt-2" />
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="phone_number">No. Telepon</Label>
+                                            <Label htmlFor="phone_number">{t('webinar.register.phoneLabel')}</Label>
                                             <Input
                                                 id="phone_number"
                                                 type="tel"
@@ -926,15 +942,15 @@ export default function RegisterWebinar({
                                                 placeholder="08xxxxxxxxxx"
                                             />
                                             {!emailExists && (
-                                                <p className="text-xs text-gray-500">Nomor telepon akan digunakan sebagai password anda</p>
+                                                <p className="text-xs text-gray-500">{t('webinar.register.phoneNoticeUnregistered')}</p>
                                             )}
                                             {emailExists && (
-                                                <p className="text-xs text-blue-600">Pastikan nomor telepon sesuai dengan yang terdaftar</p>
+                                                <p className="text-xs text-blue-600">{t('webinar.register.phoneNoticeRegistered')}</p>
                                             )}
                                             <InputError message={errors.phone_number} />
                                         </div>
                                         <div className="grid gap-2 pb-2">
-                                            <Label htmlFor="instance">Instansi/Perusahaan</Label>
+                                            <Label htmlFor="instance">{t('webinar.register.instanceLabel')}</Label>
                                             <Input
                                                 id="instance"
                                                 type="text"
@@ -943,13 +959,13 @@ export default function RegisterWebinar({
                                                 value={data.instance}
                                                 onChange={(e) => setData('instance', e.target.value)}
                                                 disabled={processing}
-                                                placeholder="Instansi atau perusahaan Anda"
+                                                placeholder={t('webinar.register.instancePlaceholder')}
                                                 required
                                             />
                                             <InputError message={errors.instance} />
                                         </div>
                                         <div className="grid gap-2 pb-2">
-                                            <Label htmlFor="city">Kota Domisili</Label>
+                                            <Label htmlFor="city">{t('webinar.register.cityLabel')}</Label>
                                             <Input
                                                 id="city"
                                                 type="text"
@@ -957,7 +973,7 @@ export default function RegisterWebinar({
                                                 value={data.city}
                                                 onChange={(e) => setData('city', e.target.value)}
                                                 disabled={processing}
-                                                placeholder="Kota domisili Anda"
+                                                placeholder={t('webinar.register.cityPlaceholder')}
                                                 required
                                             />
                                             <InputError message={errors.city} />
@@ -978,9 +994,9 @@ export default function RegisterWebinar({
                                             <BadgeCheck className="h-8 w-8 text-white" />
                                         </div>
 
-                                        <h2 className="mb-2 text-center text-xl font-bold">Anda Sudah Memiliki Akses</h2>
+                                        <h2 className="mb-2 text-center text-xl font-bold">{t('webinar.register.alreadyHaveAccessTitle')}</h2>
                                         <p className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
-                                            Anda sudah terdaftar di webinar ini. Silakan masuk ke dalam grup.
+                                            {t('webinar.register.alreadyHaveAccessDesc')}
                                         </p>
 
                                         <Button
@@ -989,7 +1005,7 @@ export default function RegisterWebinar({
                                             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                                         >
                                             <a href={webinar.group_url ?? ''} target="_blank" rel="noopener noreferrer">
-                                                Masuk Group Webinar
+                                                {t('webinar.register.btnEnterGroup')}
                                             </a>
                                         </Button>
                                     </div>
@@ -1016,8 +1032,8 @@ export default function RegisterWebinar({
                                                         <>
                                                             <X className="h-5 w-5 text-red-600" />
                                                             <div>
-                                                                <p className="font-semibold text-red-800">Pembayaran Kadaluarsa</p>
-                                                                <p className="text-sm text-red-600">Silakan buat pembayaran baru</p>
+                                                                <p className="font-semibold text-red-800">{t('webinar.register.expiredPayment')}</p>
+                                                                <p className="text-sm text-red-600">{t('webinar.register.createNewPayment')}</p>
                                                             </div>
                                                         </>
                                                     );
@@ -1027,8 +1043,8 @@ export default function RegisterWebinar({
                                                     <>
                                                         <Hourglass className="h-5 w-5 text-orange-600" />
                                                         <div>
-                                                            <p className="font-semibold text-orange-800">Menunggu Pembayaran</p>
-                                                            <p className="text-sm text-orange-600">Berakhir {expiryInfo.time}</p>
+                                                            <p className="font-semibold text-orange-800">{t('webinar.register.awaitingPayment')}</p>
+                                                            <p className="text-sm text-orange-600">{t('webinar.register.expiredTimeDesc', { time: expiryInfo.time })}</p>
                                                         </div>
                                                     </>
                                                 );
@@ -1039,18 +1055,18 @@ export default function RegisterWebinar({
                                     <div className="space-y-6 p-6">
                                         <div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Kode Invoice</span>
+                                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('webinar.register.invoiceCodeLabel')}</span>
                                                 <span className="font-mono text-sm font-semibold">{pendingInvoice.invoice_code}</span>
                                             </div>
                                             <Separator />
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Pembayaran</span>
+                                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('webinar.register.totalPayment')}</span>
                                                 <span className="text-lg font-bold text-orange-600">
-                                                    Rp {pendingInvoice.amount.toLocaleString('id-ID')}
+                                                    Rp {pendingInvoice.amount.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Metode Pembayaran</span>
+                                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('webinar.register.paymentMethod')}</span>
                                                 <span className="font-semibold">{pendingInvoice.payment_method}</span>
                                             </div>
                                         </div>
@@ -1063,7 +1079,7 @@ export default function RegisterWebinar({
                                                 return (
                                                     <div className="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
                                                         <p className="text-sm font-semibold text-red-700 dark:text-red-300">
-                                                            Waktu pembayaran telah habis. Silakan batalkan transaksi untuk membuat pesanan baru.
+                                                            {t('webinar.register.paymentExpiredNotice')}
                                                         </p>
                                                     </div>
                                                 );
@@ -1076,14 +1092,14 @@ export default function RegisterWebinar({
                                             {pendingInvoice.invoice_url && formatExpiryTime(pendingInvoice.expires_at).status !== 'expired' && (
                                                 <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold" size="lg">
                                                     <a href={pendingInvoice.invoice_url}>
-                                                        Lanjutkan Pembayaran
+                                                        {t('webinar.register.btnContinuePayment')}
                                                     </a>
                                                 </Button>
                                             )}
 
                                             <div className="flex gap-2">
                                                 <Button onClick={() => window.location.reload()} variant="outline" className="flex-1" size="lg">
-                                                    Cek Status
+                                                    {t('webinar.register.btnCheckStatus')}
                                                 </Button>
 
                                                 <Button
@@ -1093,20 +1109,20 @@ export default function RegisterWebinar({
                                                     size="lg"
                                                     disabled={cancellingInvoice}
                                                     onClick={async () => {
-                                                        if (confirm('Apakah Anda yakin ingin membatalkan transaksi ini dan membuat pesanan baru?')) {
+                                                        if (confirm(t('webinar.register.confirmCancel'))) {
                                                             setCancellingInvoice(true);
                                                             try {
                                                                 await axios.post(route('invoice.cancel', pendingInvoice.id));
-                                                                toast.success('Pesanan berhasil dibatalkan.');
+                                                                toast.success(t('webinar.register.cancelSuccess'));
                                                                 window.location.reload();
                                                             } catch (err: any) {
-                                                                toast.error(err.response?.data?.message || 'Gagal membatalkan pesanan.');
+                                                                toast.error(err.response?.data?.message || t('webinar.register.cancelFailed'));
                                                                 setCancellingInvoice(false);
                                                             }
                                                         }
                                                     }}
                                                 >
-                                                    {cancellingInvoice ? 'Membatalkan...' : 'Batalkan Pesanan'}
+                                                    {cancellingInvoice ? t('webinar.register.cancelling') : t('webinar.register.btnCancelOrder')}
                                                 </Button>
                                             </div>
                                         </div>
@@ -1115,9 +1131,9 @@ export default function RegisterWebinar({
                             ) : !showFreeForm ? (
                                 <Card className="overflow-hidden border-2">
                                     <div className="border-b bg-gray-50/80 p-6 dark:bg-gray-900/80">
-                                        <h2 className="text-xl font-bold">Detail {isFree ? 'Pendaftaran' : 'Pembayaran'}</h2>
+                                        <h2 className="text-xl font-bold">{isFree ? t('webinar.register.registrationDetailTitle') : t('webinar.register.paymentDetailTitle')}</h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            {isFree ? 'Persyaratan pendaftaran gratis' : 'Ringkasan pembayaran webinar'}
+                                            {isFree ? t('webinar.register.freeRequirements') : t('webinar.register.paymentSummary')}
                                         </p>
                                     </div>
 
@@ -1129,9 +1145,9 @@ export default function RegisterWebinar({
                                                         <Gift className="h-8 w-8 text-white" />
                                                     </div>
 
-                                                    <h3 className="text-lg font-bold text-green-600">Webinar Gratis!</h3>
+                                                    <h3 className="text-lg font-bold text-green-600">{t('webinar.register.freeWebinarTitle')}</h3>
                                                     <p className="text-sm text-gray-600">
-                                                        Untuk mengikuti webinar gratis ini, silakan lengkapi persyaratan berikut:
+                                                        {t('webinar.register.freeWebinarInstruction')}
                                                     </p>
 
                                                     <ul className="mt-4 space-y-1 text-left text-sm text-green-700 dark:text-green-300">
@@ -1147,7 +1163,7 @@ export default function RegisterWebinar({
                                                     size="lg"
                                                     disabled={loading}
                                                 >
-                                                    {loading ? 'Memproses...' : 'Upload Bukti Follow'}
+                                                    {loading ? t('webinar.register.processing') : t('webinar.register.btnUploadProof')}
                                                 </Button>
                                             </>
                                         ) : ((installmentTerms && installmentTerms.length > 0) || (activeInstallment && !activeInstallment.is_fully_paid)) ? (
@@ -1155,10 +1171,14 @@ export default function RegisterWebinar({
                                                 value={paymentTab}
                                                 onValueChange={(val) => {
                                                     if (val === 'full' && activeInstallment && !activeInstallment.is_fully_paid) {
-                                                        toast.error('Anda memiliki cicilan aktif. Pembayaran penuh dinonaktifkan.');
+                                                        toast.error(t('webinar.register.activeInstallmentFullDisabled'));
                                                         return;
                                                     }
-                                                    setPaymentTab(val as 'full' | 'installment');
+                                                    if (val === 'installment' && isAnyTermOverdue && !activeInstallment) {
+                                                toast.error(t('webinar.register.overdueInstallmentError'));
+                                                return;
+                                            }
+                                            setPaymentTab(val as 'full' | 'installment');
                                                 }}
                                                 className="w-full space-y-4 pt-2"
                                             >
@@ -1168,10 +1188,10 @@ export default function RegisterWebinar({
                                                         disabled={!!activeInstallment && !activeInstallment.is_fully_paid}
                                                         className="text-xs sm:text-sm"
                                                     >
-                                                        Bayar Penuh
+                                                        {t('webinar.register.tabFullPayment')}
                                                     </TabsTrigger>
-                                                    <TabsTrigger value="installment" className="text-xs sm:text-sm">
-                                                        Cicilan ({activeInstallment && !activeInstallment.is_fully_paid ? (activeInstallment.total_terms || activeInstallment.terms?.length) : installmentTerms.length}x)
+                                                    <TabsTrigger value="installment" disabled={isAnyTermOverdue && !activeInstallment} className="text-xs sm:text-sm">
+                                                        {t('webinar.register.tabInstallment')} ({activeInstallment && !activeInstallment.is_fully_paid ? (activeInstallment.total_terms || activeInstallment.terms?.length) : installmentTerms.length}x)
                                                     </TabsTrigger>
                                                 </TabsList>
 
@@ -1179,14 +1199,14 @@ export default function RegisterWebinar({
                                                     <div className="space-y-6">
                                                         <div className="space-y-4">
                                                             <div className="flex items-center justify-between">
-                                                                <span className="font-medium">Harga Webinar</span>
+                                                                <span className="font-medium">{t('webinar.register.webinarPrice')}</span>
                                                                 <div className="text-right">
                                                                     {webinar.strikethrough_price > 0 && (
                                                                         <span className="text-sm text-gray-500 line-through">
-                                                                            Rp {webinar.strikethrough_price.toLocaleString('id-ID')}
+                                                                            Rp {webinar.strikethrough_price.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}
                                                                         </span>
                                                                     )}
-                                                                    <div className="font-semibold">Rp {webinar.price.toLocaleString('id-ID')}</div>
+                                                                    <div className="font-semibold">Rp {webinar.price.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}</div>
                                                                 </div>
                                                             </div>
 
@@ -1196,7 +1216,7 @@ export default function RegisterWebinar({
                                                                 <div className="space-y-2">
                                                                     <Label className="flex items-center gap-2 text-sm font-medium">
                                                                         <Tag className="h-4 w-4" />
-                                                                        Jenis Kode
+                                                                        {t('webinar.register.codeType')}
                                                                     </Label>
                                                                     <RadioGroup
                                                                         value={codeType}
@@ -1212,11 +1232,11 @@ export default function RegisterWebinar({
                                                                     >
                                                                         <div className="flex items-center space-x-2">
                                                                             <RadioGroupItem value="voucher" id="web-code-voucher" />
-                                                                            <Label htmlFor="web-code-voucher" className="cursor-pointer text-sm">Voucher</Label>
+                                                                            <Label htmlFor="web-code-voucher" className="cursor-pointer text-sm">{t('webinar.register.voucher')}</Label>
                                                                         </div>
                                                                         <div className="flex items-center space-x-2">
                                                                             <RadioGroupItem value="referral" id="web-code-referral" />
-                                                                            <Label htmlFor="web-code-referral" className="cursor-pointer text-sm">Referral</Label>
+                                                                            <Label htmlFor="web-code-referral" className="cursor-pointer text-sm">{t('webinar.register.referral')}</Label>
                                                                         </div>
                                                                     </RadioGroup>
                                                                 </div>
@@ -1224,13 +1244,13 @@ export default function RegisterWebinar({
                                                                 {/* Input Kode */}
                                                                 <div className="space-y-2">
                                                                     <Label htmlFor="promoCode" className="text-sm font-medium">
-                                                                        {codeType === 'voucher' ? 'Kode Voucher / Promo' : 'Kode Referral'}
+                                                                        {codeType === 'voucher' ? t('webinar.register.voucherCode') : t('webinar.register.referralCode')}
                                                                     </Label>
                                                                     <div className="flex gap-2">
                                                                         <div className="relative flex-1">
                                                                             <Input
                                                                                 id="promoCode"
-                                                                                placeholder={codeType === 'voucher' ? 'Masukkan kode promo' : 'Masukkan kode referral'}
+                                                                                placeholder={codeType === 'voucher' ? t('webinar.register.enterVoucherCode') : t('webinar.register.enterReferralCode')}
                                                                                 value={promoCode}
                                                                                 onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                                                                                 className="flex-1"
@@ -1248,7 +1268,7 @@ export default function RegisterWebinar({
                                                                             disabled={promoLoading || referralLoading || !promoCode.trim()}
                                                                             onClick={async () => {
                                                                                 if (!promoCode.trim()) {
-                                                                                    toast.error(`Masukkan kode ${codeType === 'voucher' ? 'promo' : 'referral'} terlebih dahulu`);
+                                                                                    toast.error(t('webinar.register.enterCodeFirst', { type: codeType === 'voucher' ? t('webinar.register.voucher') : t('webinar.register.referral') }));
                                                                                     return;
                                                                                 }
                                                                                 if (codeType === 'voucher') await validatePromoCode();
@@ -1262,14 +1282,14 @@ export default function RegisterWebinar({
                                                                     {codeType === 'voucher' && promoError && <p className="mt-1 text-sm text-red-600">{promoError}</p>}
                                                                     {codeType === 'voucher' && discountData?.valid && (
                                                                         <p className="mt-1 text-sm text-green-600">
-                                                                            Kode promo "{discountData.discount_code.code}" berhasil diterapkan!
+                                                                            {t('webinar.register.promoAppliedSuccess', { code: discountData.discount_code.code })}
                                                                         </p>
                                                                     )}
                                                                     {/* Referral feedback */}
                                                                     {codeType === 'referral' && referralError && <p className="mt-1 text-sm text-red-600">{referralError}</p>}
                                                                     {codeType === 'referral' && referralData?.valid && (
                                                                         <p className="mt-1 text-sm text-green-600">
-                                                                            Kode referral valid! Dirujuk oleh <span className="font-bold">{referralData.referrer?.name}</span>.
+                                                                            {t('webinar.register.referralAppliedSuccess', { name: referralData.referrer?.name })}
                                                                         </p>
                                                                     )}
                                                                 </div>
@@ -1277,21 +1297,21 @@ export default function RegisterWebinar({
 
                                                             {discountData?.valid && (
                                                                 <div className="flex items-center justify-between text-green-600">
-                                                                    <span>Diskon ({discountData.discount_code.code})</span>
-                                                                    <span>-Rp {discountData.discount_amount.toLocaleString('id-ID')}</span>
+                                                                    <span>{t('webinar.register.promoDiscount', { code: discountData.discount_code.code })}</span>
+                                                                    <span>-Rp {discountData.discount_amount.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}</span>
                                                                 </div>
                                                             )}
 
                                                             <div className="flex items-center justify-between text-gray-600">
-                                                                <span>Biaya Admin</span>
-                                                                <span>Rp {adminFee.toLocaleString('id-ID')}</span>
+                                                                <span>{t('webinar.register.adminFee')}</span>
+                                                                <span>Rp {adminFee.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}</span>
                                                             </div>
 
                                                             <Separator />
 
                                                             <div className="flex items-center justify-between text-lg font-bold">
-                                                                <span>Total</span>
-                                                                <span className="text-orange-600">Rp {totalPrice.toLocaleString('id-ID')}</span>
+                                                                <span>{t('webinar.register.total')}</span>
+                                                                <span className="text-orange-600">Rp {totalPrice.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1303,11 +1323,11 @@ export default function RegisterWebinar({
                                                             onCheckedChange={(checked) => setTermsAccepted(checked === true)}
                                                         />
                                                         <Label htmlFor="terms" className="text-sm leading-relaxed">
-                                                            Saya menyetujui{' '}
+                                                            {t('webinar.register.agreeTerms')}{' '}
                                                             <Link href="/terms" className="font-medium text-blue-600 hover:underline">
-                                                                syarat dan ketentuan
+                                                                {t('webinar.register.termsAndConditions')}
                                                             </Link>{' '}
-                                                            yang berlaku
+                                                            {t('webinar.register.termsNoticeSuffix')}
                                                         </Label>
                                                     </div>
 
@@ -1317,7 +1337,7 @@ export default function RegisterWebinar({
                                                         size="lg"
                                                         disabled={!termsAccepted || loading}
                                                     >
-                                                        {loading ? 'Memproses...' : 'Lanjutkan Pembayaran'}
+                                                        {loading ? t('webinar.register.processing') : t('webinar.register.btnPayNow')}
                                                     </Button>
                                                 </TabsContent>
 
@@ -1332,7 +1352,7 @@ export default function RegisterWebinar({
                                                         onTermsAcceptedChange={setTermsAccepted}
                                                         onBeforePay={async () => {
                                                             if (!activeInstallment && !termsAccepted) {
-                                                                toast.error('Anda harus menyetujui syarat dan ketentuan!');
+                                                                toast.error(t('webinar.register.errors.termsRequired'));
                                                                 return false;
                                                             }
                                                             return await ensureAuth();
@@ -1344,14 +1364,14 @@ export default function RegisterWebinar({
                                             <div className="space-y-6">
                                                 <div className="space-y-4">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="font-medium">Harga Webinar</span>
+                                                        <span className="font-medium">{t('webinar.register.webinarPrice')}</span>
                                                         <div className="text-right">
                                                             {webinar.strikethrough_price > 0 && (
                                                                 <span className="text-sm text-gray-500 line-through">
-                                                                    Rp {webinar.strikethrough_price.toLocaleString('id-ID')}
+                                                                    Rp {webinar.strikethrough_price.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}
                                                                 </span>
                                                             )}
-                                                            <div className="font-semibold">Rp {webinar.price.toLocaleString('id-ID')}</div>
+                                                            <div className="font-semibold">Rp {webinar.price.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}</div>
                                                         </div>
                                                     </div>
 
@@ -1361,7 +1381,7 @@ export default function RegisterWebinar({
                                                         <div className="space-y-2">
                                                             <Label className="flex items-center gap-2 text-sm font-medium">
                                                                 <Tag className="h-4 w-4" />
-                                                                Jenis Kode
+                                                                {t('webinar.register.codeType')}
                                                             </Label>
                                                             <RadioGroup
                                                                 value={codeType}
@@ -1377,11 +1397,11 @@ export default function RegisterWebinar({
                                                             >
                                                                 <div className="flex items-center space-x-2">
                                                                     <RadioGroupItem value="voucher" id="web-code-voucher" />
-                                                                    <Label htmlFor="web-code-voucher" className="cursor-pointer text-sm">Voucher</Label>
+                                                                    <Label htmlFor="web-code-voucher" className="cursor-pointer text-sm">{t('webinar.register.voucher')}</Label>
                                                                 </div>
                                                                 <div className="flex items-center space-x-2">
                                                                     <RadioGroupItem value="referral" id="web-code-referral" />
-                                                                    <Label htmlFor="web-code-referral" className="cursor-pointer text-sm">Referral</Label>
+                                                                    <Label htmlFor="web-code-referral" className="cursor-pointer text-sm">{t('webinar.register.referral')}</Label>
                                                                 </div>
                                                             </RadioGroup>
                                                         </div>
@@ -1389,13 +1409,13 @@ export default function RegisterWebinar({
                                                         {/* Input Kode */}
                                                         <div className="space-y-2">
                                                             <Label htmlFor="promoCode" className="text-sm font-medium">
-                                                                {codeType === 'voucher' ? 'Kode Voucher / Promo' : 'Kode Referral'}
+                                                                {codeType === 'voucher' ? t('webinar.register.voucherCode') : t('webinar.register.referralCode')}
                                                             </Label>
                                                             <div className="flex gap-2">
                                                                 <div className="relative flex-1">
                                                                     <Input
                                                                         id="promoCode"
-                                                                        placeholder={codeType === 'voucher' ? 'Masukkan kode promo' : 'Masukkan kode referral'}
+                                                                        placeholder={codeType === 'voucher' ? t('webinar.register.enterVoucherCode') : t('webinar.register.enterReferralCode')}
                                                                         value={promoCode}
                                                                         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                                                                         className="flex-1"
@@ -1413,7 +1433,7 @@ export default function RegisterWebinar({
                                                                     disabled={promoLoading || referralLoading || !promoCode.trim()}
                                                                     onClick={async () => {
                                                                         if (!promoCode.trim()) {
-                                                                            toast.error(`Masukkan kode ${codeType === 'voucher' ? 'promo' : 'referral'} terlebih dahulu`);
+                                                                            toast.error(t('webinar.register.enterCodeFirst', { type: codeType === 'voucher' ? t('webinar.register.voucher') : t('webinar.register.referral') }));
                                                                             return;
                                                                         }
                                                                         if (codeType === 'voucher') await validatePromoCode();
@@ -1427,14 +1447,14 @@ export default function RegisterWebinar({
                                                             {codeType === 'voucher' && promoError && <p className="mt-1 text-sm text-red-600">{promoError}</p>}
                                                             {codeType === 'voucher' && discountData?.valid && (
                                                                 <p className="mt-1 text-sm text-green-600">
-                                                                    Kode promo "{discountData.discount_code.code}" berhasil diterapkan!
+                                                                    {t('webinar.register.promoAppliedSuccess', { code: discountData.discount_code.code })}
                                                                 </p>
                                                             )}
                                                             {/* Referral feedback */}
                                                             {codeType === 'referral' && referralError && <p className="mt-1 text-sm text-red-600">{referralError}</p>}
                                                             {codeType === 'referral' && referralData?.valid && (
                                                                 <p className="mt-1 text-sm text-green-600">
-                                                                    Kode referral valid! Dirujuk oleh <span className="font-bold">{referralData.referrer?.name}</span>.
+                                                                    {t('webinar.register.referralAppliedSuccess', { name: referralData.referrer?.name })}
                                                                 </p>
                                                             )}
                                                         </div>
@@ -1442,21 +1462,21 @@ export default function RegisterWebinar({
 
                                                     {discountData?.valid && (
                                                         <div className="flex items-center justify-between text-green-600">
-                                                            <span>Diskon ({discountData.discount_code.code})</span>
-                                                            <span>-Rp {discountData.discount_amount.toLocaleString('id-ID')}</span>
+                                                            <span>{t('webinar.register.promoDiscount', { code: discountData.discount_code.code })}</span>
+                                                            <span>-Rp {discountData.discount_amount.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}</span>
                                                         </div>
                                                     )}
 
                                                     <div className="flex items-center justify-between text-gray-600">
-                                                        <span>Biaya Admin</span>
-                                                        <span>Rp {adminFee.toLocaleString('id-ID')}</span>
+                                                        <span>{t('webinar.register.adminFee')}</span>
+                                                        <span>Rp {adminFee.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}</span>
                                                     </div>
 
                                                     <Separator />
 
                                                     <div className="flex items-center justify-between text-lg font-bold">
-                                                        <span>Total</span>
-                                                        <span className="text-orange-600">Rp {totalPrice.toLocaleString('id-ID')}</span>
+                                                        <span>{t('webinar.register.total')}</span>
+                                                        <span className="text-orange-600">Rp {totalPrice.toLocaleString(i18n.language === 'en' ? 'en-US' : 'id-ID')}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1470,11 +1490,11 @@ export default function RegisterWebinar({
                                                     onCheckedChange={(checked) => setTermsAccepted(checked === true)}
                                                 />
                                                 <Label htmlFor="terms" className="text-sm leading-relaxed">
-                                                    Saya menyetujui{' '}
+                                                    {t('webinar.register.agreeTerms')}{' '}
                                                     <Link href="/terms" className="font-medium text-blue-600 hover:underline">
-                                                        syarat dan ketentuan
+                                                        {t('webinar.register.termsAndConditions')}
                                                     </Link>{' '}
-                                                    yang berlaku
+                                                    {t('webinar.register.termsNoticeSuffix')}
                                                 </Label>
                                             </div>
                                         )}
@@ -1486,7 +1506,7 @@ export default function RegisterWebinar({
                                                 size="lg"
                                                 disabled={(isFree ? false : !termsAccepted) || loading}
                                             >
-                                                {loading ? 'Memproses...' : 'Lanjutkan Pembayaran'}
+                                                {loading ? t('webinar.register.processing') : t('webinar.register.btnPayNow')}
                                             </Button>
                                         )}
                                     </form>
@@ -1494,8 +1514,8 @@ export default function RegisterWebinar({
                             ) : (
                                 <Card className="overflow-hidden border-2">
                                     <div className="border-b bg-gray-50/80 p-6 dark:bg-gray-900/80">
-                                        <h2 className="text-xl font-bold">Upload Bukti Follow</h2>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">Upload bukti bahwa Anda telah memenuhi persyaratan</p>
+                                        <h2 className="text-xl font-bold">{t('webinar.register.uploadProofTitle')}</h2>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('webinar.register.uploadProofDesc')}</p>
                                     </div>
 
                                     <form onSubmit={handleFreeCheckout} className="p-6">
@@ -1508,7 +1528,7 @@ export default function RegisterWebinar({
                                                 return (
                                                     <div key={index}>
                                                         <Label htmlFor={proofKey}>
-                                                            Bukti Persyaratan {index}: {requirementText || `Persyaratan ${index}`}
+                                                            {t('webinar.register.proofLabel', { index, requirement: requirementText || t('webinar.register.proofFallback', { index }) })}
                                                         </Label>
                                                         <Input
                                                             id={proofKey}
@@ -1519,7 +1539,9 @@ export default function RegisterWebinar({
                                                             className={fileErrors[proofKey] ? 'border-red-500' : ''}
                                                             required
                                                         />
-                                                        <p className="mt-1 text-xs text-gray-500">{requirementText} (Maks. 2MB)</p>
+                                                        <p className="mt-1 text-xs text-gray-500">
+                                                            {t('webinar.register.proofScreenshotNotice', { requirement: requirementText || t('webinar.register.proofFallback', { index }) })}
+                                                        </p>
                                                     </div>
                                                 );
                                             })}
@@ -1543,7 +1565,7 @@ export default function RegisterWebinar({
                                                     }}
                                                     className="flex-1"
                                                 >
-                                                    Kembali
+                                                    {t('webinar.register.btnBack')}
                                                 </Button>
                                                 <Button
                                                     type="submit"
@@ -1556,7 +1578,7 @@ export default function RegisterWebinar({
                                                     }
                                                     className="flex-1"
                                                 >
-                                                    {loading ? 'Memproses...' : 'Dapatkan Akses Gratis'}
+                                                    {loading ? t('webinar.register.processing') : t('webinar.register.btnGetFreeAccess')}
                                                 </Button>
                                             </div>
                                         </div>

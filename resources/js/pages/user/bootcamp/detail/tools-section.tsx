@@ -1,11 +1,13 @@
 import { CheckCircle, Sparkles, Wrench, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Bootcamp {
     tools?: { name: string; description?: string | null; icon: string | null }[];
 }
 
 export default function ToolsSection({ bootcamp }: { bootcamp: Bootcamp }) {
+    const { t } = useTranslation('user');
     const tools = bootcamp.tools ?? [];
 
     return (
@@ -26,17 +28,17 @@ export default function ToolsSection({ bootcamp }: { bootcamp: Bootcamp }) {
                 >
                     <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
                         <Wrench className="h-4 w-4" />
-                        Tools & Teknologi
+                        {t('bootcamp.detail.toolsBadge')}
                     </span>
                     <h2 className="mt-3 text-3xl font-extrabold text-gray-900 dark:text-white md:text-4xl">
-                        Tools yang Akan{' '}
+                        {t('bootcamp.detail.toolsTitleLead')}
                         <span className="relative inline-block">
-                            <span className="relative z-10 text-primary">Kamu Kuasai</span>
+                            <span className="relative z-10 text-primary">{t('bootcamp.detail.toolsTitleHighlight')}</span>
                             <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                         </span>
                     </h2>
                     <p className="mx-auto mt-4 max-w-xl text-base text-gray-500 dark:text-gray-400">
-                        Teknologi dan tools industri yang akan kamu gunakan selama bootcamp berlangsung
+                        {t('bootcamp.detail.toolsSubtitle')}
                     </p>
                 </motion.div>
 
@@ -85,7 +87,7 @@ export default function ToolsSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                         {/* Industry badge */}
                                         <div className="flex items-center gap-1 text-[10px] text-green-600 dark:text-green-400">
                                             <CheckCircle className="h-3 w-3" />
-                                            <span className="font-medium">Industry Standard</span>
+                                            <span className="font-medium">{t('bootcamp.detail.industryStandard')}</span>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -103,15 +105,15 @@ export default function ToolsSection({ bootcamp }: { bootcamp: Bootcamp }) {
                             <div className="grid grid-cols-3 divide-x divide-gray-100 text-center dark:divide-zinc-700">
                                 <div className="flex flex-col items-center gap-1 py-6 px-4">
                                     <p className="text-3xl font-extrabold text-primary">{tools.length}</p>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Tools</p>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('bootcamp.detail.totalTools')}</p>
                                 </div>
                                 <div className="flex flex-col items-center gap-1 py-6 px-4">
                                     <p className="text-3xl font-extrabold text-secondary">100%</p>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Industry Ready</p>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('bootcamp.detail.industryReady')}</p>
                                 </div>
                                 <div className="flex flex-col items-center gap-1 py-6 px-4">
-                                    <p className="text-2xl font-extrabold text-green-600">Hands-On</p>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Praktik Langsung</p>
+                                    <p className="text-2xl font-extrabold text-green-600">{t('bootcamp.detail.handsOn')}</p>
+                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('bootcamp.detail.practicalLearning')}</p>
                                 </div>
                             </div>
                         </motion.div>
@@ -125,7 +127,7 @@ export default function ToolsSection({ bootcamp }: { bootcamp: Bootcamp }) {
                         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800">
                             <Wrench className="h-10 w-10 text-gray-400" />
                         </div>
-                        <p className="text-center text-gray-500 dark:text-gray-400">Tools akan segera ditambahkan</p>
+                        <p className="text-center text-gray-500 dark:text-gray-400">{t('bootcamp.detail.toolsEmpty')}</p>
                     </motion.div>
                 )}
             </div>

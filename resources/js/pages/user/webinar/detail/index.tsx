@@ -1,6 +1,7 @@
 import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BenefitsSection from './benefits-section';
 import HeroSection from './hero-section';
 import MentorSection from './mentor-section';
@@ -68,6 +69,7 @@ export default function Webinar({
     myWebinarIds: string[];
     referralInfo: ReferralInfo;
 }) {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('benefits');
 
     useEffect(() => {
@@ -95,7 +97,7 @@ export default function Webinar({
             />
          
         <UserLayout>
-            <Head title={`${webinar.title} - Webinar`} />
+            <Head title={t('webinar.detail.headTitle', { title: webinar.title })} />
 
             <HeroSection webinar={webinar} />
             
@@ -108,21 +110,21 @@ export default function Webinar({
                             className="group relative flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md sm:gap-2 sm:px-3 sm:py-3 sm:text-sm"
                         >
                             <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span>Benefits</span>
+                            <span>{t('webinar.detail.tabBenefits')}</span>
                         </TabsTrigger>
                         <TabsTrigger 
                             value="tools" 
                             className="group relative flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md sm:gap-2 sm:px-3 sm:py-3 sm:text-sm"
                         >
                             <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span>Tools</span>
+                            <span>{t('webinar.detail.tabTools')}</span>
                         </TabsTrigger>
                         <TabsTrigger 
                             value="mentor" 
                             className="group relative flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-semibold transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md sm:gap-2 sm:px-3 sm:py-3 sm:text-sm"
                         >
                             <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span>Mentor</span>
+                            <span>{t('webinar.detail.tabMentor')}</span>
                         </TabsTrigger>
                     </TabsList>
 

@@ -249,17 +249,10 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href="/admin/dashboard" prefetch>
-                                {/* Logo untuk light mode */}
                                 <img
                                     src="/assets/images/logo-primary.png"
                                     alt="Level Up Accounting"
-                                    className="block w-32 fill-current dark:hidden"
-                                />
-                                {/* Logo untuk dark mode */}
-                                <img
-                                    src="/assets/images/logo-secondary.png"
-                                    alt="Level Up Accounting"
-                                    className="hidden w-32 fill-current dark:block"
+                                    className="block w-32 fill-current"
                                 />
                             </Link>
                         </SidebarMenuButton>

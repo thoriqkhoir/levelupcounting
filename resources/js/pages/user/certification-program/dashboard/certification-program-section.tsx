@@ -3,9 +3,10 @@ import { Input } from '@/components/ui/input';
 import { Magnetic } from '@/components/ui/magnetic';
 import { Link } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { enUS, id } from 'date-fns/locale';
 import { ArrowRight, Award, Calendar, Clock, GalleryVerticalEnd, GraduationCap, Percent, Search } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Category = {
     id: string;
@@ -39,6 +40,8 @@ interface CertificationProgramSectionProps {
 }
 
 export default function CertificationProgramSection({ categories, programs, myProgramIds, approvedScholarshipProgramIds = [] }: CertificationProgramSectionProps) {
+    const { t, i18n } = useTranslation();
+    const currentLocale = i18n.language === 'en' ? enUS : id;
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [visibleCount, setVisibleCount] = useState(6);
@@ -83,18 +86,18 @@ export default function CertificationProgramSection({ categories, programs, myPr
             <div className="mb-12 flex flex-col items-center justify-center text-center">
                 <div className="mb-4 flex justify-center">
                     <span className="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-4 py-1.5 text-sm font-semibold text-secondary shadow-sm ring-1 ring-secondary/20">
-                        <Award className="h-4 w-4" />Pilihan Program Sertifikasi
+                        <Award className="h-4 w-4" />{t('certificationProgram.dashboard.catalog.badgeChoice')}
                     </span>
                 </div>
                 <h2 className="font-av-estiana mb-4 text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">
-                    Raih Sertifikasi Profesional dan{' '}
+                    {t('certificationProgram.dashboard.catalog.titlePart1')}{' '}
                     <span className="relative inline-block">
-                        <span className="relative z-10 text-primary">Tingkatkan Karirmu</span>
+                        <span className="relative z-10 text-primary">{t('certificationProgram.dashboard.catalog.titleHighlight')}</span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                     </span>
                 </h2>
                 <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
-                    Pilih program sertifikasi yang sesuai dengan tujuan karirmu. Belajar langsung dari ahlinya dan dapatkan sertifikat yang diakui industri.
+                    {t('certificationProgram.dashboard.catalog.subtitle')}
                 </p>
             </div>
 
@@ -103,7 +106,7 @@ export default function CertificationProgramSection({ categories, programs, myPr
                 <div className="flex-1 overflow-x-auto scrollbar-hide" ref={categoryRef} onMouseDown={handleMouseDown} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={handleMouseMove} style={{ cursor: isDragging.current ? 'grabbing' : 'grab' }}>
                     <div className="flex w-max flex-nowrap gap-3 select-none pb-2">
                         <button type="button" onClick={() => setSelectedCategory(null)} className={`rounded-full border-2 px-6 py-2.5 text-sm font-semibold transition-all duration-300 ${selectedCategory === null ? 'border-primary bg-primary text-primary-foreground shadow-md' : 'border-border bg-background text-foreground hover:border-primary/40 hover:bg-primary/5'}`}>
-                            Semua Kategori
+                            {t('certificationProgram.dashboard.catalog.allCategories')}
                         </button>
                         {categories.map((category) => (
                             <button key={category.id} type="button" onClick={() => setSelectedCategory(category.id)} className={`rounded-full border-2 px-6 py-2.5 text-sm font-semibold transition-all duration-300 ${selectedCategory === category.id ? 'border-primary bg-primary text-primary-foreground shadow-md' : 'border-border bg-background text-foreground hover:border-primary/40 hover:bg-primary/5'}`}>
@@ -117,7 +120,7 @@ export default function CertificationProgramSection({ categories, programs, myPr
                     <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-muted-foreground">
                         <Search className="h-5 w-5" />
                     </div>
-                    <Input type="search" placeholder="Cari program sertifikasi..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-12 w-full rounded-full border-2 border-border bg-background pl-11 pr-4 shadow-sm transition-colors focus-visible:border-primary focus-visible:ring-0" />
+                    <Input type="search" placeholder={t('certificationProgram.dashboard.catalog.searchPlaceholder')} value={search} onChange={(e) => setSearch(e.target.value)} className="h-12 w-full rounded-full border-2 border-border bg-background pl-11 pr-4 shadow-sm transition-colors focus-visible:border-primary focus-visible:ring-0" />
                 </div>
             </div>
 
@@ -126,8 +129,8 @@ export default function CertificationProgramSection({ categories, programs, myPr
                 {visiblePrograms.length === 0 ? (
                     <div className="col-span-full flex min-h-[300px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-muted/30 p-8 text-center">
                         <div className="mb-4 rounded-full bg-muted p-4"><Search className="h-8 w-8 text-muted-foreground" /></div>
-                        <h3 className="mb-2 text-xl font-bold">Program Tidak Ditemukan</h3>
-                        <p className="text-muted-foreground">Belum ada program sertifikasi yang sesuai dengan pencarian Anda.</p>
+                        <h3 className="mb-2 text-xl font-bold">{t('certificationProgram.dashboard.catalog.notFoundTitle')}</h3>
+                        <p className="text-muted-foreground">{t('certificationProgram.dashboard.catalog.emptySearch')}</p>
                     </div>
                 ) : (
                     visiblePrograms.map((program) => {
@@ -157,20 +160,20 @@ export default function CertificationProgramSection({ categories, programs, myPr
                                         {/* Type Badge - Top Left */}
                                         <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30 flex items-center gap-1">
                                             <GraduationCap size={12} />
-                                            {program.type === 'scholarship' ? 'Beasiswa' : 'Reguler'}
+                                            {program.type === 'scholarship' ? t('certificationProgram.dashboard.catalog.badgeScholarship') : t('certificationProgram.dashboard.catalog.badgeRegular')}
                                         </span>
                                         {/* Discount / Urgency / Free / Purchased Badge - Top Right */}
                                         {hasAccess ? (
-                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-emerald-500/90 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white shadow-sm">Sudah Dibeli</span>
+                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-emerald-500/90 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white shadow-sm">{t('certificationProgram.dashboard.catalog.badgeOwned')}</span>
                                         ) : displayPrice === 0 ? (
-                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-green-500/90 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white shadow-sm">Gratis</span>
+                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-green-500/90 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white shadow-sm">{t('certificationProgram.dashboard.catalog.free')}</span>
                                         ) : discount > 0 ? (
                                             <div className="absolute top-2 right-2 z-20 inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-lg">
-                                                <Percent size={10} />Hemat {discount}%
+                                                <Percent size={10} />{t('certificationProgram.dashboard.catalog.savePercent', { percent: discount })}
                                             </div>
                                         ) : daysLeft <= 7 && daysLeft > 0 ? (
                                             <span className="absolute top-2 right-2 z-20 rounded-full bg-destructive/90 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white shadow-sm flex items-center gap-1">
-                                                <Clock className="h-3 w-3" />{daysLeft} Hari Lagi
+                                                <Clock className="h-3 w-3" />{t('certificationProgram.dashboard.catalog.daysLeft', { count: daysLeft })}
                                             </span>
                                         ) : null}
                                         {/* Category - Bottom Left */}
@@ -184,7 +187,7 @@ export default function CertificationProgramSection({ categories, programs, myPr
                                             <div className="absolute right-2 bottom-2 z-20 rounded-lg border border-white/40 bg-white/30 px-2 py-1 shadow backdrop-blur-md dark:bg-gray-800/30">
                                                 <div className="flex items-center gap-2">
                                                     <Calendar size={12} />
-                                                    <p className="text-xs font-semibold text-black dark:text-gray-400">{format(deadlineDate, 'dd MMM yyyy', { locale: id })}</p>
+                                                    <p className="text-xs font-semibold text-black dark:text-gray-400">{format(deadlineDate, 'dd MMM yyyy', { locale: currentLocale })}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -201,7 +204,7 @@ export default function CertificationProgramSection({ categories, programs, myPr
                                                 <p className="text-base text-red-500 line-through">Rp. {(program.strikethrough_price ?? 0).toLocaleString('id-ID')}</p>
                                             )}
                                             {displayPrice === 0 ? (
-                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Gratis</p>
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{t('certificationProgram.dashboard.catalog.free')}</p>
                                             ) : (
                                                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">Rp. {displayPrice.toLocaleString('id-ID')}</p>
                                             )}
@@ -211,7 +214,7 @@ export default function CertificationProgramSection({ categories, programs, myPr
                                     {/* CTA Bar */}
                                     <div className="mt-auto flex items-center justify-between px-5 py-3 mx-4 mb-4 rounded-xl border border-gray-200 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:bg-primary group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
                                         <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">
-                                            {hasAccess ? 'Akses Program' : 'Daftar Sekarang'}
+                                            {hasAccess ? t('certificationProgram.dashboard.catalog.accessProgramBtn') : t('certificationProgram.dashboard.catalog.registerNowBtn')}
                                         </span>
                                         <ArrowRight className="h-6 w-6 text-gray-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white dark:text-gray-400" />
                                     </div>
@@ -227,7 +230,7 @@ export default function CertificationProgramSection({ categories, programs, myPr
                 <div className="mb-8 flex justify-center">
                     <Magnetic>
                         <Button type="button" size="lg" className="rounded-full px-8 py-3 text-base font-bold shadow-lg" onClick={() => setVisibleCount((prev) => prev + 6)}>
-                            Lihat Lebih Banyak <GalleryVerticalEnd className="ml-2" />
+                            {t('certificationProgram.dashboard.catalog.loadMore')} <GalleryVerticalEnd className="ml-2" />
                         </Button>
                     </Magnetic>
                 </div>

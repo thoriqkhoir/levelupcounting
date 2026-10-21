@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Carousel, CarouselContent, CarouselIndicator, CarouselItem, CarouselNavigation } from '@/components/ui/carousel';
 import { Quote } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function TestimonySection() {
+  const { t } = useTranslation('home');
   const testimonies = [
     {
       name: "Nihayatul Maulasari",
@@ -202,18 +204,18 @@ export default function TestimonySection() {
         {/* Text Headers */}
         <div className="mb-4 flex justify-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
-            ⭐ Testimonials
+            ⭐ {t('testimony.badge')}
           </span>
         </div>
         <h2 className="font-av-estiana text-2xl font-extrabold dark:text-white md:text-3xl leading-tight">
-          Trusted by leaders{' '}
+          {t('testimony.heading')}{' '}
           <span className="relative inline-block">
-            <span className="relative z-10">from various industries</span>
+            <span className="relative z-10">{t('testimony.headingHighlight')}</span>
             <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
           </span>
         </h2>
         <p className="mt-4 mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-400 md:text-base">
-          Learn why professionals trust our solutions to complete their customer journeys.
+          {t('testimony.desc')}
         </p>
       </div>
 

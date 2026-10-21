@@ -1,4 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 
 import AppearanceTabs from '@/components/appearance-tabs';
 import HeadingSmall from '@/components/heading-small';
@@ -16,17 +17,21 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Appearance() {
+    const { t } = useTranslation('settings');
     const { auth } = usePage<SharedData>().props;
     const isAdmin = auth.role.includes('admin');
     const Layout = isAdmin ? AdminLayout : UserLayout;
 
     return (
         <Layout breadcrumbs={breadcrumbs}>
-            <Head title="Pengaturan Tampilan" />
+            <Head title={t('appearance.title', 'Pengaturan Tampilan')} />
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Pengaturan Tampilan" description="Perbarui pengaturan tampilan akun Anda" />
+                    <HeadingSmall
+                        title={t('appearance.title', 'Pengaturan Tampilan')}
+                        description={t('appearance.description', 'Perbarui pengaturan tampilan akun Anda')}
+                    />
                     <AppearanceTabs />
                 </div>
             </SettingsLayout>

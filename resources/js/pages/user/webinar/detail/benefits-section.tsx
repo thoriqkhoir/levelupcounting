@@ -1,5 +1,6 @@
 import { BadgeCheck, Sparkles, Gift } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Webinar {
     benefits?: string | null;
@@ -13,6 +14,7 @@ function parseList(items?: string | null): string[] {
 }
 
 export default function BenefitsSection({ webinar }: { webinar: Webinar }) {
+    const { t } = useTranslation();
     const benefitList = parseList(webinar.benefits);
 
     return (
@@ -34,14 +36,14 @@ export default function BenefitsSection({ webinar }: { webinar: Webinar }) {
                     <div className="mb-4 flex items-center justify-center gap-2">
                         <Sparkles className="h-6 w-6 text-primary" />
                         <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                            Manfaat Eksklusif
+                            {t('webinar.detail.exclusiveBenefits')}
                         </span>
                     </div>
                     <h2 className="mb-4 text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white">
-                        Yang Akan Kamu Dapatkan
+                        {t('webinar.detail.whatYouWillGet')}
                     </h2>
                     <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-                        Investasi waktu yang tepat untuk pengembangan karir dan kompetensi profesional
+                        {t('webinar.detail.whatYouWillGetSubtitle')}
                     </p>
                 </motion.div>
 
@@ -96,7 +98,7 @@ export default function BenefitsSection({ webinar }: { webinar: Webinar }) {
                     >
                         <Gift className="h-16 w-16 text-gray-400" />
                         <p className="text-center text-gray-500 dark:text-gray-400">
-                            Manfaat akan segera ditambahkan
+                            {t('webinar.detail.benefitsEmpty')}
                         </p>
                     </motion.div>
                 )}

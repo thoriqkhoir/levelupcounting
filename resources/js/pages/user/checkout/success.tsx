@@ -5,6 +5,8 @@ import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { BadgeCheck, BookOpen, Calendar, Crown, FileText, Home, Sparkles } from 'lucide-react';
 
+import { useTranslation } from 'react-i18next';
+
 interface CourseItem {
     course: { title: string; slug: string; thumbnail: string };
 }
@@ -32,6 +34,7 @@ interface InvoiceProps {
 }
 
 export default function CheckoutSuccess({ invoice }: InvoiceProps) {
+    const { t } = useTranslation('user');
     const courseItems = invoice.course_items ?? [];
     const bootcampItems = invoice.bootcamp_items ?? [];
     const webinarItems = invoice.webinar_items ?? [];
@@ -46,36 +49,37 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
 
     if (courseItems.length > 0) {
         title = courseItems[0].course.title;
-        subtitle = 'Kelas Online';
+        subtitle = t('checkoutSuccess.onlineCourse');
         link = `/profile/my-courses/${courseItems[0].course.slug}`;
-        label = 'Mulai Belajar Sekarang';
+        label = t('checkoutSuccess.startLearning');
         thumbnail = courseItems[0].course.thumbnail;
         icon = <BookOpen className="h-6 w-6" />;
     } else if (bootcampItems.length > 0) {
         title = bootcampItems[0].bootcamp.title;
-        subtitle = 'Bootcamp';
+        subtitle = t('checkoutSuccess.bootcamp');
         link = `/profile/my-bootcamps/${bootcampItems[0].bootcamp.slug}`;
-        label = 'Akses Bootcamp';
+        label = t('checkoutSuccess.accessBootcamp');
         thumbnail = bootcampItems[0].bootcamp.thumbnail;
         icon = <Sparkles className="h-6 w-6" />;
     } else if (webinarItems.length > 0) {
         title = webinarItems[0].webinar.title;
-        subtitle = 'Webinar';
+        subtitle = t('checkoutSuccess.webinar');
         link = `/profile/my-webinars/${webinarItems[0].webinar.slug}`;
-        label = 'Akses Webinar';
+        label = t('checkoutSuccess.accessWebinar');
         thumbnail = webinarItems[0].webinar.thumbnail;
         icon = <Calendar className="h-6 w-6" />;
     } else if (certificationProgramItems.length > 0) {
-        title = `Checkout Sertifikasi Program "${certificationProgramItems[0].certification_program.title}" Berhasil!`;
+        title = t('checkoutSuccess.certificationTitle', { title: certificationProgramItems[0].certification_program.title });
+        subtitle = t('checkoutSuccess.certification');
         link = `/profile/my-certification-programs/${certificationProgramItems[0].certification_program.slug}`;
-        label = 'Akses Sertifikasi';
+        label = t('checkoutSuccess.accessCertification');
         thumbnail = certificationProgramItems[0].certification_program.thumbnail;
         icon = <Home className="h-6 w-6" />;
     } else {
-        title = 'Pembelian Berhasil';
-        subtitle = 'Terima Kasih';
+        title = t('checkoutSuccess.purchaseSuccessful');
+        subtitle = t('checkoutSuccess.thankYou');
         link = '/profile';
-        label = 'Lihat Profil';
+        label = t('checkoutSuccess.viewProfile');
         icon = <Crown className="h-6 w-6" />;
     }
 
@@ -95,7 +99,7 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
             />
 
             <UserLayout>
-                <Head title="Pembayaran Berhasil" />
+                <Head title={t('checkoutSuccess.paymentSuccess')} />
 
                 {/* Hero Section */}
                 <div className="relative z-10 flex flex-col items-center justify-center px-4 py-20">
@@ -122,7 +126,7 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
                         >
                             <Sparkles className="h-5 w-5 text-green-600 dark:text-green-400" />
                             <span className="font-semibold text-green-700 dark:text-green-300">
-                                Pembayaran Berhasil
+                                {t('checkoutSuccess.paymentSuccess')}
                             </span>
                         </motion.div>
 
@@ -132,7 +136,7 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
                             transition={{ delay: 0.4 }}
                             className="font-av-estiana mb-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
                         >
-                            Selamat! 🎉
+                            {t('checkoutSuccess.congratulations')}
                         </motion.h1>
 
                         <motion.p
@@ -141,7 +145,7 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
                             transition={{ delay: 0.5 }}
                             className="mb-2 text-xl text-muted-foreground"
                         >
-                            Transaksi Anda telah berhasil diproses
+                            {t('checkoutSuccess.transactionProcessed')}
                         </motion.p>
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
@@ -149,7 +153,7 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
                             transition={{ delay: 0.6 }}
                             className="text-lg text-muted-foreground/80"
                         >
-                            Detail produk dan invoice Anda dapat dilihat di bawah
+                            {t('checkoutSuccess.productDetailAndInvoice')}
                         </motion.p>
                     </motion.div>
                 </div>
@@ -200,9 +204,9 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
                                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
                                         {icon}
                                     </div>
-                                    <h3 className="mb-2 text-xl font-bold text-foreground">Akses Sekarang</h3>
+                                    <h3 className="mb-2 text-xl font-bold text-foreground">{t('checkoutSuccess.accessNow')}</h3>
                                     <p className="mb-6 text-sm text-muted-foreground">
-                                        Mulai perjalanan belajar Anda sekarang juga
+                                        {t('checkoutSuccess.startLearningDesc')}
                                     </p>
                                     <Button
                                         asChild
@@ -220,8 +224,8 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
                                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-500/10 text-blue-500 shadow-sm">
                                         <FileText className="h-8 w-8" />
                                     </div>
-                                    <h3 className="mb-2 text-xl font-bold text-foreground">Download Invoice</h3>
-                                    <p className="mb-6 text-sm text-muted-foreground">Simpan bukti pembayaran Anda</p>
+                                    <h3 className="mb-2 text-xl font-bold text-foreground">{t('checkoutSuccess.downloadInvoiceTitle')}</h3>
+                                    <p className="mb-6 text-sm text-muted-foreground">{t('checkoutSuccess.saveReceiptDesc')}</p>
                                     <Button
                                         asChild
                                         variant="outline"
@@ -234,7 +238,7 @@ export default function CheckoutSuccess({ invoice }: InvoiceProps) {
                                             rel="noopener noreferrer"
                                         >
                                             <FileText className="mr-2 h-4 w-4" />
-                                            Unduh Invoice
+                                            {t('checkoutSuccess.downloadInvoice')}
                                         </a>
                                     </Button>
                                 </div>

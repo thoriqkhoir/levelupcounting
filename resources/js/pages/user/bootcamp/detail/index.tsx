@@ -3,6 +3,7 @@ import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
 import { BookOpen, ListChecks, Users, Wrench } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import HeroSection from './hero-section';
 import MentorSection from './mentor-section';
 import RegisterSection from './register-section';
@@ -63,13 +64,6 @@ interface ReferralInfo {
     hasActive: boolean;
 }
 
-const TABS = [
-    { value: 'curriculum', label: 'Kurikulum', shortLabel: 'Materi', icon: BookOpen },
-    { value: 'requirements', label: 'Persyaratan', shortLabel: 'Syarat', icon: ListChecks },
-    { value: 'tools', label: 'Tools', shortLabel: 'Tools', icon: Wrench },
-    { value: 'mentor', label: 'Mentor', shortLabel: 'Mentor', icon: Users },
-];
-
 export default function Bootcamp({
     bootcamp,
     relatedBootcamps,
@@ -81,9 +75,17 @@ export default function Bootcamp({
     myBootcampIds: string[];
     referralInfo: ReferralInfo;
 }) {
+    const { t } = useTranslation('user');
     const [activeTab, setActiveTab] = useState('curriculum');
     const tabsRef = useRef<HTMLDivElement>(null);
     const [isSticky, setIsSticky] = useState(false);
+
+    const tabs = [
+        { value: 'curriculum', label: t('bootcamp.detail.tabCurriculum'), shortLabel: t('bootcamp.detail.tabCurriculumShort'), icon: BookOpen },
+        { value: 'requirements', label: t('bootcamp.detail.tabRequirements'), shortLabel: t('bootcamp.detail.tabRequirementsShort'), icon: ListChecks },
+        { value: 'tools', label: t('bootcamp.detail.tabTools'), shortLabel: t('bootcamp.detail.tabTools'), icon: Wrench },
+        { value: 'mentor', label: t('bootcamp.detail.tabMentors'), shortLabel: t('bootcamp.detail.tabMentors'), icon: Users },
+    ];
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -120,7 +122,7 @@ export default function Bootcamp({
             />
 
             <UserLayout>
-                <Head title={`${bootcamp.title} - Bootcamp`} />
+                <Head title={t('bootcamp.detail.headTitle', { title: bootcamp.title })} />
 
                 <HeroSection bootcamp={bootcamp} />
 
@@ -130,7 +132,7 @@ export default function Bootcamp({
                         {/* Premium Glassmorphism Tab Bar */}
                         <div className={`sticky top-16 z-30 transition-all duration-300 ${isSticky ? 'py-3' : 'py-0 mb-6'}`}>
                             <TabsList className={`grid h-auto w-full grid-cols-4 gap-2 rounded-2xl p-1.5 transition-all duration-300 sm:gap-2 sm:p-2 ${isSticky ? 'bg-white/80 shadow-xl backdrop-blur-lg border border-white/40 dark:bg-zinc-900/80 dark:border-zinc-700/60' : 'border-2 border-gray-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900'}`}>
-                                {TABS.map(({ value, label, shortLabel, icon: Icon }) => (
+                                {tabs.map(({ value, label, shortLabel, icon: Icon }) => (
                                     <TabsTrigger
                                         key={value}
                                         value={value}

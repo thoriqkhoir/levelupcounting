@@ -1,5 +1,6 @@
 import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import BootcampSection from './bootcamp-section';
 import FeatureSection from './feature-section';
 import HeroSection from './hero-section';
@@ -35,6 +36,8 @@ interface BootcampProps {
 }
 
 export default function Bootcamp({ categories, bootcamps, myBootcampIds }: BootcampProps) {
+    const { t } = useTranslation('user');
+
     return (
         <div className="relative min-h-screen bg-background">
             {/* Global Decorative Background — Blobs */}
@@ -51,7 +54,7 @@ export default function Bootcamp({ categories, bootcamps, myBootcampIds }: Bootc
             />
 
         <UserLayout>
-            <Head title="Bootcamp" />
+            <Head title={t('bootcamp.title')} />
             <HeroSection />
             {/* <FeatureSection /> */}
             <BootcampSection categories={categories} bootcamps={bootcamps} myBootcampIds={myBootcampIds} />

@@ -1,20 +1,23 @@
 import { Button } from '@/components/ui/button';
 import { BookOpen, CheckCircle, Sparkles, Star, Users, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const stats = [
-    { label: 'Total Kelas', value: '50+', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Peserta Aktif', value: '2.000+', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10' },
-    { label: 'Rating Rata-rata', value: '4.9★', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-];
-
-const floatingBadges = [
-    { icon: CheckCircle, label: 'Akses Selamanya', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.6 },
-    { icon: Zap, label: 'Update Bulanan', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.75 },
-    { icon: Star, label: 'Mentor Expert', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', delay: 0.9 },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function HeroSection() {
+    const { t } = useTranslation('user');
+
+    const stats = [
+        { label: t('course.hero.totalCourses'), value: '50+', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
+        { label: t('course.hero.activeStudents'), value: '2.000+', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10' },
+        { label: t('course.hero.averageRating'), value: '4.9★', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+    ];
+
+    const floatingBadges = [
+        { icon: CheckCircle, label: t('course.hero.lifetimeAccess'), color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.6 },
+        { icon: Zap, label: t('course.hero.monthlyUpdate'), color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.75 },
+        { icon: Star, label: t('course.hero.expertMentor'), color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', delay: 0.9 },
+    ];
+
     return (
         <section className="relative overflow-hidden py-20 text-gray-900 dark:text-white">
             <div className="relative z-10 mx-auto max-w-7xl px-4">
@@ -27,7 +30,7 @@ export default function HeroSection() {
                 >
                     <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
                         <Sparkles className="h-4 w-4 animate-pulse" />
-                        Kelas Online Level Up Accounting
+                        {t('course.hero.badge')}
                     </span>
                 </motion.div>
 
@@ -38,13 +41,13 @@ export default function HeroSection() {
                     transition={{ duration: 0.7, delay: 0.25 }}
                     className="mx-auto mb-6 max-w-4xl text-center text-4xl font-av-estiana font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
                 >
-                    <span className="text-primary">Belajar Mudah</span> dengan{' '}
+                    <span className="text-primary">{t('course.hero.mainTitle1')}</span> {t('course.hero.mainWith')}{' '}
                     <span className="relative inline-block">
-                        <span className="relative z-10">Akses Selamanya</span>
+                        <span className="relative z-10">{t('course.hero.mainAccess')}</span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
                     </span>
                     .<br />
-                    <span className="text-secondary">Praktikal</span> &amp; Terupdate!
+                    <span className="text-secondary">{t('course.hero.mainTitle3')}</span> {t('course.hero.mainTitle4')}
                 </motion.h1>
 
                 {/* Subtext */}
@@ -54,7 +57,7 @@ export default function HeroSection() {
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="mx-auto mb-10 max-w-2xl text-center text-base text-gray-600 dark:text-gray-300 md:text-lg"
                 >
-                    Belajar dari praktisi berpengalaman. Materi aplikatif, bukan hanya teori. Didesain untuk membantu kamu menguasai skill dan membangun portfolio profesional.
+                    {t('course.hero.description')}
                 </motion.p>
 
                 {/* CTA Buttons */}
@@ -66,12 +69,12 @@ export default function HeroSection() {
                 >
                     <a href="#course">
                         <Button size="lg" className="px-8 text-base rounded-full shadow-lg">
-                            Lihat Kelas Online
+                            {t('course.hero.btnCourses')}
                         </Button>
                     </a>
                     <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" size="lg" className="px-8 text-base rounded-full">
-                            Konsultasi Gratis
+                            {t('course.hero.btnConsult')}
                         </Button>
                     </a>
                 </motion.div>

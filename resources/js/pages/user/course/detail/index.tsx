@@ -3,6 +3,7 @@ import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
 import { BookOpen, Layers, PlayCircle, Wrench } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AboutSection from './about-section';
 import HeroSection from './hero-section';
 import ModulesSection from './modules-section';
@@ -61,13 +62,6 @@ interface ReferralInfo {
     hasActive: boolean;
 }
 
-const TABS = [
-    { value: 'preview', label: 'Preview Kelas', shortLabel: 'Preview', icon: PlayCircle },
-    { value: 'about', label: 'Informasi Kelas', shortLabel: 'Info', icon: BookOpen },
-    { value: 'modules', label: 'Modul', shortLabel: 'Modul', icon: Layers },
-    { value: 'tools', label: 'Tools', shortLabel: 'Tools', icon: Wrench },
-];
-
 export default function DetailCourse({
     course,
     relatedCourses,
@@ -79,9 +73,17 @@ export default function DetailCourse({
     myCourseIds: string[];
     referralInfo: ReferralInfo;
 }) {
+    const { t } = useTranslation('user');
     const [activeTab, setActiveTab] = useState('preview');
     const tabsRef = useRef<HTMLDivElement>(null);
     const [isSticky, setIsSticky] = useState(false);
+
+    const TABS = [
+        { value: 'preview', label: t('course.detail.previewTab'), shortLabel: t('course.detail.previewTabShort'), icon: PlayCircle },
+        { value: 'about', label: t('course.detail.navAbout'), shortLabel: t('course.detail.infoTabShort'), icon: BookOpen },
+        { value: 'modules', label: t('course.detail.navModules'), shortLabel: t('course.detail.navModules'), icon: Layers },
+        { value: 'tools', label: t('course.detail.navTools'), shortLabel: t('course.detail.navTools'), icon: Wrench },
+    ];
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -115,7 +117,7 @@ export default function DetailCourse({
             />
 
             <UserLayout>
-                <Head title={`${course.title} - Kelas Online`} />
+                <Head title={`${course.title} - ${t('course.title')}`} />
 
                 <HeroSection course={course} />
 

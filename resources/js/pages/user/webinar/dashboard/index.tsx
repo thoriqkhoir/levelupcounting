@@ -1,5 +1,6 @@
 import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import FeatureSection from './feature-section';
 import HeroSection from './hero-section';
 import WebinarSection from './webinar-section';
@@ -29,6 +30,8 @@ interface WebinarProps {
 }
 
 export default function Webinar({ categories, webinars, myWebinarIds }: WebinarProps) {
+    const { t } = useTranslation();
+
     return (
         <div className="relative min-h-screen bg-background">
             {/* Global Decorative Background — Blobs */}
@@ -45,7 +48,7 @@ export default function Webinar({ categories, webinars, myWebinarIds }: WebinarP
             />
 
         <UserLayout>
-            <Head title="Webinar" />
+            <Head title={t('webinar.title')} />
 
             <HeroSection />
             {/* <FeatureSection /> */}

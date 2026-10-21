@@ -24,6 +24,7 @@ class User extends Authenticatable
     protected $fillable = [
         'referral_code',
         'point_balance',
+        'preferred_locale',
         'google_id',
         'github_id',
         // 'referred_by_user_id',

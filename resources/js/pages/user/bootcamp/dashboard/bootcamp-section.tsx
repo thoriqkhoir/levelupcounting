@@ -4,6 +4,7 @@ import { Magnetic } from '@/components/ui/magnetic';
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Calendar, GalleryVerticalEnd, Percent } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Category = {
     id: string;
@@ -36,6 +37,7 @@ interface BootcampProps {
 }
 
 export default function BootcampSection({ categories, bootcamps, myBootcampIds }: BootcampProps) {
+    const { t, i18n } = useTranslation('user');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [visibleCount, setVisibleCount] = useState(6);
@@ -75,10 +77,10 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
     return (
         <section className="mx-auto w-full max-w-7xl px-4 pb-20" id="bootcamp">
             <h2 className="dark:text-primary-foreground mx-auto mb-4 max-w-3xl text-center text-3xl font-extrabold text-gray-900 md:text-4xl">
-                Bersiaplah Menjadi Talenta Digital dalam Hitungan Minggu.
+                {t('bootcamp.catalog.title')}
             </h2>
             <p className="mx-auto mb-8 text-center text-gray-600 dark:text-gray-400">
-                Upgrade diri dengan mengikuti bootcamp intensif dalam beberapa pertemuan.
+                {t('bootcamp.catalog.subtitle')}
             </p>
 
             {/* Kategori */}
@@ -93,7 +95,7 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
             >
                 <div className="flex w-max flex-nowrap gap-3 select-none">
                     <button type="button" onClick={() => setSelectedCategory(null)} className={`rounded-full border-2 px-6 py-2 text-sm font-semibold transition-all duration-200 ${selectedCategory === null ? 'border-primary bg-primary/10 text-primary shadow' : 'border-gray-300 bg-white text-gray-800 hover:border-primary/40 hover:bg-primary/5 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'}`}>
-                        Semua Kategori
+                        {t('bootcamp.catalog.allCategories')}
                     </button>
                     {categories.map((category) => (
                         <button key={category.id} type="button" onClick={() => setSelectedCategory(category.id)} className={`rounded-full border-2 px-6 py-2 text-sm font-semibold transition-all duration-200 ${selectedCategory === category.id ? 'border-primary bg-primary/10 text-primary shadow' : 'border-gray-300 bg-white text-gray-800 hover:border-primary/40 hover:bg-primary/5 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'}`}>
@@ -105,15 +107,15 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
 
             {/* Search */}
             <div className="mb-8 flex justify-center">
-                <Input type="search" placeholder="Cari bootcamp..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md rounded-full border-2 border-primary/30 px-6 py-2 shadow-sm focus:border-primary" />
+                <Input type="search" placeholder={t('bootcamp.catalog.searchPlaceholder')} value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md rounded-full border-2 border-primary/30 px-6 py-2 shadow-sm focus:border-primary" />
             </div>
 
             {/* Cards */}
             <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {visibleBootcamps.length === 0 ? (
                     <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
-                        <img src="/assets/images/not-found.svg" alt="Bootcamp Belum Tersedia" className="w-48" />
-                        <div className="text-center text-gray-500">Belum ada bootcamp yang tersedia saat ini.</div>
+                        <img src="/assets/images/not-found.svg" alt={t('bootcamp.catalog.empty')} className="w-48" />
+                        <div className="text-center text-gray-500">{t('bootcamp.catalog.empty')}</div>
                     </div>
                 ) : (
                     visibleBootcamps.map((bootcamp) => {
@@ -132,14 +134,14 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
                                         />
                                         {/* Type Badge - Top Left */}
                                         <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
-                                            Bootcamp
+                                            {t('bootcamp.title')}
                                         </span>
                                         {/* Discount / Access Badge - Top Right */}
                                         {hasAccess ? (
-                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white shadow">Sudah Akses</span>
+                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white shadow">{t('bootcamp.catalog.owned')}</span>
                                         ) : discount > 0 ? (
                                             <div className="absolute top-2 right-2 z-20 inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-lg">
-                                                <Percent size={10} />Hemat {discount}%
+                                                <Percent size={10} />{t('bootcamp.detail.savePercent', { percent: discount })}
                                             </div>
                                         ) : null}
                                         {/* Category - Bottom Left */}
@@ -151,9 +153,9 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
                                             <div className="flex items-center gap-2">
                                                 <Calendar size={12} />
                                                 <p className="text-xs font-semibold text-black dark:text-gray-400">
-                                                    {new Date(bootcamp.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {new Date(bootcamp.start_date).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                     {' - '}
-                                                    {new Date(bootcamp.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {new Date(bootcamp.end_date).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </p>
                                             </div>
                                         </div>
@@ -167,9 +169,9 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
                                                 <p className="text-base text-red-500 line-through">Rp. {bootcamp.strikethrough_price.toLocaleString('id-ID')}</p>
                                             )}
                                             {hasAccess ? (
-                                                <p className="text-2xl font-bold text-primary">Sudah Terdaftar</p>
+                                                <p className="text-2xl font-bold text-primary">{t('bootcamp.catalog.registered')}</p>
                                             ) : bootcamp.price === 0 ? (
-                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Gratis</p>
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{t('bootcamp.catalog.free')}</p>
                                             ) : (
                                                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">Rp. {bootcamp.price.toLocaleString('id-ID')}</p>
                                             )}
@@ -189,7 +191,7 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
 
                                     {/* CTA Bar */}
                                     <div className="mt-auto flex items-center justify-between px-5 py-3 mx-4 mb-4 rounded-xl border border-gray-200 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:bg-primary group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
-                                        <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">{hasAccess ? 'Lihat Materi' : 'Daftar Sekarang'}</span>
+                                        <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">{hasAccess ? t('bootcamp.catalog.viewMaterial') : t('bootcamp.detail.btnRegisterNow')}</span>
                                         <ArrowRight className="h-6 w-6 text-gray-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white dark:text-gray-400" />
                                     </div>
                                 </div>
@@ -204,7 +206,7 @@ export default function BootcampSection({ categories, bootcamps, myBootcampIds }
                 <div className="mb-8 flex justify-center">
                     <Magnetic>
                         <Button type="button" size="lg" className="rounded-full px-8 py-3 text-base font-bold shadow-lg" onClick={() => setVisibleCount((prev) => prev + 6)}>
-                            Lihat Lebih Banyak <GalleryVerticalEnd className="ml-2" />
+                            {t('bootcamp.catalog.loadMore')} <GalleryVerticalEnd className="ml-2" />
                         </Button>
                     </Magnetic>
                 </div>

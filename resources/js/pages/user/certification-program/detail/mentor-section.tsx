@@ -3,6 +3,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Award, Sparkles, Star } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Mentor {
     id: string;
@@ -16,6 +17,7 @@ interface CertificationProgram {
 }
 
 export default function MentorSection({ program }: { program: CertificationProgram }) {
+    const { t } = useTranslation();
     const getInitials = useInitials();
     const mentors = program.mentors ?? [];
 
@@ -48,11 +50,11 @@ export default function MentorSection({ program }: { program: CertificationProgr
                     <div className="mb-3 flex items-center justify-center gap-2">
                         <Sparkles className="text-primary h-5 w-5" />
                         <span className="bg-primary/10 text-primary rounded-full px-4 py-1 text-sm font-semibold">
-                            {mentors.length === 1 ? 'Mentor Profesional' : 'Para Mentor Profesional'}
+                            {mentors.length === 1 ? t('certificationProgram.detail.mentors.badgeSingle') : t('certificationProgram.detail.mentors.badgeMultiple')}
                         </span>
                     </div>
                     <h2 className="text-3xl font-bold text-gray-900 md:text-4xl dark:text-white">
-                        {mentors.length === 1 ? 'Belajar dari Ahlinya' : 'Belajar dari Para Ahli'}
+                        {mentors.length === 1 ? t('certificationProgram.detail.mentors.titleSingle') : t('certificationProgram.detail.mentors.titleMultiple')}
                     </h2>
                 </motion.div>
 
@@ -94,11 +96,11 @@ export default function MentorSection({ program }: { program: CertificationProgr
                                         </div>
 
                                         <p className="mb-4 line-clamp-3 min-h-[3.75rem] text-sm text-gray-600 md:text-base dark:text-gray-400">
-                                            {mentor.bio ?? 'Mentor profesional Sekolah Pajak.'}
+                                            {mentor.bio ?? t('certificationProgram.detail.mentors.defaultBio')}
                                         </p>
 
                                         <div className="text-primary inline-flex items-center gap-2 text-sm font-semibold transition-all group-hover:gap-3 cursor-pointer">
-                                            <span>Lihat Profile Lengkap</span>
+                                            <span>{t('certificationProgram.detail.mentors.viewProfile')}</span>
                                             <ArrowRight className="h-4 w-4" />
                                         </div>
                                     </div>

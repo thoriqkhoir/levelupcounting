@@ -1,5 +1,6 @@
 import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import CoursesSection from './courses-section';
 import FeatureSection from './feature-section';
 import HeroSection from './hero-section';
@@ -34,6 +35,8 @@ interface CourseProps {
 }
 
 export default function Course({ categories, courses, myCourseIds }: CourseProps) {
+    const { t } = useTranslation('user');
+
     return (
         <div className="relative min-h-screen bg-background">
             {/* Global Decorative Background — Blobs */}
@@ -50,7 +53,7 @@ export default function Course({ categories, courses, myCourseIds }: CourseProps
             />
 
         <UserLayout>
-            <Head title="Kelas Online" />
+            <Head title={t('course.title')} />
 
             <HeroSection />
             {/* <FeatureSection /> */}

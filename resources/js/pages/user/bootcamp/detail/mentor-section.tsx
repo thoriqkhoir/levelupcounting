@@ -3,6 +3,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Award, Linkedin, Sparkles, Star } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Mentor {
     id: string;
@@ -16,6 +17,7 @@ interface Bootcamp {
 }
 
 export default function MentorSection({ bootcamp }: { bootcamp: Bootcamp }) {
+    const { t } = useTranslation('user');
     const getInitials = useInitials();
     const mentors = bootcamp.mentors ?? [];
 
@@ -45,17 +47,19 @@ export default function MentorSection({ bootcamp }: { bootcamp: Bootcamp }) {
                 >
                     <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
                         <Sparkles className="h-4 w-4" />
-                        {mentors.length === 1 ? 'Mentor Profesional' : 'Para Mentor Profesional'}
+                        {mentors.length === 1 ? t('bootcamp.detail.mentorBadgeSingle') : t('bootcamp.detail.mentorBadgeMultiple')}
                     </span>
                     <h2 className="mt-3 text-3xl font-extrabold text-gray-900 dark:text-white md:text-4xl">
-                        {mentors.length === 1 ? 'Belajar dari ' : 'Belajar dari '}
+                        {t('bootcamp.detail.mentorTitleLead')}
                         <span className="relative inline-block">
-                            <span className="relative z-10 text-primary">{mentors.length === 1 ? 'Ahlinya' : 'Para Ahli'}</span>
+                            <span className="relative z-10 text-primary">
+                                {mentors.length === 1 ? t('bootcamp.detail.mentorTitleHighlightSingle') : t('bootcamp.detail.mentorTitleHighlightMultiple')}
+                            </span>
                             <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                         </span>
                     </h2>
                     <p className="mx-auto mt-4 max-w-xl text-base text-gray-500 dark:text-gray-400">
-                        Dipandu langsung oleh praktisi berpengalaman yang aktif di industri
+                        {t('bootcamp.detail.mentorSubtitle')}
                     </p>
                 </motion.div>
 
@@ -109,17 +113,17 @@ export default function MentorSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                             {/* Mentor badge */}
                                             <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                                                 <Linkedin className="h-3 w-3" />
-                                                Mentor Profesional
+                                                {t('bootcamp.detail.mentorBadgeSingle')}
                                             </div>
 
                                             {/* Bio */}
                                             <p className="line-clamp-3 min-h-[4rem] text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-                                                {mentor.bio ?? 'Mentor profesional Level Up Accounting dengan pengalaman industri yang luas.'}
+                                                {mentor.bio ?? t('bootcamp.detail.mentorDefaultBio')}
                                             </p>
 
                                             {/* CTA link */}
                                             <div className="flex items-center justify-center gap-2 text-sm font-semibold text-primary transition-all duration-200 group-hover:gap-3">
-                                                <span>Lihat Profile Lengkap</span>
+                                                <span>{t('bootcamp.detail.viewFullProfile')}</span>
                                                 <ArrowRight className="h-4 w-4" />
                                             </div>
                                         </div>

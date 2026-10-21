@@ -7,7 +7,7 @@ import UserLayout from '@/layouts/user-layout';
 import { rupiahFormatter } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id, enUS } from 'date-fns/locale';
 import {
     BookOpen,
     BookText,
@@ -27,6 +27,7 @@ import {
     TrendingUp,
 } from 'lucide-react';
 import { motion, easeOut } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
     id: string;
@@ -150,6 +151,8 @@ const cardVariants = {
 };
 
 export default function MentorShow({ mentor, courses, articles, webinars, bootcamps, stats }: MentorShowProps) {
+    const { t, i18n } = useTranslation('user');
+    const dateLocale = i18n.language === 'en' ? enUS : id;
     const getInitials = useInitials();
 
     const levelColors: Record<string, string> = {
@@ -159,9 +162,9 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
     };
 
     const levelLabels: Record<string, string> = {
-        beginner: 'Pemula',
-        intermediate: 'Menengah',
-        advanced: 'Lanjutan',
+        beginner: t('mentor.levels.beginner'),
+        intermediate: t('mentor.levels.intermediate'),
+        advanced: t('mentor.levels.advanced'),
     };
 
     const totalContent = stats.total_courses + stats.total_articles + stats.total_webinars + stats.total_bootcamps;
@@ -180,7 +183,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
             <div className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]" style={{ backgroundImage: GRID_PATTERN }} />
 
         <UserLayout>
-            <Head title={`Mentor - ${mentor.name}`} />
+            <Head title={`${t('mentor.headTitle')} - ${mentor.name}`} />
 
             <div className="relative z-10 min-h-screen">
                 {/* Hero Section */}
@@ -226,11 +229,11 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                             <motion.div variants={itemVariants}>
                                                 <Badge className="mb-3 bg-primary/10 text-primary">
                                                     <Star className="mr-1 h-3 w-3" />
-                                                    Mentor Profesional
+                                                    {t('mentor.proBadge')}
                                                 </Badge>
                                                 <h1 className="mb-3 text-3xl font-bold md:text-4xl">{mentor.name}</h1>
                                                 <p className="mb-6 text-base text-gray-600 dark:text-gray-400 md:text-lg">
-                                                    {mentor.bio || 'Mentor profesional di Level Up Accounting'}
+                                                    {mentor.bio || t('mentor.defaultBio')}
                                                 </p>
                                             </motion.div>
 
@@ -263,7 +266,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                             >
                                                 <TrendingUp className="h-5 w-5 text-primary" />
                                                 <div>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Konten</p>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('mentor.totalContent')}</p>
                                                     <p className="text-2xl font-bold text-primary">{totalContent}</p>
                                                 </div>
                                             </motion.div>
@@ -282,7 +285,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                             <div className="relative z-10">
                                                 <BookText className="mb-3 h-8 w-8 text-blue-600 dark:text-blue-400" />
                                                 <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{stats.total_courses}</p>
-                                                <p className="text-sm text-blue-600 dark:text-blue-400">Kelas Online</p>
+                                                <p className="text-sm text-blue-600 dark:text-blue-400">{t('mentor.onlineCourse')}</p>
                                             </div>
                                             <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-blue-100/50 blur-2xl dark:bg-blue-500/10" />
                                         </motion.div>
@@ -294,22 +297,10 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                             <div className="relative z-10">
                                                 <Presentation className="mb-3 h-8 w-8 text-green-600 dark:text-green-400" />
                                                 <p className="text-3xl font-bold text-green-700 dark:text-green-300">{stats.total_bootcamps}</p>
-                                                <p className="text-sm text-green-600 dark:text-green-400">Bootcamp</p>
+                                                <p className="text-sm text-green-600 dark:text-green-400">{t('mentor.stats.bootcamps')}</p>
                                             </div>
                                             <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-green-100/50 blur-2xl dark:bg-green-500/10" />
                                         </motion.div>
-
-                                        {/* <motion.div
-                                            variants={itemVariants}
-                                            className="group relative overflow-hidden rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-white p-5 shadow-sm transition-all hover:shadow-md dark:border-orange-800 dark:from-orange-900/20 dark:to-gray-800"
-                                        >
-                                            <div className="relative z-10">
-                                                <MonitorPlay className="mb-3 h-8 w-8 text-orange-600 dark:text-orange-400" />
-                                                <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">{stats.total_webinars}</p>
-                                                <p className="text-sm text-orange-600 dark:text-orange-400">Webinar</p>
-                                            </div>
-                                            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-orange-100/50 blur-2xl dark:bg-orange-500/10" />
-                                        </motion.div> */}
 
                                         <motion.div
                                             variants={itemVariants}
@@ -318,7 +309,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                             <div className="relative z-10">
                                                 <FileText className="mb-3 h-8 w-8 text-purple-600 dark:text-purple-400" />
                                                 <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">{stats.total_articles}</p>
-                                                <p className="text-sm text-purple-600 dark:text-purple-400">Artikel</p>
+                                                <p className="text-sm text-purple-600 dark:text-purple-400">{t('mentor.stats.articles')}</p>
                                             </div>
                                             <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-purple-100/50 blur-2xl dark:bg-purple-500/10" />
                                         </motion.div>
@@ -340,19 +331,19 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                             <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm dark:bg-white/5 border border-gray-100 dark:border-white/10">
                                 <TabsTrigger value="courses" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                                     <BookText className="mr-2 h-4 w-4" />
-                                    <span className="hidden sm:inline">Kelas</span> ({courses.length})
+                                    <span className="hidden sm:inline">{t('mentor.stats.courses')}</span> ({courses.length})
                                 </TabsTrigger>
                                 <TabsTrigger value="bootcamps" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                                     <BookOpen className="mr-2 h-4 w-4" />
-                                    <span className="hidden sm:inline">Bootcamp</span> ({bootcamps.length})
+                                    <span className="hidden sm:inline">{t('mentor.stats.bootcamps')}</span> ({bootcamps.length})
                                 </TabsTrigger>
                                 {/* <TabsTrigger value="webinars" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                                     <Video className="mr-2 h-4 w-4" />
-                                    <span className="hidden sm:inline">Webinar</span> ({webinars.length})
+                                    <span className="hidden sm:inline">{t('mentor.stats.webinars')}</span> ({webinars.length})
                                 </TabsTrigger> */}
                                 <TabsTrigger value="articles" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                                     <FileText className="mr-2 h-4 w-4" />
-                                    <span className="hidden sm:inline">Artikel</span> ({articles.length})
+                                    <span className="hidden sm:inline">{t('mentor.stats.articles')}</span> ({articles.length})
                                 </TabsTrigger>
                             </TabsList>
 
@@ -366,7 +357,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                         className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
                                     >
                                         {courses.map((course) => (
-                                            <motion.div key={course.id} variants={cardVariants}>
+                                             <motion.div key={course.id} variants={cardVariants}>
                                                 <Link href={`/course/${course.slug}`} className="group block h-full">
                                                     <div className="h-full overflow-hidden rounded-xl border border-gray-100 bg-white/80 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:border-primary/30 dark:border-white/10 dark:bg-white/5">
                                                         <div className="relative aspect-video overflow-hidden">
@@ -418,7 +409,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                                     </div>
                                                                 ) : (
                                                                     <p className="text-xl font-bold text-primary">
-                                                                        {course.price === 0 ? 'Gratis' : rupiahFormatter.format(course.price)}
+                                                                        {course.price === 0 ? t('mentor.free') : rupiahFormatter.format(course.price)}
                                                                     </p>
                                                                 )}
                                                             </div>
@@ -435,8 +426,8 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                         className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800/50"
                                     >
                                         <div className="mb-4 text-6xl">📚</div>
-                                        <h3 className="mb-2 text-xl font-semibold">Belum Ada Kelas</h3>
-                                        <p className="text-gray-600 dark:text-gray-400">Mentor belum membuat kelas apapun.</p>
+                                        <h3 className="mb-2 text-xl font-semibold">{t('mentor.emptyCourseTitle')}</h3>
+                                        <p className="text-gray-600 dark:text-gray-400">{t('mentor.emptyCourseDesc')}</p>
                                     </motion.div>
                                 )}
                             </TabsContent>
@@ -473,7 +464,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                                 {isDisabled && (
                                                                     <div className="absolute inset-0 flex items-center justify-center bg-black/70">
                                                                         <Badge variant="destructive" className="px-4 py-2 text-sm font-semibold">
-                                                                            Pendaftaran Ditutup
+                                                                            {t('mentor.registrationClosed')}
                                                                         </Badge>
                                                                     </div>
                                                                 )}
@@ -485,7 +476,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                                     </Badge>
                                                                     {bootcamp.batch && (
                                                                         <Badge variant="outline" className="text-xs">
-                                                                            Batch {bootcamp.batch}
+                                                                            {t('mentor.batch', { batch: bootcamp.batch })}
                                                                         </Badge>
                                                                     )}
                                                                 </div>
@@ -501,12 +492,12 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                                 <div className="mb-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
                                                                     <div className="flex items-center gap-2">
                                                                         <CalendarDays className="h-4 w-4" />
-                                                                        {format(new Date(bootcamp.start_date), 'dd MMM', { locale: id })} -{' '}
-                                                                        {format(new Date(bootcamp.end_date), 'dd MMM yyyy', { locale: id })}
+                                                                        {format(new Date(bootcamp.start_date), 'dd MMM', { locale: dateLocale })} -{' '}
+                                                                        {format(new Date(bootcamp.end_date), 'dd MMM yyyy', { locale: dateLocale })}
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         <Clock className="h-4 w-4" />
-                                                                        {bootcamp.duration_weeks} minggu
+                                                                        {t('mentor.weeks', { count: bootcamp.duration_weeks })}
                                                                     </div>
                                                                 </div>
 
@@ -520,7 +511,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                                             </p>
                                                                         )}
                                                                         <p className={`text-xl font-bold ${isDisabled ? 'text-gray-500' : 'text-primary'}`}>
-                                                                            {bootcamp.price === 0 ? 'Gratis' : rupiahFormatter.format(bootcamp.price)}
+                                                                            {bootcamp.price === 0 ? t('mentor.free') : rupiahFormatter.format(bootcamp.price)}
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -538,112 +529,15 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                         className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800/50"
                                     >
                                         <div className="mb-4 text-6xl">🎓</div>
-                                        <h3 className="mb-2 text-xl font-semibold">Belum Ada Bootcamp</h3>
-                                        <p className="text-gray-600 dark:text-gray-400">Mentor belum mengajar bootcamp apapun.</p>
+                                        <h3 className="mb-2 text-xl font-semibold">{t('mentor.emptyBootcampTitle')}</h3>
+                                        <p className="text-gray-600 dark:text-gray-400">{t('mentor.emptyBootcampDesc')}</p>
                                     </motion.div>
                                 )}
                             </TabsContent>
 
                             {/* Webinars Tab */}
                             {/* <TabsContent value="webinars" className="mt-6">
-                                {webinars.length > 0 ? (
-                                    <motion.div
-                                        initial="hidden"
-                                        animate="visible"
-                                        variants={containerVariants}
-                                        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-                                    >
-                                        {webinars.map((webinar) => {
-                                            const isDisabled = webinar.is_registration_closed;
-                                            const LinkOrDiv = isDisabled ? 'div' : Link;
-                                            const linkProps = isDisabled ? {} : { href: `/webinar/${webinar.slug}` };
-
-                                            return (
-                                                <motion.div key={webinar.id} variants={cardVariants}>
-                                                    <LinkOrDiv {...linkProps} className={`group block h-full ${isDisabled ? 'cursor-not-allowed' : ''}`}>
-                                                        <div
-                                                            className={`h-full overflow-hidden rounded-xl border border-gray-200 bg-white transition-all dark:border-gray-700 dark:bg-gray-800 ${
-                                                                isDisabled ? 'opacity-60' : 'hover:-translate-y-1 hover:shadow-xl'
-                                                            }`}
-                                                        >
-                                                            <div className="relative aspect-video overflow-hidden">
-                                                                <img
-                                                                    src={webinar.thumbnail ? `/storage/${webinar.thumbnail}` : '/assets/images/placeholder.png'}
-                                                                    alt={webinar.title}
-                                                                    className={`h-full w-full object-cover ${!isDisabled && 'transition-transform duration-300 group-hover:scale-110'}`}
-                                                                />
-                                                                {isDisabled && (
-                                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-                                                                        <Badge variant="destructive" className="px-4 py-2 text-sm font-semibold">
-                                                                            Pendaftaran Ditutup
-                                                                        </Badge>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="p-5">
-                                                                <div className="mb-3 flex items-center justify-between">
-                                                                    <Badge variant="secondary" className="text-xs">
-                                                                        {webinar.category.name}
-                                                                    </Badge>
-                                                                    {webinar.batch && (
-                                                                        <Badge variant="outline" className="text-xs">
-                                                                            Batch {webinar.batch}
-                                                                        </Badge>
-                                                                    )}
-                                                                </div>
-
-                                                                <h3
-                                                                    className={`mb-3 line-clamp-2 text-lg font-semibold transition-colors ${
-                                                                        !isDisabled && 'group-hover:text-primary'
-                                                                    }`}
-                                                                >
-                                                                    {webinar.title}
-                                                                </h3>
-
-                                                                <div className="mb-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <CalendarDays className="h-4 w-4" />
-                                                                        {format(new Date(webinar.start_time), 'dd MMM yyyy', { locale: id })}
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Clock className="h-4 w-4" />
-                                                                        {format(new Date(webinar.start_time), 'HH:mm', { locale: id })} -{' '}
-                                                                        {format(new Date(webinar.end_time), 'HH:mm', { locale: id })} WIB
-                                                                    </div>
-                                                                </div>
-
-                                                                <Separator className="mb-4" />
-
-                                                                <div className="flex items-center justify-between">
-                                                                    <div>
-                                                                        {webinar.strikethrough_price > 0 && (
-                                                                            <p className="text-xs text-gray-500 line-through">
-                                                                                {rupiahFormatter.format(webinar.strikethrough_price)}
-                                                                            </p>
-                                                                        )}
-                                                                        <p className={`text-xl font-bold ${isDisabled ? 'text-gray-500' : 'text-primary'}`}>
-                                                                            {webinar.price === 0 ? 'Gratis' : rupiahFormatter.format(webinar.price)}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </LinkOrDiv>
-                                                </motion.div>
-                                            );
-                                        })}
-                                    </motion.div>
-                                ) : (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800/50"
-                                    >
-                                        <div className="mb-4 text-6xl">🎥</div>
-                                        <h3 className="mb-2 text-xl font-semibold">Belum Ada Webinar</h3>
-                                        <p className="text-gray-600 dark:text-gray-400">Mentor belum mengajar webinar apapun.</p>
-                                    </motion.div>
-                                )}
+                                ...
                             </TabsContent> */}
 
                             {/* Articles Tab */}
@@ -683,7 +577,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="flex items-center gap-1">
                                                                         <Clock className="h-4 w-4" />
-                                                                        {article.read_time} min
+                                                                        {t('article.min', { count: article.read_time })}
                                                                     </div>
                                                                     <div className="flex items-center gap-1">
                                                                         <Eye className="h-4 w-4" />
@@ -692,7 +586,7 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                                                 </div>
                                                                 <div className="flex items-center gap-1">
                                                                     <Calendar className="h-4 w-4" />
-                                                                    {format(new Date(article.published_at), 'dd MMM', { locale: id })}
+                                                                    {format(new Date(article.published_at), 'dd MMM', { locale: dateLocale })}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -708,8 +602,8 @@ export default function MentorShow({ mentor, courses, articles, webinars, bootca
                                         className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800/50"
                                     >
                                         <div className="mb-4 text-6xl">📝</div>
-                                        <h3 className="mb-2 text-xl font-semibold">Belum Ada Artikel</h3>
-                                        <p className="text-gray-600 dark:text-gray-400">Mentor belum membuat artikel apapun.</p>
+                                        <h3 className="mb-2 text-xl font-semibold">{t('mentor.emptyArticleTitle')}</h3>
+                                        <p className="text-gray-600 dark:text-gray-400">{t('mentor.emptyArticleDesc')}</p>
                                     </motion.div>
                                 )}
                             </TabsContent>

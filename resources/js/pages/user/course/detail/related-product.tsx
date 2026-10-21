@@ -1,7 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { rupiahFormatter } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import { Percent } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Course {
     id: string;
@@ -27,6 +29,8 @@ interface RelatedProductProps {
 }
 
 export default function RelatedProduct({ relatedCourses, myCourseIds }: RelatedProductProps) {
+    const { t } = useTranslation('user');
+
     if (!relatedCourses || relatedCourses.length === 0) {
         return null;
     }
@@ -40,10 +44,10 @@ export default function RelatedProduct({ relatedCourses, myCourseIds }: RelatedP
     return (
         <section className="mx-auto mt-16 w-full max-w-7xl px-4" id="related">
             <h2 className="dark:text-primary-foreground mb-4 text-center text-3xl font-bold text-gray-900 md:text-4xl">
-                Kelas Serupa
+                {t('course.detail.similarCourses', 'Kelas Serupa')}
             </h2>
             <p className="mb-8 text-center text-gray-600 dark:text-gray-400">
-                Kelas lain yang mungkin menarik untuk Anda
+                {t('course.detail.similarSubtitle', 'Kelas lain yang mungkin menarik untuk Anda')}
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -83,17 +87,17 @@ export default function RelatedProduct({ relatedCourses, myCourseIds }: RelatedP
                                                             >
                                                                 <p>
                                                                     {course.level === 'beginner'
-                                                                        ? 'Beginner'
+                                                                        ? t('course.detail.levelBeginner', 'Beginner')
                                                                         : course.level === 'intermediate'
-                                                                          ? 'Intermediate'
-                                                                          : 'Advanced'}
+                                                                          ? t('course.detail.levelIntermediate', 'Intermediate')
+                                                                          : t('course.detail.levelAdvanced', 'Advanced')}
                                                                 </p>
                                                             </div>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            {course.level === 'beginner' && <p>Level Beginner</p>}
-                                                            {course.level === 'intermediate' && <p>Level Intermediate</p>}
-                                                            {course.level === 'advanced' && <p>Level Advanced</p>}
+                                                            {course.level === 'beginner' && <p>Level {t('course.detail.levelBeginner', 'Beginner')}</p>}
+                                                            {course.level === 'intermediate' && <p>Level {t('course.detail.levelIntermediate', 'Intermediate')}</p>}
+                                                            {course.level === 'advanced' && <p>Level {t('course.detail.levelAdvanced', 'Advanced')}</p>}
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </div>
@@ -101,7 +105,7 @@ export default function RelatedProduct({ relatedCourses, myCourseIds }: RelatedP
 
                                             {/* Product Type Badge - Top Left */}
                                             <span className="absolute top-2 left-2 text-xs font-semibold rounded-lg bg-white/30 backdrop-blur-md border border-white/40 px-1 py-1 shadow z-20 dark:bg-gray-800/30">
-                                                Kelas Online
+                                                {t('course.detail.onlineCourseBadge', 'Kelas Online')}
                                             </span>
 
                                             {/* Discount Badge - Top Right */}
@@ -109,7 +113,7 @@ export default function RelatedProduct({ relatedCourses, myCourseIds }: RelatedP
                                                 <div className="absolute top-2 right-2">
                                                     <Badge className="bg-red-500 text-white shadow-lg">
                                                         <Percent size={12} className="mr-1" />
-                                                        Hemat {discount}%
+                                                        {t('course.detail.saveDiscount', { discount, defaultValue: `Hemat ${discount}%` })}
                                                     </Badge>
                                                 </div>
                                             )}
@@ -118,7 +122,7 @@ export default function RelatedProduct({ relatedCourses, myCourseIds }: RelatedP
                                             {hasAccess && (
                                                 <div className="absolute top-2 right-2">
                                                     <Badge className="bg-green-500 text-white shadow-lg">
-                                                        Sudah Akses
+                                                        {t('course.detail.alreadyAccessed', 'Sudah Akses')}
                                                     </Badge>
                                                 </div>
                                             )}
@@ -132,15 +136,17 @@ export default function RelatedProduct({ relatedCourses, myCourseIds }: RelatedP
                                         {/* Price Section */}
                                         {course.strikethrough_price > 0 && course.strikethrough_price > course.price && (
                                             <p className="text-xs px-2 text-red-600 line-through dark:text-gray-400 mb-0.5">
-                                                Rp {course.strikethrough_price.toLocaleString('id-ID')}
+                                                {rupiahFormatter.format(course.strikethrough_price)}
                                             </p>
                                         )}
                                         <div className="flex items-center px-2 justify-between gap-2 mb-2">
                                             {course.price === 0 ? (
-                                                <p className="text-lg font-semibold text-green-600 dark:text-green-400">Gratis</p>
+                                                <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                                                    {t('course.detail.free', 'Gratis')}
+                                                </p>
                                             ) : (
                                                 <p className="text-base font-bold text-primary dark:text-gray-200">
-                                                    Rp {course.price.toLocaleString('id-ID')}
+                                                    {rupiahFormatter.format(course.price)}
                                                 </p>
                                             )}
                                             {course.category && (
@@ -177,7 +183,7 @@ export default function RelatedProduct({ relatedCourses, myCourseIds }: RelatedP
                                                     {course.user?.name ?? '-'}
                                                 </div>
                                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {course.user?.bio ?? 'Tidak ada bio'}
+                                                    {course.user?.bio ?? t('course.detail.noBio', 'Tidak ada bio')}
                                                 </div>
                                             </div>
                                         </div>

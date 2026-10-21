@@ -1,20 +1,23 @@
 import { Button } from '@/components/ui/button';
 import { Award, BookOpen, Sparkles, Users, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const stats = [
-    { label: 'Sesi Bootcamp', value: '10+', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Alumni Terlatih', value: '500+', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10' },
-    { label: 'Sertifikat Resmi', value: '100%', icon: Award, color: 'text-amber-600', bg: 'bg-amber-500/10' },
-];
-
-const floatingBadges = [
-    { icon: Zap, label: 'Hybrid Learning', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', delay: 0.6 },
-    { icon: BookOpen, label: 'Fokus Praktik', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.75 },
-    { icon: Award, label: 'Portfolio Nyata', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.9 },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function HeroSection() {
+    const { t } = useTranslation('user');
+
+    const stats = [
+        { label: t('bootcamp.hero.statsSessions'), value: '10+', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
+        { label: t('bootcamp.hero.statsAlumni'), value: '500+', icon: Users, color: 'text-secondary', bg: 'bg-secondary/10' },
+        { label: t('bootcamp.hero.statsCert'), value: '100%', icon: Award, color: 'text-amber-600', bg: 'bg-amber-500/10' },
+    ];
+
+    const floatingBadges = [
+        { icon: Zap, label: t('bootcamp.hero.badgeHybrid'), color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', delay: 0.6 },
+        { icon: BookOpen, label: t('bootcamp.hero.badgePractice'), color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.75 },
+        { icon: Award, label: t('bootcamp.hero.badgePortfolio'), color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.9 },
+    ];
+
     return (
         <section className="relative overflow-hidden py-20 text-gray-900 dark:text-white">
             <div className="relative z-10 mx-auto max-w-7xl px-4">
@@ -27,7 +30,7 @@ export default function HeroSection() {
                 >
                     <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
                         <Sparkles className="h-4 w-4 animate-pulse" />
-                        Bootcamp Level Up Accounting
+                        {t('bootcamp.hero.brandBadge')}
                     </span>
                 </motion.div>
 
@@ -38,13 +41,15 @@ export default function HeroSection() {
                     transition={{ duration: 0.7, delay: 0.25 }}
                     className="font-av-estiana mx-auto mb-6 max-w-4xl text-center text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
                 >
-                    <span className="text-primary">Bootcamp Intensif</span> yang{' '}
+                    <span className="text-primary">{t('bootcamp.hero.headlinePart1')}</span>{' '}
+                    {t('bootcamp.hero.headlinePart2')}{' '}
                     <span className="relative inline-block">
-                        <span className="relative z-10">Memberi Hasil.</span>
+                        <span className="relative z-10">{t('bootcamp.hero.headlinePart3')}</span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
                     </span>
                     <br />
-                    <span className="text-secondary">Fokus Praktik</span> &amp; Portfolio.
+                    <span className="text-secondary">{t('bootcamp.hero.headlinePart4')}</span>{' '}
+                    {t('bootcamp.hero.headlinePart5')}
                 </motion.h1>
 
                 {/* Subtext */}
@@ -54,7 +59,7 @@ export default function HeroSection() {
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="mx-auto mb-10 max-w-2xl text-center text-base text-gray-600 dark:text-gray-300 md:text-lg"
                 >
-                    Hybrid, dipandu praktisi senior. Praktikal, lebih dari sekadar webinar. Fokus bantu kembangkan skill &amp; portfolio ribuan alumni.
+                    {t('bootcamp.hero.subtitle')}
                 </motion.p>
 
                 {/* CTA Buttons */}
@@ -66,12 +71,12 @@ export default function HeroSection() {
                 >
                     <a href="#bootcamp">
                         <Button size="lg" className="px-8 text-base rounded-full shadow-lg">
-                            Lihat Bootcamp
+                            {t('bootcamp.hero.btnBootcamps')}
                         </Button>
                     </a>
                     <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" size="lg" className="px-8 text-base rounded-full">
-                            Konsultasi Gratis
+                            {t('bootcamp.hero.btnConsult')}
                         </Button>
                     </a>
                 </motion.div>

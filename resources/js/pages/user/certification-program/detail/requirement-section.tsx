@@ -1,5 +1,6 @@
 import { CheckCircle, Route, ListChecks, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface CertificationProgram {
     terms_conditions?: string | null;
@@ -24,6 +25,7 @@ function parseList(items?: string | null): ListItem[] {
 }
 
 export default function RequirementSection({ program }: { program: CertificationProgram }) {
+    const { t } = useTranslation();
     if (!program.terms_conditions && !(program.type === 'scholarship' && program.scholarship_flow)) return null;
 
     const termsList = parseList(program.terms_conditions);
@@ -47,11 +49,11 @@ export default function RequirementSection({ program }: { program: Certification
                 >
                     <div className="mb-4 flex items-center justify-center gap-2">
                         <Sparkles className="text-primary h-6 w-6" />
-                        <span className="bg-primary/10 text-primary rounded-full px-4 py-1 text-sm font-semibold">Persyaratan</span>
+                        <span className="bg-primary/10 text-primary rounded-full px-4 py-1 text-sm font-semibold">{t('certificationProgram.detail.requirements.badge')}</span>
                     </div>
-                    <h2 className="mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl dark:text-white">Siap Untuk Bergabung?</h2>
+                    <h2 className="mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl dark:text-white">{t('certificationProgram.detail.requirements.title')}</h2>
                     <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-                        Pastikan kamu memenuhi persyaratan dan mengetahui alur seleksi
+                        {t('certificationProgram.detail.requirements.subtitle')}
                     </p>
                 </motion.div>
 
@@ -72,8 +74,8 @@ export default function RequirementSection({ program }: { program: Certification
                                     <ListChecks className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Syarat & Ketentuan</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Yang perlu kamu penuhi</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t('certificationProgram.detail.requirements.termsTitle')}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.requirements.termsSubtitle')}</p>
                                 </div>
                             </div>
 
@@ -119,8 +121,8 @@ export default function RequirementSection({ program }: { program: Certification
                                     <Route className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Alur Beasiswa</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Tahapan seleksi peserta</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t('certificationProgram.detail.requirements.flowTitle')}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.requirements.flowSubtitle')}</p>
                                 </div>
                             </div>
 

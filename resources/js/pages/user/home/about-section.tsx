@@ -4,7 +4,7 @@ import { Tilt } from '@/components/ui/tilt';
 import { Link } from '@inertiajs/react';
 import { SVGProps } from 'react';
 import { motion } from 'motion/react';
-
+import { useTranslation } from 'react-i18next';
 
 const MouseIcon = (props: SVGProps<SVGSVGElement>) => {
     return (
@@ -30,6 +30,8 @@ const MouseIcon = (props: SVGProps<SVGSVGElement>) => {
 };
 
 export default function AboutSection() {
+    const { t } = useTranslation('home');
+
     return (
         <section className="relative mx-auto w-full max-w-7xl px-4 py-16">
             <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center">
@@ -45,7 +47,7 @@ export default function AboutSection() {
                     >
                         <span className="inline-flex items-center gap-2 rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary">
                             <span className="h-2 w-2 rounded-full bg-primary" />
-                            Educate, Innovate and Lead
+                            {t('hero.badge', 'Educate, Innovate and Lead')}
                         </span>
                     </motion.div>
 
@@ -57,11 +59,11 @@ export default function AboutSection() {
                         className="space-y-1"
                     >
                         <h1 className="font-av-estiana text-4xl font-bold leading-tight text-foreground md:text-5xl">
-                            Learn Without Limits
+                            {t('hero.title1', 'Learn Without Limits')}
                         </h1>
                         <h2 className="text-4xl font-bold leading-tight md:text-5xl">
-                            Grow Without{' '}
-                            <span className="text-primary">Boundaries</span>
+                            {t('hero.title2', 'Grow Without')}{' '}
+                            <span className="text-primary">{t('hero.titleHighlight', 'Boundaries')}</span>
                         </h2>
                     </motion.div>
 
@@ -72,7 +74,7 @@ export default function AboutSection() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="max-w-md text-base md:text-md text-muted-foreground"
                     >
-                        Kami menghadirkan pelatihan Akuntansi dan Pajak berbasis praktik, sertifikasi, dan kelas online untuk membantumu siap bersaing di dunia kerja.
+                        {t('hero.desc', 'Kami menghadirkan pelatihan Akuntansi dan Pajak berbasis praktik, sertifikasi, dan kelas online untuk membantumu siap bersaing di dunia kerja.')}
                     </motion.p>
 
                     {/* CTA Buttons */}
@@ -83,10 +85,10 @@ export default function AboutSection() {
                         className="flex flex-wrap gap-3"
                     >
                         <Button asChild size="default" className="rounded-full px-6">
-                            <Link href="/course">Browse Program</Link>
+                            <Link href="/course">{t('hero.browseProgram', 'Browse Program')}</Link>
                         </Button>
                         <Button asChild variant="outline" size="default" className="rounded-full px-6">
-                            <Link href="/contact">Get In Touch</Link>
+                            <Link href="/contact">{t('hero.getInTouch', 'Get In Touch')}</Link>
                         </Button>
                     </motion.div>
 
@@ -100,7 +102,7 @@ export default function AboutSection() {
                         {/* Success Rate */}
                         <div>
                             <p className="text-4xl font-extrabold text-foreground">99%</p>
-                            <p className="text-sm text-muted-foreground">Success Rate</p>
+                            <p className="text-sm text-muted-foreground">{t('hero.successRate', 'Success Rate')}</p>
                         </div>
 
                         {/* Total Students */}
@@ -116,7 +118,7 @@ export default function AboutSection() {
                                     <img src="/assets/images/avatar-3.jpg" alt="Student" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
                                 </div>
                             </div>
-                            <p className="text-sm font-semibold text-primary">30k Total Students</p>
+                            <p className="text-sm font-semibold text-primary">{t('hero.totalStudents', '30k Total Students')}</p>
                         </div>
                     </motion.div>
                 </div>

@@ -3,6 +3,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { Link } from '@inertiajs/react';
 import { Star, Award, Sparkles, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Webinar {
     user?: {
@@ -14,6 +15,7 @@ interface Webinar {
 }
 
 export default function MentorSection({ webinar }: { webinar: Webinar }) {
+    const { t } = useTranslation();
     const getInitials = useInitials();
 
     if (!webinar.user) {
@@ -35,11 +37,11 @@ export default function MentorSection({ webinar }: { webinar: Webinar }) {
                     <div className="mb-3 flex items-center justify-center gap-2">
                         <Sparkles className="h-5 w-5 text-primary" />
                         <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                            Pemateri Webinar
+                            {t('webinar.detail.webinarSpeaker')}
                         </span>
                     </div>
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-                        Belajar dari Ahlinya
+                        {t('webinar.detail.learnFromExpert')}
                     </h2>
                 </motion.div>
 
@@ -99,7 +101,7 @@ export default function MentorSection({ webinar }: { webinar: Webinar }) {
 
                                     {/* View Profile Link */}
                                     <div className="inline-flex items-center gap-2 text-primary font-semibold text-sm group-hover:gap-3 transition-all">
-                                        <span>Lihat Profile Lengkap</span>
+                                        <span>{t('webinar.detail.viewFullProfile')}</span>
                                         <ArrowRight className="h-4 w-4" />
                                     </div>
                                 </div>

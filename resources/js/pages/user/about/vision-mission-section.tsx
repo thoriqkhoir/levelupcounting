@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
 import { Eye, Target } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function VisionMissionSection() {
+    const { t } = useTranslation('user');
+
     return (
         <section className="pb-12 dark:bg-gray-900 md:pb-16 lg:pb-20">
             <div className="mx-auto max-w-7xl px-4">
@@ -9,15 +12,11 @@ export function VisionMissionSection() {
                 <div className="py-4 text-center">
                     <div className="mb-4 flex justify-center">
                         <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
-                            🎯 Visi &amp; Misi
+                            {t('about.visionMission.badge', '🎯 Visi & Misi')}
                         </span>
                     </div>
                     <h2 className="font-av-estiana text-2xl font-extrabold md:text-3xl">
-                        Visi &amp;{' '}
-                        <span className="relative inline-block">
-                            <span className="relative z-10">Misi Kami</span>
-                            <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
-                        </span>
+                        {t('about.visionMission.title', 'Visi & Misi Kami')}
                     </h2>
                 </div>
 
@@ -37,10 +36,9 @@ export function VisionMissionSection() {
                                 <Eye className="h-6 w-6 text-white md:h-8 md:w-8" />
                             </div>
                             
-                            <h3 className="mb-3 text-xl font-bold md:mb-4 md:text-2xl">Visi Kami</h3>
+                            <h3 className="mb-3 text-xl font-bold md:mb-4 md:text-2xl">{t('about.visionMission.visionTitle', 'Visi Kami')}</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400 md:text-base">
-                                Menjadi platform pembelajaran perpajakan terdepan di Indonesia yang menghasilkan 
-                                profesional berkompeten dan berintegritas tinggi dalam bidang perpajakan dan akuntansi.
+                                {t('about.visionMission.visionDesc', 'Menjadi platform pembelajaran perpajakan terdepan di Indonesia yang menghasilkan profesional berkompeten dan berintegritas tinggi dalam bidang perpajakan dan akuntansi.')}
                             </p>
                         </div>
                     </motion.div>
@@ -60,25 +58,25 @@ export function VisionMissionSection() {
                                 <Target className="h-6 w-6 text-white md:h-8 md:w-8" />
                             </div>
                             
-                            <h3 className="mb-3 text-xl font-bold md:mb-4 md:text-2xl">Misi Kami</h3>
+                            <h3 className="mb-3 text-xl font-bold md:mb-4 md:text-2xl">{t('about.visionMission.missionTitle', 'Misi Kami')}</h3>
                             <ul className="space-y-2 text-gray-600 dark:text-gray-400 md:space-y-3">
                                 <li className="flex items-start gap-2">
                                     <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary md:mt-1 md:h-6 md:w-6">
                                         1
                                     </span>
-                                    <span className="text-sm md:text-base">Memberikan pendidikan perpajakan berkualitas tinggi dan aplikatif</span>
+                                    <span className="text-sm md:text-base">{t('about.visionMission.m1', 'Memberikan pendidikan perpajakan berkualitas tinggi dan aplikatif')}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary md:mt-1 md:h-6 md:w-6">
                                         2
                                     </span>
-                                    <span className="text-sm md:text-base">Mengembangkan kompetensi profesional di bidang perpajakan</span>
+                                    <span className="text-sm md:text-base">{t('about.visionMission.m2', 'Mengembangkan kompetensi profesional di bidang perpajakan')}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary md:mt-1 md:h-6 md:w-6">
                                         3
                                     </span>
-                                    <span className="text-sm md:text-base">Membangun ekosistem pembelajaran yang inovatif dan kolaboratif</span>
+                                    <span className="text-sm md:text-base">{t('about.visionMission.m3', 'Membangun ekosistem pembelajaran yang inovatif dan kolaboratif')}</span>
                                 </li>
                             </ul>
                         </div>

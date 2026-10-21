@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { Award, BadgeCheck, BookOpen, Sparkles, Star, Target, User } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Course {
     title: string;
@@ -18,6 +19,7 @@ function parseList(items?: string | null): string[] {
 }
 
 export default function AboutSection({ course }: { course: Course }) {
+    const { t } = useTranslation('user');
     const keyPoints = parseList(course.key_points);
 
     return (
@@ -33,18 +35,20 @@ export default function AboutSection({ course }: { course: Course }) {
                 <div className="mb-6">
                     <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
                         <BookOpen className="h-4 w-4" />
-                        Tentang Kelas
+                        {t('course.detail.aboutBadge', 'Tentang Kelas')}
                     </span>
                     <h2 className="mt-3 text-2xl font-extrabold text-gray-900 dark:text-white md:text-3xl">
-                        Tentang Kelas Ini
+                        {t('course.detail.aboutCourse', 'Tentang Kelas Ini')}
                     </h2>
-                    <p className="mt-1 text-gray-500 dark:text-gray-400">Kembangkan skill dengan pembelajaran terstruktur</p>
+                    <p className="mt-1 text-gray-500 dark:text-gray-400">
+                        {t('course.detail.aboutSubtitle', 'Kembangkan skill dengan pembelajaran terstruktur')}
+                    </p>
                 </div>
 
                 <div className="relative overflow-hidden rounded-3xl border-2 bg-gradient-to-br from-primary/5 via-white to-secondary/5 p-8 shadow-lg dark:border-zinc-700 dark:from-primary/10 dark:via-zinc-900 dark:to-secondary/10">
                     <div className="absolute top-0 right-0 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
                     <p className="relative text-base leading-relaxed text-gray-700 dark:text-gray-300">
-                        {course.description || 'Deskripsi kelas akan segera tersedia.'}
+                        {course.description || t('course.detail.noDesc', 'Deskripsi kelas akan segera tersedia.')}
                     </p>
                 </div>
             </motion.section>
@@ -62,8 +66,12 @@ export default function AboutSection({ course }: { course: Course }) {
                             <Target className="h-5 w-5 text-secondary" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Highlight Kelas</h3>
-                            <p className="text-sm text-gray-500">Tampilan nyata dari materi pembelajaran</p>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                {t('course.detail.classHighlight', 'Highlight Kelas')}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                                {t('course.detail.highlightSubtitle', 'Tampilan nyata dari materi pembelajaran')}
+                            </p>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -100,8 +108,12 @@ export default function AboutSection({ course }: { course: Course }) {
                             <BadgeCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Yang Akan Kamu Pelajari</h3>
-                            <p className="text-sm text-gray-500">{keyPoints.length} poin utama pembelajaran</p>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                                {t('course.detail.whatYouWillLearn', 'Yang Akan Kamu Pelajari')}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                                {t('course.detail.keyPointsCount', { count: keyPoints.length, defaultValue: `${keyPoints.length} poin utama pembelajaran` })}
+                            </p>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -135,8 +147,12 @@ export default function AboutSection({ course }: { course: Course }) {
                         <Award className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Belajar dengan Ahlinya</h3>
-                        <p className="text-sm text-gray-500">Instruktur berpengalaman di industri</p>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                            {t('course.detail.learnFromExperts', 'Belajar dengan Ahlinya')}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                            {t('course.detail.instructorSubtitle', 'Instruktur berpengalaman di industri')}
+                        </p>
                     </div>
                 </div>
 
@@ -151,15 +167,20 @@ export default function AboutSection({ course }: { course: Course }) {
                                 <div className="flex items-center gap-2">
                                     <h4 className="text-xl font-bold text-gray-900 dark:text-white">{course.user?.name}</h4>
                                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                                        <Sparkles className="h-3 w-3" />Expert
+                                        <Sparkles className="h-3 w-3" />
+                                        {t('course.detail.expertBadge', 'Expert')}
                                     </span>
                                 </div>
-                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{course.user?.bio || 'Tim Expert Level Up Accounting'}</p>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                    {course.user?.bio || t('course.detail.defaultExpertBio', 'Tim Expert Level Up Accounting')}
+                                </p>
                                 <div className="mt-2 flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => (
                                         <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                                     ))}
-                                    <span className="ml-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300">5.0 Rating</span>
+                                    <span className="ml-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        {t('course.detail.ratingScore', { score: '5.0', defaultValue: '5.0 Rating' })}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -178,15 +199,20 @@ export default function AboutSection({ course }: { course: Course }) {
                                 <div className="flex items-center gap-2">
                                     <h4 className="text-xl font-bold text-gray-900 dark:text-white">{course.user?.name}</h4>
                                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                                        <Sparkles className="h-3 w-3" />Instructor
+                                        <Sparkles className="h-3 w-3" />
+                                        {t('course.detail.instructorBadge', 'Instruktur')}
                                     </span>
                                 </div>
-                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{course.user?.bio || 'Professional Instructor'}</p>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                    {course.user?.bio || t('course.detail.defaultInstructorBio', 'Instruktur Profesional')}
+                                </p>
                                 <div className="mt-2 flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => (
                                         <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                                     ))}
-                                    <span className="ml-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300">5.0 Rating</span>
+                                    <span className="ml-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        {t('course.detail.ratingScore', { score: '5.0', defaultValue: '5.0 Rating' })}
+                                    </span>
                                 </div>
                             </div>
                         </div>

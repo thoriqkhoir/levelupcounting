@@ -1,5 +1,6 @@
 import { Award, BarChart3, BookOpen, Clock, Sparkles, Star, TrendingUp, Users } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Course {
     title: string;
@@ -12,21 +13,31 @@ interface Course {
 }
 
 export default function HeroSection({ course }: { course: Course }) {
+    const { t, i18n } = useTranslation('user');
+    const dateLocale = i18n.language === 'en' ? 'en-US' : 'id-ID';
+
     const levelMap = {
-        beginner: { label: 'Beginner', color: 'from-green-500 to-emerald-600', badge: 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300' },
-        intermediate: { label: 'Intermediate', color: 'from-yellow-500 to-orange-500', badge: 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300' },
-        advanced: { label: 'Advanced', color: 'from-red-500 to-rose-600', badge: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-300' },
+        beginner: { label: t('course.catalog.beginner'), color: 'from-green-500 to-emerald-600', badge: 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300' },
+        intermediate: { label: t('course.catalog.intermediate'), color: 'from-yellow-500 to-orange-500', badge: 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300' },
+        advanced: { label: t('course.catalog.advanced'), color: 'from-red-500 to-rose-600', badge: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-300' },
     };
-    const lv = levelMap[course.level];
+    const lv = levelMap[course.level] || { label: course.level, color: '', badge: '' };
 
     const totalLessons = course.modules?.reduce((t, m) => t + (m.lessons?.length ?? 0), 0) ?? 0;
     const totalVideos = course.modules?.reduce((t, m) => t + (m.lessons?.filter(l => l.type === 'video').length ?? 0), 0) ?? 0;
 
     const stats = [
-        { icon: Clock, label: 'Update', value: new Date(course.updated_at).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }), color: 'text-primary', bg: 'bg-primary/10' },
-        { icon: BookOpen, label: 'Materi', value: `${totalLessons}`, color: 'text-secondary', bg: 'bg-secondary/10' },
-        { icon: Star, label: 'Rating', value: '4.8', color: 'text-yellow-500', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
-        { icon: Users, label: 'Siswa', value: '1.2K+', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
+        { icon: Clock, label: t('course.detail.lastUpdatedLabel'), value: new Date(course.updated_at).toLocaleDateString(dateLocale, { month: 'short', year: 'numeric' }), color: 'text-primary', bg: 'bg-primary/10' },
+        { icon: BookOpen, label: t('course.detail.totalMaterial'), value: `${totalLessons}`, color: 'text-secondary', bg: 'bg-secondary/10' },
+        { icon: Star, label: t('course.detail.rating'), value: '4.8', color: 'text-yellow-500', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
+        { icon: Users, label: t('course.detail.students'), value: '1.2K+', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' },
+    ];
+
+    const featureTags = [
+        t('course.detail.certificateHeading'),
+        t('course.detail.lifetimeAccess'),
+        t('course.detail.consultationHeading'),
+        'Project Based',
     ];
 
     return (
@@ -94,11 +105,13 @@ export default function HeroSection({ course }: { course: Course }) {
                                     <div className="flex items-center gap-2">
                                         <TrendingUp className="h-4 w-4" />
                                         <span className="text-xs font-semibold">
-                                            Rilis {new Date(course.created_at).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                                            {t('course.detail.releaseLabel', {
+                                                date: new Date(course.created_at).toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' })
+                                            })}
                                         </span>
                                     </div>
                                     <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-sm border border-white/30">
-                                        Kelas Online
+                                        {t('course.catalog.onlineCourse')}
                                     </span>
                                 </div>
                             </div>
@@ -134,7 +147,7 @@ export default function HeroSection({ course }: { course: Course }) {
                         >
                             <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-primary/30 bg-white px-3 py-1.5 text-xs font-semibold shadow dark:bg-zinc-900">
                                 <BookOpen className="h-3.5 w-3.5 text-primary" />
-                                <span className="text-gray-900 dark:text-white">Kelas Online</span>
+                                <span className="text-gray-900 dark:text-white">{t('course.catalog.onlineCourse')}</span>
                             </span>
                             <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold ${lv.badge}`}>
                                 <Award className="h-3.5 w-3.5" />
@@ -142,7 +155,7 @@ export default function HeroSection({ course }: { course: Course }) {
                             </span>
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary ring-1 ring-primary/20">
                                 <Sparkles className="h-3.5 w-3.5" />
-                                Tersertifikasi
+                                {t('mentor.certified')}
                             </span>
                         </motion.div>
 
@@ -165,7 +178,7 @@ export default function HeroSection({ course }: { course: Course }) {
                             transition={{ duration: 0.6, delay: 0.3 }}
                             className="text-base leading-relaxed text-gray-600 dark:text-gray-300 md:text-lg"
                         >
-                            {course.short_description || 'Tingkatkan kemampuan Anda dengan kelas online berkualitas tinggi yang dirancang oleh para ahli industri.'}
+                            {course.short_description || t('course.catalog.subtitle')}
                         </motion.p>
 
                         {/* Rating row */}
@@ -180,11 +193,11 @@ export default function HeroSection({ course }: { course: Course }) {
                                     <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                                 ))}
                                 <span className="ml-1 text-sm font-bold text-gray-800 dark:text-white">4.8</span>
-                                <span className="text-sm text-gray-500">(1,200+ siswa)</span>
+                                <span className="text-sm text-gray-500">(1,200+ {t('course.detail.students').toLowerCase()})</span>
                             </div>
                             <div className="flex items-center gap-1.5 text-sm text-gray-500">
                                 <BookOpen className="h-4 w-4 text-primary" />
-                                <span>{totalLessons} materi · {totalVideos} video</span>
+                                <span>{t('course.detail.totalLessonsCount', { count: totalLessons })} · {t('course.detail.totalVideosCount', { count: totalVideos })}</span>
                             </div>
                         </motion.div>
 
@@ -195,7 +208,7 @@ export default function HeroSection({ course }: { course: Course }) {
                             transition={{ duration: 0.5, delay: 0.44 }}
                             className="flex flex-wrap gap-2"
                         >
-                            {['Sertifikat', 'Akses Selamanya', 'Live Konsultasi', 'Project Based'].map((tag) => (
+                            {featureTags.map((tag) => (
                                 <span key={tag} className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300">
                                     <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                                     {tag}
@@ -211,7 +224,7 @@ export default function HeroSection({ course }: { course: Course }) {
                         >
                             <a href="#register" className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-bold text-white shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/40">
                                 <Sparkles className="h-5 w-5" />
-                                Daftar Sekarang
+                                {t('course.catalog.registerNow')}
                             </a>
                         </motion.div>
                     </div>

@@ -3,6 +3,7 @@ import { TransitionPanel } from '@/components/ui/transition-panel';
 import { CheckCircle, Clock, FileText, Lock, PlayCircle, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Course {
     modules?: {
@@ -29,6 +30,7 @@ function getYoutubeId(url: string) {
 }
 
 export default function VideoSection({ course, onNavigateToModules }: VideoSectionProps) {
+    const { t } = useTranslation('user');
     const [activeIndex, setActiveIndex] = useState(0);
 
     const items =
@@ -56,17 +58,17 @@ export default function VideoSection({ course, onNavigateToModules }: VideoSecti
             >
                 <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
                     <PlayCircle className="h-4 w-4" />
-                    Preview Kelas
+                    {t('course.detail.previewBadge', 'Preview Kelas')}
                 </span>
                 <h2 className="mt-3 text-2xl font-extrabold text-gray-900 dark:text-white md:text-3xl">
-                    Lihat Contoh{' '}
+                    {t('course.detail.previewTitlePrefix', 'Lihat Contoh')}{' '}
                     <span className="relative inline-block">
-                        <span className="relative z-10 text-primary">Materi Kelas</span>
+                        <span className="relative z-10 text-primary">{t('course.detail.previewTitleHighlight', 'Materi Kelas')}</span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                     </span>
                 </h2>
                 <p className="mt-2 text-gray-500 dark:text-gray-400">
-                    Akses {items.length} video preview sebelum bergabung — gratis!
+                    {t('course.detail.previewSubtitleDesc', { count: items.length, defaultValue: `Akses ${items.length} video preview sebelum bergabung — gratis!` })}
                 </p>
             </motion.div>
 
@@ -111,7 +113,7 @@ export default function VideoSection({ course, onNavigateToModules }: VideoSecti
                                                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-zinc-800">
                                                     <PlayCircle className="h-10 w-10 text-zinc-600" />
                                                 </div>
-                                                <p className="text-zinc-400">Video tidak tersedia</p>
+                                                <p className="text-zinc-400">{t('course.detail.videoUnavailable', 'Video tidak tersedia')}</p>
                                             </div>
                                         </div>
                                     )}
@@ -123,13 +125,13 @@ export default function VideoSection({ course, onNavigateToModules }: VideoSecti
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-5">
                             <div className="flex items-start justify-between gap-3">
                                 <div>
-                                    <h3 className="text-lg font-bold text-white">{items[activeIndex]?.title || 'Pilih video preview'}</h3>
+                                    <h3 className="text-lg font-bold text-white">{items[activeIndex]?.title || t('course.detail.selectPreviewVideo', 'Pilih video preview')}</h3>
                                     {items[activeIndex]?.description && (
                                         <p className="mt-1 text-sm text-gray-300 line-clamp-1">{items[activeIndex].description}</p>
                                     )}
                                 </div>
                                 <span className="flex-shrink-0 rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-semibold text-green-400 backdrop-blur-sm ring-1 ring-green-500/30">
-                                    Gratis
+                                    {t('course.detail.free', 'Gratis')}
                                 </span>
                             </div>
                         </div>
@@ -146,15 +148,15 @@ export default function VideoSection({ course, onNavigateToModules }: VideoSecti
                     <div className="overflow-hidden rounded-3xl border-2 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
                         {/* Header */}
                         <div className="border-b border-gray-100 p-5 dark:border-zinc-700">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Daftar Materi</h3>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('course.detail.materialList', 'Daftar Materi')}</h3>
                             <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                                 <div className="flex items-center gap-1.5">
                                     <FileText className="h-4 w-4" />
-                                    <span>{totalLessons} Materi</span>
+                                    <span>{t('course.detail.totalLessonsCount', { count: totalLessons, defaultValue: `${totalLessons} Materi` })}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                     <PlayCircle className="h-4 w-4" />
-                                    <span>{totalVideos} Video</span>
+                                    <span>{t('course.detail.totalVideosCount', { count: totalVideos, defaultValue: `${totalVideos} Video` })}</span>
                                 </div>
                             </div>
                         </div>
@@ -187,7 +189,7 @@ export default function VideoSection({ course, onNavigateToModules }: VideoSecti
                                             </h4>
                                             <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
                                                 <Clock className="h-3 w-3" />
-                                                <span>Preview Gratis</span>
+                                                <span>{t('course.detail.freePreview', 'Preview Gratis')}</span>
                                             </div>
                                         </div>
                                         {activeIndex === index && (
@@ -206,9 +208,9 @@ export default function VideoSection({ course, onNavigateToModules }: VideoSecti
                                         </div>
                                         <div>
                                             <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                                                +{totalLessons - items.length} Materi Lainnya
+                                                {t('course.detail.otherMaterialsCount', { count: totalLessons - items.length, defaultValue: `+${totalLessons - items.length} Materi Lainnya` })}
                                             </p>
-                                            <p className="text-xs text-gray-400">Akses setelah bergabung</p>
+                                            <p className="text-xs text-gray-400">{t('course.detail.accessAfterJoin', 'Akses setelah bergabung')}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -220,7 +222,7 @@ export default function VideoSection({ course, onNavigateToModules }: VideoSecti
                             <a href="#register">
                                 <Button className="w-full gap-2 py-6 text-base font-bold shadow-lg shadow-primary/20" size="lg">
                                     <Sparkles className="h-5 w-5" />
-                                    Gabung Sekarang
+                                    {t('course.detail.joinNow', 'Gabung Sekarang')}
                                 </Button>
                             </a>
                         </div>

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Info, Gift, Sparkles, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Bundle {
     description?: string | null;
@@ -11,6 +12,8 @@ interface BenefitsSectionProps {
 }
 
 export default function BenefitsSection({ bundle }: BenefitsSectionProps) {
+    const { t } = useTranslation('user');
+
     if (!bundle.description && !bundle.benefits) {
         return null;
     }
@@ -47,8 +50,8 @@ export default function BenefitsSection({ bundle }: BenefitsSectionProps) {
                                     <Info className="h-7 w-7 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Tentang Bundle</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Informasi lengkap paket ini</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t('bundling.detail.about.aboutTitle')}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('bundling.detail.about.aboutDesc')}</p>
                                 </div>
                             </div>
 
@@ -84,8 +87,8 @@ export default function BenefitsSection({ bundle }: BenefitsSectionProps) {
                                     <Gift className="h-7 w-7 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Keuntungan</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Yang Anda dapatkan</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t('bundling.detail.about.benefitsTitle')}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('bundling.detail.about.benefitsDesc')}</p>
                                 </div>
                             </div>
 
@@ -139,10 +142,10 @@ export default function BenefitsSection({ bundle }: BenefitsSectionProps) {
                             </div>
                             <div>
                                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {bundle.description ? 'Tentang Bundle' : 'Keuntungan'}
+                                    {bundle.description ? t('bundling.detail.about.aboutTitle') : t('bundling.detail.about.benefitsTitle')}
                                 </h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {bundle.description ? 'Informasi lengkap paket ini' : 'Yang Anda dapatkan'}
+                                    {bundle.description ? t('bundling.detail.about.aboutDesc') : t('bundling.detail.about.benefitsDesc')}
                                 </p>
                             </div>
                         </div>

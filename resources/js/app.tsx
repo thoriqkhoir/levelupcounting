@@ -1,3 +1,4 @@
+import './i18n';
 import '../css/app.css';
 
 import { createInertiaApp, router } from '@inertiajs/react';
@@ -5,6 +6,7 @@ import axios from 'axios';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
+import i18n from './i18n';
 
 // Configure Axios defaults
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -48,6 +50,10 @@ createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
+        const initialLocale = (props.initialPage.props as { locale?: string })?.locale;
+        if (initialLocale && i18n.language !== initialLocale) {
+            i18n.changeLanguage(initialLocale);
+        }
         const root = createRoot(el);
 
         root.render(<App {...props} />);

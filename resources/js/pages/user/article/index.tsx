@@ -5,10 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import UserLayout from '@/layouts/user-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id, enUS } from 'date-fns/locale';
 import { Book, BookOpen, Calendar, Clock, Eye, LayoutGrid, Sparkles, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
     id: string;
@@ -67,6 +68,8 @@ interface ArticleIndexProps {
 const GRID_PATTERN = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
 
 export default function ArticleIndex({ articles, categories, popularArticles, filters }: ArticleIndexProps) {
+    const { t, i18n } = useTranslation('user');
+    const dateLocale = i18n.language === 'en' ? enUS : id;
     const [selectedCategory, setSelectedCategory] = useState<string>(filters.category || '');
     const [sortBy, setSortBy] = useState<string>(filters.sort || 'latest');
 
@@ -92,7 +95,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
             <div className="pointer-events-none absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.06]" style={{ backgroundImage: GRID_PATTERN }} />
 
             <UserLayout>
-                <Head title="Artikel" />
+                <Head title={t('article.headTitle')} />
 
                 {/* ── Hero Section ── */}
                 <section className="relative z-10 overflow-hidden py-20 text-gray-900 dark:text-white">
@@ -106,7 +109,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                         >
                             <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
                                 <Sparkles className="h-4 w-4 animate-pulse" />
-                                Artikel &amp; Blog Level Up Accounting
+                                {t('article.badge')}
                             </span>
                         </motion.div>
 
@@ -117,9 +120,9 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                             transition={{ duration: 0.7, delay: 0.25 }}
                             className="font-av-estiana mx-auto mb-6 max-w-4xl text-center text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
                         >
-                            Artikel &amp;{' '}
+                            {t('article.title').split('&')[0]}&{' '}
                             <span className="relative inline-block">
-                                <span className="relative z-10 text-primary">Blog</span>
+                                <span className="relative z-10 text-primary">{t('article.title').split('&')[1]?.trim() || 'Blog'}</span>
                                 <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
                             </span>
                         </motion.h1>
@@ -131,7 +134,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="mx-auto mb-10 max-w-2xl text-center text-base text-gray-600 dark:text-gray-300 md:text-lg"
                         >
-                            Temukan insight, tutorial, dan berita terbaru seputar pembelajaran akuntansi, pajak, dan teknologi.
+                            {t('article.heroSubtext')}
                         </motion.p>
 
                         {/* Mini stats */}
@@ -142,9 +145,9 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                             className="flex flex-wrap justify-center gap-3"
                         >
                             {[
-                                { icon: BookOpen, label: `${articles.data.length > 0 ? articles.last_page * 9 + '+' : '0'} Artikel`, color: 'text-primary', bg: 'bg-primary/10' },
-                                { icon: TrendingUp, label: `${popularArticles.length} Artikel Populer`, color: 'text-secondary', bg: 'bg-secondary/10' },
-                                { icon: LayoutGrid, label: `${categories.length} Kategori`, color: 'text-violet-600', bg: 'bg-violet-500/10' },
+                                { icon: BookOpen, label: t('article.articlesCount', { count: articles.data.length > 0 ? articles.last_page * 9 + '+' : '0' }), color: 'text-primary', bg: 'bg-primary/10' },
+                                { icon: TrendingUp, label: t('article.popularArticlesCount', { count: popularArticles.length }), color: 'text-secondary', bg: 'bg-secondary/10' },
+                                { icon: LayoutGrid, label: t('article.categoriesCount', { count: categories.length }), color: 'text-violet-600', bg: 'bg-violet-500/10' },
                             ].map((s) => (
                                 <div key={s.label} className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm ring-1 ring-black/5 ${s.bg} ${s.color}`}>
                                     <s.icon className="h-4 w-4" />
@@ -171,7 +174,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                                 className="rounded-full shrink-0"
                                 onClick={() => handleFilter('')}
                             >
-                                Semua Kategori
+                                {t('article.allCategories')}
                             </Button>
                             {categories.map((cat) => (
                                 <Button
@@ -190,14 +193,14 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                         </div>
                         {/* Sort */}
                         <div className="flex shrink-0 items-center gap-3 md:border-l md:pl-4 dark:border-zinc-800">
-                            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Urutkan:</span>
+                            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">{t('article.sort')}:</span>
                             <Select value={sortBy} onValueChange={handleSort}>
                                 <SelectTrigger className="w-[160px] rounded-full">
-                                    <SelectValue placeholder="Urutkan" />
+                                    <SelectValue placeholder={t('article.sort')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="latest">Terbaru</SelectItem>
-                                    <SelectItem value="popular">Paling Populer</SelectItem>
+                                    <SelectItem value="latest">{t('article.sortLatest')}</SelectItem>
+                                    <SelectItem value="popular">{t('article.sortPopular')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -214,7 +217,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                             <div className="mb-6 flex items-center gap-3">
                                 <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
                                     <TrendingUp className="h-4 w-4" />
-                                    Paling Banyak Dibaca
+                                    {t('article.popularArticles')}
                                 </span>
                             </div>
                             <div className="flex gap-6 overflow-x-auto pb-4 pt-2 snap-x hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
@@ -243,7 +246,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                                             <div className="flex flex-col p-5">
                                                 <div className="mb-2 flex items-center gap-2">
                                                     <Eye className="h-4 w-4 text-muted-foreground" />
-                                                    <span className="text-xs font-medium text-muted-foreground">{article.views.toLocaleString()} views</span>
+                                                    <span className="text-xs font-medium text-muted-foreground">{t('article.views', { count: article.views.toLocaleString() })}</span>
                                                 </div>
                                                 <h4 className="line-clamp-2 text-base font-semibold transition-colors group-hover:text-primary">
                                                     {article.title}
@@ -266,7 +269,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                         >
                             <span className="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-4 py-1.5 text-sm font-semibold text-secondary shadow-sm ring-1 ring-secondary/20">
                                 <Book className="h-4 w-4" />
-                                Artikel Terbaru
+                                {t('article.latestArticles')}
                             </span>
                         </motion.div>
 
@@ -303,7 +306,7 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                                                         <span className="font-medium text-foreground">{article.user.name}</span>
                                                         <span>•</span>
                                                         <Calendar className="h-3.5 w-3.5" />
-                                                        {format(new Date(article.published_at), 'dd MMM yyyy', { locale: id })}
+                                                        {format(new Date(article.published_at), 'dd MMM yyyy', { locale: dateLocale })}
                                                     </div>
                                                     <h3 className="mb-3 line-clamp-2 text-xl font-bold transition-colors group-hover:text-primary leading-tight">
                                                         {article.title}
@@ -314,11 +317,11 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                                                     <div className="mt-auto flex items-center justify-between border-t pt-4 text-xs font-medium text-muted-foreground">
                                                         <div className="flex items-center gap-1.5">
                                                             <Clock className="h-4 w-4" />
-                                                            {article.read_time} min read
+                                                            {t('article.minRead', { count: article.read_time })}
                                                         </div>
                                                         <div className="flex items-center gap-1.5">
                                                             <Eye className="h-4 w-4" />
-                                                            {article.views} views
+                                                            {t('article.views', { count: article.views })}
                                                         </div>
                                                     </div>
                                                 </CardContent>
@@ -357,10 +360,10 @@ export default function ArticleIndex({ articles, categories, popularArticles, fi
                                 className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border-2 border-dashed bg-muted/30"
                             >
                                 <Book className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                                <p className="text-muted-foreground mb-2 text-xl font-semibold">Artikel tidak ditemukan</p>
-                                <p className="text-muted-foreground text-sm">Coba ubah filter atau kategori pencarian Anda</p>
+                                <p className="text-muted-foreground mb-2 text-xl font-semibold">{t('article.notFound')}</p>
+                                <p className="text-muted-foreground text-sm">{t('article.notFoundHint')}</p>
                                 <Button variant="outline" className="mt-6 rounded-full" onClick={() => { handleFilter(''); handleSort('latest'); }}>
-                                    Reset Filter
+                                    {t('article.resetFilter')}
                                 </Button>
                             </motion.div>
                         )}

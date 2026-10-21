@@ -5,9 +5,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { rupiahFormatter } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { enUS, id } from 'date-fns/locale';
 import { AlertCircle, CheckCircle2, Clock, CreditCard, Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 export interface InstallmentTermOption {
@@ -63,11 +64,27 @@ export default function InstallmentOptions({
     onTermsAcceptedChange,
     onBeforePay,
 }: InstallmentOptionsProps) {
+    const { t, i18n } = useTranslation('common');
+    const dateLocale = i18n.language === 'en' ? enUS : id;
     const [isLoading, setIsLoading] = useState(false);
 
     const ADMIN_FEE = 5000;
 
     const hasActiveInstallment = !!activeInstallment && activeInstallment.terms?.length > 0;
+    const isTermOverdueCheck = (dueDateStr?: string | null) => {
+        if (!dueDateStr) return false;
+        try {
+            const d = typeof dueDateStr === 'string' ? parseISO(dueDateStr) : new Date(dueDateStr);
+            if (isNaN(d.getTime())) return false;
+            const endOfDay = new Date(d);
+            endOfDay.setHours(23, 59, 59, 999);
+            return new Date() > endOfDay;
+        } catch {
+            return false;
+        }
+    };
+
+    const isAnyTermOverdue = !hasActiveInstallment && terms.some((t) => isTermOverdueCheck(t.due_date));
     const isFullyPaid = hasActiveInstallment && activeInstallment.is_fully_paid;
     const nextTerm = hasActiveInstallment ? activeInstallment.next_term : null;
 
@@ -103,24 +120,24 @@ export default function InstallmentOptions({
             if (res.data.success && res.data.payment_url) {
                 window.location.href = res.data.payment_url;
             } else {
-                toast.error(res.data.message || 'Gagal memproses pembayaran termin');
+                toast.error(res.data.message || t('installmentOptions.errors.failProcessTerm'));
                 setIsLoading(false);
             }
         } catch (error: any) {
             setIsLoading(false);
             if (error.response?.status === 401) {
-                toast.error('Silakan lengkapi data diri atau masuk terlebih dahulu.');
+                toast.error(t('installmentOptions.errors.loginOrFillData'));
             } else if (error.response?.status === 419) {
-                toast.error('Sesi Anda telah kedaluwarsa. Silakan muat ulang halaman.');
+                toast.error(t('installmentOptions.errors.sessionExpired'));
             } else {
-                toast.error(error.response?.data?.message || 'Terjadi kesalahan saat memproses pembayaran termin.');
+                toast.error(error.response?.data?.message || t('installmentOptions.errors.errorProcessTerm'));
             }
         }
     }
 
     async function handlePayInstallment() {
         if (termsAccepted !== undefined && !termsAccepted) {
-            toast.error('Silakan setujui syarat dan ketentuan terlebih dahulu.');
+            toast.error(t('installmentOptions.errors.mustAgreeTerms'));
             return;
         }
 
@@ -159,17 +176,17 @@ export default function InstallmentOptions({
             if (res.data.success && res.data.payment_url) {
                 window.location.href = res.data.payment_url;
             } else {
-                toast.error(res.data.message || 'Gagal membuat tagihan cicilan');
+                toast.error(res.data.message || t('installmentOptions.errors.failCreateInvoice'));
                 setIsLoading(false);
             }
         } catch (error: any) {
             setIsLoading(false);
             if (error.response?.status === 401) {
-                toast.error('Silakan lengkapi data diri pendaftaran atau masuk terlebih dahulu.');
+                toast.error(t('installmentOptions.errors.loginOrFillData'));
             } else if (error.response?.status === 419) {
-                toast.error('Sesi Anda telah kedaluwarsa. Silakan muat ulang halaman.');
+                toast.error(t('installmentOptions.errors.sessionExpired'));
             } else {
-                toast.error(error.response?.data?.message || 'Terjadi kesalahan saat memproses pembayaran cicilan.');
+                toast.error(error.response?.data?.message || t('installmentOptions.errors.errorProcessInstallment'));
             }
         }
     }
@@ -184,13 +201,13 @@ export default function InstallmentOptions({
                     <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                    <h4 className="font-semibold text-foreground text-base">Semua Cicilan Telah Lunas!</h4>
+                    <h4 className="font-semibold text-foreground text-base">{t('installmentOptions.allPaidTitle')}</h4>
                     <p className="text-xs text-muted-foreground mt-1">
-                        Anda telah menyelesaikan seluruh {activeInstallment?.total_terms} termin pembayaran untuk program ini.
+                        {t('installmentOptions.allPaidDesc', { count: activeInstallment?.total_terms })}
                     </p>
                 </div>
                 <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
-                    <a href="/profile/dashboard">Lihat di Dashboard</a>
+                    <a href="/profile/dashboard">{t('installmentOptions.btnGoToDashboard')}</a>
                 </Button>
             </div>
         );
@@ -204,21 +221,27 @@ export default function InstallmentOptions({
                 <div className="rounded-lg border border-blue-200 bg-blue-50/80 p-3.5 text-xs text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200 flex items-start gap-2.5">
                     <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                     <div>
-                        <p className="font-semibold">Cicilan Aktif Terdeteksi ({activeInstallment.invoice_code})</p>
-                        <p className="mt-0.5 opacity-90">
-                            Anda telah membayar <strong>{activeInstallment.paid_terms} dari {activeInstallment.total_terms}</strong> termin. Silakan lanjutkan pembayaran untuk termin berikutnya.
-                        </p>
+                        <p className="font-semibold">{t('installmentOptions.activeDetectedTitle', { code: activeInstallment.invoice_code })}</p>
+                        <p
+                            className="mt-0.5 opacity-90"
+                            dangerouslySetInnerHTML={{
+                                __html: t('installmentOptions.activeDetectedDesc', {
+                                    paid: activeInstallment.paid_terms,
+                                    total: activeInstallment.total_terms,
+                                }),
+                            }}
+                        />
                     </div>
                 </div>
 
                 {/* Summary Tagihan Berikutnya & Sisa */}
                 <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-lg bg-card border-2 border-primary/40 p-3.5 shadow-sm">
-                        <p className="text-xs font-medium text-primary mb-1">Tagihan Termin ke-{nextTerm.term_number}</p>
+                        <p className="text-xs font-medium text-primary mb-1">{t('installmentOptions.billTerm', { term: nextTerm.term_number })}</p>
                         <p className="font-bold text-primary text-xl">{rupiahFormatter.format(nextTerm.amount)}</p>
                     </div>
                     <div className="rounded-lg bg-card border border-border p-3.5 shadow-sm">
-                        <p className="text-xs text-muted-foreground mb-1">Sisa Pembayaran</p>
+                        <p className="text-xs text-muted-foreground mb-1">{t('installmentOptions.remainingPayment')}</p>
                         <p className="font-bold text-foreground text-xl">{rupiahFormatter.format(remainingAmount)}</p>
                     </div>
                 </div>
@@ -226,9 +249,9 @@ export default function InstallmentOptions({
                 {/* Daftar Status Termin */}
                 <div className="space-y-2.5 rounded-lg border border-border bg-card p-4">
                     <div className="flex items-center justify-between pb-1 border-b border-border">
-                        <span className="text-xs font-semibold text-foreground">Status Pembayaran Termin</span>
+                        <span className="text-xs font-semibold text-foreground">{t('installmentOptions.termStatusTitle')}</span>
                         <Badge variant="outline" className="text-[11px] bg-primary/10 text-primary border-primary/20">
-                            {activeInstallment.total_terms}x Termin
+                            {t('installmentOptions.termBadge', { count: activeInstallment.total_terms })}
                         </Badge>
                     </div>
 
@@ -262,22 +285,24 @@ export default function InstallmentOptions({
                                         </div>
                                         <div>
                                             <p className="font-medium text-foreground flex items-center gap-1.5">
-                                                {term.term_number === 1 ? 'Termin 1 (DP)' : `Termin ke-${term.term_number}`}
+                                                {term.term_number === 1 ? t('installmentOptions.termDp') : t('installmentOptions.termN', { term: term.term_number })}
                                                 {isPaid && (
                                                     <span className="text-[10px] font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-1.5 py-0.5 rounded">
-                                                        Lunas
+                                                        {t('installmentOptions.statusPaid')}
                                                     </span>
                                                 )}
                                                 {isCurrent && (
                                                     <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                                                        Bayar Sekarang
+                                                        {t('installmentOptions.statusPayNow')}
                                                     </span>
                                                 )}
                                             </p>
                                             <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
                                                 <Clock className="h-3 w-3" />
                                                 {term.due_date
-                                                    ? `Jatuh tempo: ${format(parseISO(term.due_date), 'dd MMMM yyyy', { locale: id })}`
+                                                    ? t('installmentOptions.dueDate', {
+                                                          date: format(parseISO(term.due_date), 'dd MMMM yyyy', { locale: dateLocale }),
+                                                      })
                                                     : '-'}
                                             </p>
                                         </div>
@@ -294,7 +319,7 @@ export default function InstallmentOptions({
                 {nextTerm.is_overdue && (
                     <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 dark:bg-amber-950/30 dark:border-amber-900 dark:text-amber-200 flex items-start gap-2">
                         <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <span>Batas waktu pembayaran telah melewati jatuh tempo. Silakan hubungi admin jika pembayaran online tidak dapat diproses.</span>
+                        <span>{t('installmentOptions.overdueWarning')}</span>
                     </div>
                 )}
 
@@ -309,8 +334,11 @@ export default function InstallmentOptions({
                 >
                     <CreditCard className="h-4 w-4" />
                     {isLoading
-                        ? 'Memproses...'
-                        : `Bayar Termin ke-${nextTerm.term_number} (${rupiahFormatter.format(nextTerm.amount)})`}
+                        ? t('installmentOptions.processing')
+                        : t('installmentOptions.btnPayTerm', {
+                              term: nextTerm.term_number,
+                              amount: rupiahFormatter.format(nextTerm.amount),
+                          })}
                 </Button>
             </div>
         );
@@ -319,20 +347,32 @@ export default function InstallmentOptions({
     // TAMPILAN AWAL (BELUM ADA CICILAN - BAYAR DP)
     return (
         <div className="space-y-4">
+            {/* Banner Overdue / Cicilan Ditutup */}
+            {isAnyTermOverdue && (
+                <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3.5 text-xs text-destructive dark:text-red-400 flex items-start gap-2.5">
+                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div>
+                        <p className="font-semibold">{t('installmentOptions.registrationClosedTitle')}</p>
+                        <p className="mt-0.5 opacity-90 leading-relaxed">
+                            {t('installmentOptions.registrationClosedDesc')}
+                        </p>
+                    </div>
+                </div>
+            )}
             {/* Summary DP & Total */}
             <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-card border border-border p-3.5 shadow-sm">
-                    <p className="text-xs text-muted-foreground mb-1">Bayar Sekarang (DP)</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('installmentOptions.payNowDp')}</p>
                     <p className="font-bold text-primary text-xl">{rupiahFormatter.format(dpAmount)}</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {rupiahFormatter.format(baseDpAmount)} + Admin Rp 5.000
+                        {t('installmentOptions.dpAdminBreakdown', { amount: rupiahFormatter.format(baseDpAmount) })}
                     </p>
                 </div>
                 <div className="rounded-lg bg-card border border-border p-3.5 shadow-sm">
-                    <p className="text-xs text-muted-foreground mb-1">Total Keseluruhan</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('installmentOptions.totalOverall')}</p>
                     <p className="font-bold text-foreground text-xl">{rupiahFormatter.format(totalAmount)}</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Termasuk admin {terms.length}x transaksi
+                        {t('installmentOptions.includingAdmin', { count: terms.length })}
                     </p>
                 </div>
             </div>
@@ -340,9 +380,9 @@ export default function InstallmentOptions({
             {/* Jadwal Pembayaran */}
             <div className="space-y-2.5 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center justify-between pb-1 border-b border-border">
-                    <span className="text-xs font-semibold text-foreground">Jadwal Pembayaran Cicilan</span>
+                    <span className="text-xs font-semibold text-foreground">{t('installmentOptions.termScheduleTitle')}</span>
                     <Badge variant="outline" className="text-[11px] bg-primary/10 text-primary border-primary/20">
-                        {terms.length}x Termin
+                        {t('installmentOptions.termBadge', { count: terms.length })}
                     </Badge>
                 </div>
 
@@ -360,17 +400,17 @@ export default function InstallmentOptions({
                                         {term.term_number}
                                     </div>
                                     <div>
-                                        <p className="font-medium text-foreground">{i === 0 ? 'Termin 1 (DP)' : `Termin ke-${term.term_number}`}</p>
+                                        <p className="font-medium text-foreground">{i === 0 ? t('installmentOptions.termDp') : t('installmentOptions.termN', { term: term.term_number })}</p>
                                         <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
                                             <Clock className="h-3 w-3" />
-                                            {format(parseISO(term.due_date), 'dd MMMM yyyy', { locale: id })}
+                                            {format(parseISO(term.due_date), 'dd MMMM yyyy', { locale: dateLocale })}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="text-right flex-shrink-0">
                                     <span className="font-semibold text-foreground">{rupiahFormatter.format(termGross)}</span>
                                     <p className="text-[10px] text-muted-foreground">
-                                        {rupiahFormatter.format(term.amount)} + Admin Rp 5.000
+                                        {t('installmentOptions.dpAdminBreakdown', { amount: rupiahFormatter.format(term.amount) })}
                                     </p>
                                 </div>
                             </div>
@@ -383,19 +423,19 @@ export default function InstallmentOptions({
             <div className="rounded-lg bg-muted/30 border border-border p-3 space-y-1.5 text-xs text-muted-foreground">
                 <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                    <span>Setiap transaksi termin dikenakan biaya admin Rp 5.000.</span>
+                    <span>{t('installmentOptions.rule1')}</span>
                 </div>
                 <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                    <span>Akses materi/program langsung aktif segera setelah DP dibayar.</span>
+                    <span>{t('installmentOptions.rule2')}</span>
                 </div>
                 <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                    <span>Voucher promo dan poin reward tidak dapat digunakan pada pembayaran cicilan.</span>
+                    <span>{t('installmentOptions.rule3')}</span>
                 </div>
                 <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                    <span>Akses akan ditangguhkan jika cicilan melewati tanggal jatuh tempo.</span>
+                    <span>{t('installmentOptions.rule4')}</span>
                 </div>
             </div>
 
@@ -403,19 +443,20 @@ export default function InstallmentOptions({
             {onTermsAcceptedChange && (
                 <div className="flex items-center gap-3 pt-1">
                     <Checkbox
+                        disabled={isAnyTermOverdue}
                         id="installment-terms-checkbox"
                         checked={termsAccepted}
                         onCheckedChange={(checked) => onTermsAcceptedChange(checked === true)}
                     />
                     <Label htmlFor="installment-terms-checkbox" className="text-xs cursor-pointer">
-                        Saya menyetujui{' '}
+                        {t('installmentOptions.agreeTerms')}{' '}
                         <a
                             href="/terms-and-conditions"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary hover:underline"
                         >
-                            syarat dan ketentuan cicilan
+                            {t('installmentOptions.termsAndConditions')}
                         </a>
                     </Label>
                 </div>
@@ -427,11 +468,15 @@ export default function InstallmentOptions({
                 className="w-full gap-2"
                 size="lg"
                 onClick={handlePayInstallment}
-                disabled={isLoading || (termsAccepted !== undefined && !termsAccepted)}
+                disabled={isLoading || (termsAccepted !== undefined && !termsAccepted) || isAnyTermOverdue}
                 id="btn-pay-installment"
             >
                 <CreditCard className="h-4 w-4" />
-                {isLoading ? 'Memproses...' : `Bayar DP ${rupiahFormatter.format(dpAmount)} (Termasuk Biaya Admin)`}
+                {isAnyTermOverdue
+                    ? t('installmentOptions.btnClosed')
+                    : isLoading
+                      ? t('installmentOptions.processing')
+                      : t('installmentOptions.btnPayDp', { amount: rupiahFormatter.format(dpAmount) })}
             </Button>
         </div>
     );

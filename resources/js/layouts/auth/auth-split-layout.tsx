@@ -22,7 +22,7 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
                     <img 
                         src="/assets/images/logo-primary2.png" 
                         alt="Level Up Accounting" 
-                        className="h-16 w-auto dark:hidden" 
+                        className="h-16 w-auto" 
                     />
                     <span className="text-3xl font-bold text-center text-gray-900 dark:text-white">Level Up Accounting</span>
                 </Link>

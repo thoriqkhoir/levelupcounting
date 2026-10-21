@@ -5,6 +5,7 @@ import { Link } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Calendar, Clock, Package, Percent } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
     id: string;
@@ -36,6 +37,8 @@ interface RelatedBundlesProps {
 }
 
 export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) {
+    const { t } = useTranslation('user');
+
     if (!relatedBundles || relatedBundles.length === 0) {
         return null;
     }
@@ -48,9 +51,9 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
     return (
         <section className="mx-auto mt-16 w-full max-w-7xl px-4 pb-12" id="related">
             <h2 className="dark:text-primary-foreground mb-4 text-center text-2xl md:text-3xl font-semibold text-gray-900">
-                Paket Bundling Lainnya
+                {t('bundling.detail.related.title')}
             </h2>
-            <p className="mb-8 text-center text-gray-600 dark:text-gray-400">Paket bundling lain yang mungkin menarik untuk Anda</p>
+            <p className="mb-8 text-center text-gray-600 dark:text-gray-400">{t('bundling.detail.related.subtitle')}</p>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {relatedBundles.map((bundle) => {
@@ -78,7 +81,7 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
 
                                             {/* Bundle Badge - Top Left */}
                                             <span className="absolute top-2 left-2 text-xs font-semibold rounded-lg bg-white/30 backdrop-blur-md border border-white/40 px-1 py-1 shadow z-20 dark:bg-gray-800/30">
-                                                Bundle
+                                                {t('bundling.dashboard.catalog.badge')}
                                             </span>
 
                                             {/* Items Count Badge - Bottom Left */}
@@ -88,11 +91,11 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                                     className="bg-white/30 backdrop-blur-md border border-white/40 text-black font-semibold shadow dark:bg-gray-800/30 dark:text-white"
                                                 >
                                                     <Package size={12} className="mr-1" />
-                                                    {bundle.bundle_items_count} Program
+                                                    {t('bundling.dashboard.catalog.programsCount', { count: bundle.bundle_items_count })}
                                                 </Badge>
                                                 {bundle.batch && (
                                                     <Badge className="border-orange-300 bg-orange-100 text-orange-700 dark:border-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
-                                                        {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : `Batch ${bundle.batch}`}
+                                                        {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : t('bundling.dashboard.catalog.batch', { batch: bundle.batch })}
                                                     </Badge>
                                                 )}
                                             </div>
@@ -108,7 +111,7 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                                         <p
                                                             className={`text-xs font-semibold ${daysLeft <= 3 ? 'text-red-500' : 'text-black dark:text-gray-400'}`}
                                                         >
-                                                            {daysLeft > 0 ? `${daysLeft} hari lagi` : 'Ditutup'}
+                                                            {daysLeft > 0 ? t('bundling.dashboard.catalog.daysLeft', { count: daysLeft }) : t('bundling.dashboard.catalog.closed')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -119,7 +122,7 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                                 <div className="absolute top-2 right-2">
                                                     <Badge className="bg-red-500 text-white shadow-lg">
                                                         <Percent size={12} className="mr-1" />
-                                                        Hemat {discount}%
+                                                        {t('bundling.dashboard.catalog.savePercent', { percent: discount })}
                                                     </Badge>
                                                 </div>
                                             )}
@@ -127,7 +130,7 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                         <div className="mx-4 mt-2">
                                             {bundle.batch && (
                                                 <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
-                                                    {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : `Batch ${bundle.batch}`}
+                                                    {bundle.batch.toLowerCase().includes('batch') ? bundle.batch : t('bundling.dashboard.catalog.batch', { batch: bundle.batch })}
                                                 </span>
                                             )}
                                             <h2 className="line-clamp-2 text-left text-lg font-semibold">{bundle.title}</h2>
@@ -142,7 +145,7 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                         )}
                                         <div className="flex items-center px-2 justify-between gap-2 mb-2">
                                             {bundle.price === 0 ? (
-                                                <p className="text-lg font-semibold text-green-600 dark:text-green-400">Gratis</p>
+                                                <p className="text-lg font-semibold text-green-600 dark:text-green-400">{t('bundling.dashboard.catalog.free')}</p>
                                             ) : (
                                                 <p className="text-base font-bold text-primary dark:text-gray-200">
                                                     {rupiahFormatter.format(bundle.price)}
@@ -182,7 +185,7 @@ export default function RelatedBundles({ relatedBundles }: RelatedBundlesProps) 
                                                     {bundle.user?.name ?? '-'}
                                                 </div>
                                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {bundle.user?.bio ?? 'Tidak ada bio'}
+                                                    {bundle.user?.bio ?? t('bundling.dashboard.catalog.noBio')}
                                                 </div>
                                             </div>
                                         </div>

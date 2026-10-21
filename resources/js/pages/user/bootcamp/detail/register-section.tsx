@@ -4,6 +4,7 @@ import { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BadgeCheck, CalendarDays, ChartArea, Clock, Hourglass, MapPin, Users, Sparkles, AlertCircle, Check, Percent } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Bootcamp {
     title: string;
@@ -20,6 +21,7 @@ interface Bootcamp {
 }
 
 export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
+    const { t, i18n } = useTranslation('user');
     const { auth } = usePage<SharedData>().props;
     const start = new Date(bootcamp.start_date);
     const end = new Date(bootcamp.end_date);
@@ -34,9 +36,9 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
     let buttonText: string;
     let warningMessage: string | null = null;
 
-        registrationUrl = bootcamp.registration_url;
-        buttonText = 'Daftar Sekarang';
-        warningMessage = null;
+    registrationUrl = bootcamp.registration_url;
+    buttonText = t('bootcamp.detail.btnRegisterNow');
+    warningMessage = null;
 
     const deadline = new Date(bootcamp.registration_deadline);
     const isRegistrationOpen = new Date() < deadline;
@@ -58,14 +60,14 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                     <div className="mb-4 flex items-center justify-center gap-2">
                         <Sparkles className="h-6 w-6 text-primary" />
                         <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                            Penawaran Terbatas
+                            {t('bootcamp.detail.limitedOffer')}
                         </span>
                     </div>
                     <h2 className="dark:text-primary-foreground mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl">
-                        Mulai Perjalanan Belajarmu Sekarang!
+                        {t('bootcamp.detail.startJourneyTitle')}
                     </h2>
                     <p className="text-md text-gray-600 dark:text-gray-400">
-                        Investasi terbaik untuk masa depan karirmu
+                        {t('bootcamp.detail.startJourneySubtitle')}
                     </p>
                 </motion.div>
 
@@ -84,7 +86,7 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                 <div className="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-3 text-center">
                                     <div className="flex items-center justify-center gap-2 text-white">
                                         <Percent className="h-5 w-5" />
-                                        <span className="text-lg font-bold">Hemat {discount}% - Promo Terbatas!</span>
+                                        <span className="text-lg font-bold">{t('bootcamp.detail.savePercentPromo', { percent: discount })}</span>
                                     </div>
                                 </div>
                             )}
@@ -93,25 +95,25 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                 {/* Price */}
                                 <div className="mb-6 text-center">
                                     <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                        Investasi untuk Masa Depanmu
+                                        {t('bootcamp.detail.investmentForFuture')}
                                     </p>
                                     {bootcamp.price > 0 ? (
                                         <>
                                             {bootcamp.strikethrough_price > 0 && (
                                                 <span className="block text-xl text-red-500 line-through">
-                                                    Rp {bootcamp.strikethrough_price.toLocaleString('id-ID')}
+                                                    Rp {bootcamp.strikethrough_price.toLocaleString(i18n.language === 'id' ? 'id-ID' : 'en-US')}
                                                 </span>
                                             )}
                                             <span className="block text-4xl font-extrabold text-primary">
-                                                Rp {bootcamp.price.toLocaleString('id-ID')}
+                                                Rp {bootcamp.price.toLocaleString(i18n.language === 'id' ? 'id-ID' : 'en-US')}
                                             </span>
                                             <span className="mt-2 inline-block rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
-                                                Bayar Sekali, Akses Selamanya
+                                                {t('bootcamp.detail.payOnceLifetime')}
                                             </span>
                                         </>
                                     ) : (
                                         <span className="block text-5xl font-extrabold text-green-600">
-                                            GRATIS
+                                            {t('bootcamp.detail.free')}
                                         </span>
                                     )}
                                 </div>
@@ -121,29 +123,29 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                 {/* Quick Info */}
                                 <div className="mb-6 space-y-3">
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Lokasi</span>
-                                        <span className="font-bold text-gray-900 dark:text-white">Online</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('bootcamp.detail.location')}</span>
+                                        <span className="font-bold text-gray-900 dark:text-white">{t('bootcamp.detail.online')}</span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Batch</span>
                                         <span className="font-bold text-gray-900 dark:text-white">{bootcamp.batch || '-'}</span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Kuota</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('bootcamp.detail.quota')}</span>
                                         <span className="font-bold text-gray-900 dark:text-white">
-                                            {bootcamp.quota ? `${bootcamp.quota} Peserta` : 'Tidak Terbatas'}
+                                            {bootcamp.quota ? t('bootcamp.detail.quotaParticipants', { quota: bootcamp.quota }) : t('bootcamp.detail.unlimitedQuota')}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Durasi</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('bootcamp.detail.duration')}</span>
                                         <span className="font-bold text-gray-900 dark:text-white">
-                                            {diffDays < 7 ? `${diffDays} Hari` : `${totalWeeks} Minggu`}
+                                            {diffDays < 7 ? t('bootcamp.detail.daysCount', { count: diffDays }) : t('bootcamp.detail.weeksCount', { count: totalWeeks })}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Deadline</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('bootcamp.detail.deadline')}</span>
                                         <span className="font-bold text-red-600">
-                                            {new Date(bootcamp.registration_deadline).toLocaleDateString('id-ID', {
+                                            {new Date(bootcamp.registration_deadline).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                                 day: 'numeric',
                                                 month: 'short',
                                             })}
@@ -163,13 +165,13 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                 {isRegistrationOpen ? (
                                     <Button className="w-full py-4 text-md font-bold shadow-lg" size="lg" asChild>
                                         <Link href={registrationUrl}>
-                                            <Sparkles className="mr-2 h-5 w-5" />
-                                            {buttonText}
+                                             <Sparkles className="mr-2 h-5 w-5" />
+                                             {buttonText}
                                         </Link>
                                     </Button>
                                 ) : (
                                     <Button className="w-full py-4 text-md font-bold" size="lg" disabled>
-                                        Pendaftaran Ditutup
+                                        {t('bootcamp.detail.registrationClosed')}
                                     </Button>
                                 )}
 
@@ -177,15 +179,15 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                 <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Terpercaya</span>
+                                        <span>{t('bootcamp.detail.trusted')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Aman</span>
+                                        <span>{t('bootcamp.detail.secure')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Berkualitas</span>
+                                        <span>{t('bootcamp.detail.highQuality')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -199,7 +201,7 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                             className="mt-4 text-center"
                         >
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                🔒 Pembayaran aman & terpercaya
+                                {t('bootcamp.detail.securePaymentText')}
                             </p>
                         </motion.div>
                     </motion.div>
@@ -224,20 +226,20 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                         <div className="rounded-2xl border-2 p-6 shadow-lg dark:border-zinc-700">
                             <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
                                 <CalendarDays className="h-6 w-6 text-primary" />
-                                Jadwal Bootcamp
+                                {t('bootcamp.detail.bootcampSchedule')}
                             </h3>
                             
                             {/* Date Range */}
                             <div className="mb-4 rounded-lg bg-primary/5 p-4">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Periode Program</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{t('bootcamp.detail.programPeriod')}</p>
                                 <p className="font-bold text-gray-900 dark:text-white">
-                                    {new Date(bootcamp.start_date).toLocaleDateString('id-ID', {
+                                    {new Date(bootcamp.start_date).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                         day: 'numeric',
                                         month: 'long',
                                         year: 'numeric',
                                     })}{' '}
                                     -{' '}
-                                    {new Date(bootcamp.end_date).toLocaleDateString('id-ID', {
+                                    {new Date(bootcamp.end_date).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                         day: 'numeric',
                                         month: 'long',
                                         year: 'numeric',
@@ -264,7 +266,7 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                                     {schedule.day}
                                                 </p>
                                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                    {new Date(schedule.schedule_date).toLocaleDateString('id-ID', {
+                                                    {new Date(schedule.schedule_date).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                                         day: 'numeric',
                                                         month: 'short',
                                                         year: 'numeric',
@@ -279,7 +281,7 @@ export default function RegisterSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                 ) : (
                                     <div className="flex flex-col items-center justify-center gap-2 py-8 text-gray-500 dark:text-gray-400">
                                         <Clock className="h-12 w-12 opacity-50" />
-                                        <p className="text-sm">Jadwal akan segera diumumkan</p>
+                                        <p className="text-sm">{t('bootcamp.detail.scheduleAnnouncedSoon')}</p>
                                     </div>
                                 )}
                             </ul>

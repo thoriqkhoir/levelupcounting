@@ -1,5 +1,6 @@
 import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { HeroSection } from './hero-section';
 import { VisionMissionSection } from './vision-mission-section';
 import { TeamSection } from './team-section';
@@ -21,6 +22,8 @@ interface AboutProps {
 }
 
 export default function About({ mentors }: AboutProps) {
+    const { t } = useTranslation('user');
+
     return (
         <div className="relative min-h-screen bg-background">
             {/* Global Decorative Background — Blobs */}
@@ -38,7 +41,7 @@ export default function About({ mentors }: AboutProps) {
             />
 
             <UserLayout>
-                <Head title="Tentang Kami" />
+                <Head title={t('about.headTitle', 'Tentang Kami')} />
 
                 <div className="relative z-10">
                     <HeroSection />

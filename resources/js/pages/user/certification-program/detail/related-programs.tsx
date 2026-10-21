@@ -1,8 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { enUS, id } from 'date-fns/locale';
 import { Calendar, GraduationCap, Percent } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface RelatedProgram {
     id: string;
@@ -24,6 +25,9 @@ export default function RelatedPrograms({
     relatedPrograms: RelatedProgram[];
     approvedScholarshipProgramIds?: string[];
 }) {
+    const { t, i18n } = useTranslation();
+    const currentLocale = i18n.language === 'en' ? enUS : id;
+
     if (!relatedPrograms || relatedPrograms.length === 0) return null;
 
     const calculateDiscount = (original: number, discounted: number) => {
@@ -33,8 +37,8 @@ export default function RelatedPrograms({
 
     return (
         <section className="mx-auto mt-16 w-full max-w-7xl px-4" id="related">
-            <h2 className="dark:text-primary-foreground mb-4 text-center text-2xl font-semibold text-gray-900 md:text-3xl">Program Sertifikasi Lainnya</h2>
-            <p className="mb-8 text-center text-gray-600 dark:text-gray-400">Program sertifikasi lain yang mungkin menarik untuk Anda</p>
+            <h2 className="dark:text-primary-foreground mb-4 text-center text-2xl font-semibold text-gray-900 md:text-3xl">{t('certificationProgram.detail.related.title')}</h2>
+            <p className="mb-8 text-center text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.related.subtitle')}</p>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {relatedPrograms.map((program) => {
@@ -57,7 +61,7 @@ export default function RelatedPrograms({
                                             {/* Type Badge - Top Left */}
                                             <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-2 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30 flex items-center gap-1">
                                                 <GraduationCap size={12} />
-                                                {program.type === 'scholarship' ? 'Beasiswa' : 'Reguler'}
+                                                {program.type === 'scholarship' ? t('certificationProgram.detail.related.badgeScholarship') : t('certificationProgram.detail.related.badgeRegular')}
                                             </span>
 
                                             {/* Date Display - Bottom Right */}
@@ -66,7 +70,7 @@ export default function RelatedPrograms({
                                                     <div className="flex items-center gap-2">
                                                         <Calendar size={12} />
                                                         <p className="text-xs font-semibold text-black dark:text-gray-400">
-                                                            {format(deadlineDate, 'dd MMM yyyy', { locale: id })}
+                                                            {format(deadlineDate, 'dd MMM yyyy', { locale: currentLocale })}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -77,7 +81,7 @@ export default function RelatedPrograms({
                                                 <div className="absolute top-2 right-2">
                                                     <Badge className="bg-red-500 text-white shadow-lg">
                                                         <Percent size={12} className="mr-1" />
-                                                        Hemat {discount}%
+                                                        {t('certificationProgram.detail.related.savePercent', { percent: discount })}
                                                     </Badge>
                                                 </div>
                                             )}
@@ -93,7 +97,7 @@ export default function RelatedPrograms({
                                                 const displayPrice = isScholarshipNotApproved ? 0 : program.price;
 
                                                 return displayPrice === 0 ? (
-                                                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">Gratis</p>
+                                                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">{t('certificationProgram.detail.related.free')}</p>
                                                 ) : (
                                                     <div className="mb-2">
                                                         {!isScholarshipNotApproved && (program.strikethrough_price ?? 0) > 0 && (program.strikethrough_price ?? 0) > displayPrice && (
@@ -115,7 +119,7 @@ export default function RelatedPrograms({
                                         <div className="bg-primary/50 my-2 h-0.5 w-full rounded-full px-4" />
                                         
                                         <div className="mx-4 mt-4 flex items-center justify-center py-2">
-                                            <span className="text-sm font-medium text-primary hover:underline">Lihat Detail Program &rarr;</span>
+                                            <span className="text-sm font-medium text-primary hover:underline">{t('certificationProgram.detail.related.viewDetail')}</span>
                                         </div>
                                     </div>
                                 </div>

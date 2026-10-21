@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useInitials } from '@/hooks/use-initials';
+import { useTranslation } from 'react-i18next';
 
 interface Mentor {
     id: string;
@@ -23,6 +24,7 @@ interface TeamSectionProps {
 }
 
 export function TeamSection({ mentors }: TeamSectionProps) {
+    const { t } = useTranslation('user');
     const getInitials = useInitials();
 
     // Jika tidak ada mentor, tampilkan data placeholder
@@ -96,18 +98,14 @@ export function TeamSection({ mentors }: TeamSectionProps) {
                 >
                     <div className="mb-4 flex justify-center">
                         <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
-                            👥 Tim &amp; Mentor
+                            {t('about.team.badge', '👥 Tim & Mentor')}
                         </span>
                     </div>
                     <h2 className="font-av-estiana mb-3 text-2xl font-extrabold md:text-3xl">
-                        Profesional Mentor{' '}
-                        <span className="relative inline-block">
-                            <span className="relative z-10">dan Tim Kami</span>
-                            <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
-                        </span>
+                        {t('about.team.title', 'Profesional Mentor dan Tim Kami')}
                     </h2>
                     <p className="mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-400 md:text-base">
-                        Bertemu dengan para profesional yang berdedikasi membimbing perjalanan belajar Anda
+                        {t('about.team.desc', 'Bertemu dengan para profesional yang berdedikasi membimbing perjalanan belajar Anda')}
                     </p>
                 </motion.div>
 
@@ -145,24 +143,24 @@ export function TeamSection({ mentors }: TeamSectionProps) {
                                 </h3>
                                 <p className="mb-3 text-xs font-bold uppercase tracking-wider text-primary/80">
                                     {member.total_courses > 0 || member.total_bootcamps > 0 || member.total_articles > 0 
-                                        ? 'Mentor Profesional' 
-                                        : 'Mentor'}
+                                        ? t('about.team.proMentor', 'Mentor Profesional') 
+                                        : t('about.team.mentor', 'Mentor')}
                                 </p>
                                 
                                 {/* Stats Mini */}
                                 <div className="mb-4 flex items-center justify-center gap-3 text-xs font-medium text-gray-500 dark:text-gray-400">
                                     <div className="flex items-center gap-1.5 rounded-full bg-gray-50 px-2.5 py-1 dark:bg-gray-800">
                                         <BookOpen className="h-3.5 w-3.5 text-blue-500" />
-                                        <span>{member.total_courses + member.total_bootcamps + member.total_webinars} Kelas</span>
+                                        <span>{t('about.team.classesCount', { count: member.total_courses + member.total_bootcamps + member.total_webinars, defaultValue: `${member.total_courses + member.total_bootcamps + member.total_webinars} Kelas` })}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 rounded-full bg-gray-50 px-2.5 py-1 dark:bg-gray-800">
                                         <FileText className="h-3.5 w-3.5 text-purple-500" />
-                                        <span>{member.total_articles} Artikel</span>
+                                        <span>{t('about.team.articlesCount', { count: member.total_articles, defaultValue: `${member.total_articles} Artikel` })}</span>
                                     </div>
                                 </div>
 
                                 <p className="mb-6 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
-                                    {member.bio || 'Bergabung bersama Level Up Accounting untuk membimbing perjalanan belajar Anda.'}
+                                    {member.bio || t('about.team.defaultBio', 'Bergabung bersama Level Up Accounting untuk membimbing perjalanan belajar Anda.')}
                                 </p>
 
                                 {/* Button */}
@@ -172,7 +170,7 @@ export function TeamSection({ mentors }: TeamSectionProps) {
                                 >
                                     <a href={`/mentor/${member.id}`}>
                                         <span className="relative z-10 flex items-center justify-center gap-2">
-                                            Lihat Profil
+                                            {t('about.team.viewProfile', 'Lihat Profil')}
                                             <svg
                                                 className="h-4 w-4 transition-transform group-hover/btn:translate-x-1"
                                                 fill="none"

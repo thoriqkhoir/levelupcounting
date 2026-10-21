@@ -3,6 +3,7 @@ import PromotionPopup from '@/components/promotion-popup';
 import UserLayout from '@/layouts/user-layout';
 import { Head } from '@inertiajs/react';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import AboutSection from './about-section';
 import CarouselSection from './carousel-section';
 import CtaSection from './cta-section';
@@ -96,6 +97,7 @@ interface HomeProps {
 }
 
 export default function Home({ latestProducts, myProductIds, allProducts, activePromotion, referralInfo }: HomeProps) {
+    const { t } = useTranslation(['common', 'home']);
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const refFromUrl = urlParams.get('ref');
@@ -123,7 +125,7 @@ export default function Home({ latestProducts, myProductIds, allProducts, active
             />
 
             <UserLayout>
-                <Head title="Beranda" />
+                <Head title={t('nav.home', { defaultValue: 'Beranda' })} />
 
                 {activePromotion && <PromotionPopup promotion={activePromotion} suppressDuration={3} />}
 

@@ -1,26 +1,28 @@
 import { BookOpen, Briefcase, Users, CheckCircle, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 export default function AboutSection() {
+    const { t } = useTranslation('user');
     const features = [
         {
             icon: BookOpen,
-            title: 'Kurikulum Modern',
-            description: 'Dirancang sesuai kebutuhan industri terkini untuk memastikan Anda siap menghadapi tantangan nyata.',
+            title: t('bootcamp.detail.curriculumModern'),
+            description: t('bootcamp.detail.curriculumModernDesc'),
             color: 'from-blue-500 to-indigo-600',
             bgColor: 'bg-blue-50 dark:bg-blue-900/20',
         },
         {
             icon: Briefcase,
-            title: 'Siap Karir',
-            description: 'Membangun fondasi yang kuat dengan portofolio proyek nyata untuk memulai karir di dunia teknologi.',
+            title: t('bootcamp.detail.careerReady'),
+            description: t('bootcamp.detail.careerReadyDesc'),
             color: 'from-green-500 to-emerald-600',
             bgColor: 'bg-green-50 dark:bg-green-900/20',
         },
         {
             icon: Users,
-            title: 'Dukungan Penuh',
-            description: 'Dapatkan dukungan dari mentor berpengalaman dan komunitas belajar yang aktif selama perjalanan Anda.',
+            title: t('bootcamp.detail.fullSupport'),
+            description: t('bootcamp.detail.fullSupportDesc'),
             color: 'from-purple-500 to-pink-600',
             bgColor: 'bg-purple-50 dark:bg-purple-900/20',
         },
@@ -47,14 +49,14 @@ export default function AboutSection() {
                 <div className="mb-4 flex items-center justify-center gap-2">
                     <Sparkles className="h-6 w-6 text-primary" />
                     <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                        Kenapa Memilih Bootcamp Kami?
+                        {t('bootcamp.detail.whyChooseUsBadge')}
                     </span>
                 </div>
                 <h2 className="mb-4 text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white">
-                    Transformasi Karir Dimulai Di Sini
+                    {t('bootcamp.detail.whyChooseUsTitle')}
                 </h2>
                 <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-                    Program intensif yang dirancang untuk mengubah pemula menjadi profesional siap kerja dalam waktu singkat
+                    {t('bootcamp.detail.whyChooseUsSubtitle')}
                 </p>
             </motion.div>
 

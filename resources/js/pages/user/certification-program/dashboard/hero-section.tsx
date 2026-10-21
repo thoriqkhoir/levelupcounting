@@ -1,20 +1,23 @@
 import { Button } from '@/components/ui/button';
 import { motion } from 'motion/react';
 import { Award, Sparkles, CheckCircle, TrendingUp, ArrowRight, BadgeCheck, Users } from 'lucide-react';
-
-const stats = [
-    { icon: BadgeCheck, value: '100%', label: 'Diakui Industri', color: 'text-primary', bg: 'bg-primary/10' },
-    { icon: Users, value: '500+', label: 'Peserta Lulus', color: 'text-secondary', bg: 'bg-secondary/10' },
-    { icon: TrendingUp, value: '95%', label: 'Tingkat Kepuasan', color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
-];
-
-const badges = [
-    { icon: CheckCircle, label: 'Sertifikat Profesional', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.55 },
-    { icon: Award, label: 'Partner Industri Terpercaya', color: 'text-primary', bg: 'bg-primary/5 dark:bg-primary/10', delay: 0.7 },
-    { icon: TrendingUp, label: 'Peluang Karir Lebih Luas', color: 'text-secondary', bg: 'bg-secondary/5 dark:bg-secondary/10', delay: 0.85 },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function HeroSection() {
+    const { t } = useTranslation('user');
+
+    const stats = [
+        { icon: BadgeCheck, value: '100%', label: t('certificationProgram.dashboard.hero.statIndustry'), color: 'text-primary', bg: 'bg-primary/10' },
+        { icon: Users, value: '500+', label: t('certificationProgram.dashboard.hero.statGraduates'), color: 'text-secondary', bg: 'bg-secondary/10' },
+        { icon: TrendingUp, value: '95%', label: t('certificationProgram.dashboard.hero.statSatisfaction'), color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    ];
+
+    const badges = [
+        { icon: CheckCircle, label: t('certificationProgram.dashboard.hero.badgeCert'), color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.55 },
+        { icon: Award, label: t('certificationProgram.dashboard.hero.badgePartner'), color: 'text-primary', bg: 'bg-primary/5 dark:bg-primary/10', delay: 0.7 },
+        { icon: TrendingUp, label: t('certificationProgram.dashboard.hero.badgeCareer'), color: 'text-secondary', bg: 'bg-secondary/5 dark:bg-secondary/10', delay: 0.85 },
+    ];
+
     return (
         <section className="relative overflow-hidden py-20 text-foreground">
             <div className="relative z-10 mx-auto max-w-7xl px-4">
@@ -28,7 +31,7 @@ export default function HeroSection() {
                 >
                     <span className="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-4 py-1.5 text-sm font-semibold text-secondary shadow-sm ring-1 ring-secondary/20">
                         <Award className="h-4 w-4" />
-                        Program Sertifikasi
+                        {t('certificationProgram.dashboard.hero.badge')}
                     </span>
                 </motion.div>
 
@@ -39,17 +42,17 @@ export default function HeroSection() {
                     transition={{ duration: 0.7, delay: 0.25 }}
                     className="font-av-estiana mx-auto mb-6 max-w-4xl text-center text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
                 >
-                    Raih{' '}
+                    {t('certificationProgram.dashboard.hero.titlePart1')}{' '}
                     <span className="relative inline-block">
-                        <span className="relative z-10 text-primary">Sertifikasi</span>
+                        <span className="relative z-10 text-primary">{t('certificationProgram.dashboard.hero.statCert')}</span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                     </span>{' '}
-                    &amp;{' '}
+                    {t('certificationProgram.dashboard.hero.and')}{' '}
                     <span className="relative inline-block">
-                        <span className="relative z-10 text-secondary">Kredibilitas</span>
+                        <span className="relative z-10 text-secondary">{t('certificationProgram.dashboard.hero.titlePart2')}</span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full rotate-1 rounded bg-secondary/20" />
                     </span>{' '}
-                    Profesional
+                    {t('certificationProgram.dashboard.hero.titlePart3')}
                 </motion.h1>
 
                 {/* Subtext */}
@@ -59,7 +62,7 @@ export default function HeroSection() {
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="mx-auto mb-10 max-w-2xl text-center text-base text-muted-foreground md:text-lg"
                 >
-                    Tingkatkan kompetensi dan buka peluang karir lebih luas dengan program sertifikasi yang dirancang khusus bersama pakar industri terkemuka.
+                    {t('certificationProgram.dashboard.hero.description')}
                 </motion.p>
 
                 {/* CTA Buttons */}
@@ -72,12 +75,12 @@ export default function HeroSection() {
                     <a href="#certification-programs">
                         <Button size="default" className="rounded-full px-8">
                             <Sparkles className="mr-2 h-4 w-4" />
-                            Lihat Program
+                            {t('certificationProgram.dashboard.hero.btnViewProgramShort')}
                         </Button>
                     </a>
                     <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" size="default" className="rounded-full px-8">
-                            Konsultasi Gratis
+                            {t('certificationProgram.dashboard.hero.btnFreeConsultation')}
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </a>

@@ -4,6 +4,7 @@ import { Magnetic } from '@/components/ui/magnetic';
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Calendar, GalleryVerticalEnd, Percent } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Category = {
     id: string;
@@ -35,6 +36,7 @@ interface WebinarProps {
 }
 
 export default function WebinarSection({ categories, webinars, myWebinarIds }: WebinarProps) {
+    const { t, i18n } = useTranslation();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [visibleCount, setVisibleCount] = useState(6);
@@ -74,17 +76,17 @@ export default function WebinarSection({ categories, webinars, myWebinarIds }: W
     return (
         <section className="mx-auto w-full max-w-7xl px-4 pb-20" id="webinar">
             <h2 className="dark:text-primary-foreground mx-auto mb-4 max-w-3xl text-center text-3xl font-extrabold text-gray-900 md:text-4xl">
-                Tingkatkan kemampuan dan persiapkan diri untuk sukses di era digital.
+                {t('webinar.catalog.title')}
             </h2>
             <p className="mx-auto mb-8 text-center text-gray-600 dark:text-gray-400">
-                Perluas pengetahuan dan jaringan untuk menghadapi dunia kerja dengan lebih percaya diri.
+                {t('webinar.catalog.subtitle')}
             </p>
 
             {/* Kategori */}
             <div className="mb-8 overflow-x-auto scrollbar-hide" ref={categoryRef} onMouseDown={handleMouseDown} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={handleMouseMove} style={{ cursor: isDragging.current ? 'grabbing' : 'grab' }}>
                 <div className="flex w-max flex-nowrap gap-3 select-none">
                     <button type="button" onClick={() => setSelectedCategory(null)} className={`rounded-full border-2 px-6 py-2 text-sm font-semibold transition-all duration-200 ${selectedCategory === null ? 'border-primary bg-primary/10 text-primary shadow' : 'border-gray-300 bg-white text-gray-800 hover:border-primary/40 hover:bg-primary/5 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'}`}>
-                        Semua Kategori
+                        {t('webinar.catalog.allCategories')}
                     </button>
                     {categories.map((category) => (
                         <button key={category.id} type="button" onClick={() => setSelectedCategory(category.id)} className={`rounded-full border-2 px-6 py-2 text-sm font-semibold transition-all duration-200 ${selectedCategory === category.id ? 'border-primary bg-primary/10 text-primary shadow' : 'border-gray-300 bg-white text-gray-800 hover:border-primary/40 hover:bg-primary/5 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'}`}>
@@ -96,15 +98,15 @@ export default function WebinarSection({ categories, webinars, myWebinarIds }: W
 
             {/* Search */}
             <div className="mb-8 flex justify-center">
-                <Input type="search" placeholder="Cari webinar..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md rounded-full border-2 border-primary/30 px-6 py-2 shadow-sm focus:border-primary" />
+                <Input type="search" placeholder={t('webinar.catalog.searchPlaceholder')} value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md rounded-full border-2 border-primary/30 px-6 py-2 shadow-sm focus:border-primary" />
             </div>
 
             {/* Cards */}
             <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {visibleWebinars.length === 0 ? (
                     <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
-                        <img src="/assets/images/not-found.svg" alt="Webinar Belum Tersedia" className="w-48" />
-                        <div className="text-center text-gray-500">Belum ada webinar yang tersedia saat ini.</div>
+                        <img src="/assets/images/not-found.svg" alt={t('webinar.catalog.empty')} className="w-48" />
+                        <div className="text-center text-gray-500">{t('webinar.catalog.empty')}</div>
                     </div>
                 ) : (
                     visibleWebinars.map((webinar) => {
@@ -123,14 +125,14 @@ export default function WebinarSection({ categories, webinars, myWebinarIds }: W
                                         />
                                         {/* Type Badge - Top Left */}
                                         <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
-                                            Webinar
+                                            {t('webinar.title')}
                                         </span>
                                         {/* Discount / Access Badge - Top Right */}
                                         {hasAccess ? (
-                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white shadow">Sudah Akses</span>
+                                            <span className="absolute top-2 right-2 z-20 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white shadow">{t('webinar.catalog.owned')}</span>
                                         ) : discount > 0 ? (
                                             <div className="absolute top-2 right-2 z-20 inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-lg">
-                                                <Percent size={10} />Hemat {discount}%
+                                                <Percent size={10} />{t('webinar.catalog.saveDiscount', { discount })}
                                             </div>
                                         ) : null}
                                         {/* Category - Bottom Left */}
@@ -142,7 +144,7 @@ export default function WebinarSection({ categories, webinars, myWebinarIds }: W
                                             <div className="flex items-center gap-2">
                                                 <Calendar size={12} />
                                                 <p className="text-xs font-semibold text-black dark:text-gray-400">
-                                                    {new Date(webinar.start_time).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </p>
                                             </div>
                                         </div>
@@ -153,14 +155,14 @@ export default function WebinarSection({ categories, webinars, myWebinarIds }: W
                                         <h2 className="line-clamp-2 text-lg lg:text-xl font-bold text-gray-900 dark:text-gray-100">{webinar.title}</h2>
                                         <div>
                                             {webinar.strikethrough_price > 0 && webinar.strikethrough_price > webinar.price && (
-                                                <p className="text-base text-red-500 line-through">Rp. {webinar.strikethrough_price.toLocaleString('id-ID')}</p>
+                                                <p className="text-base text-red-500 line-through">Rp. {webinar.strikethrough_price.toLocaleString(i18n.language === 'id' ? 'id-ID' : 'en-US')}</p>
                                             )}
                                             {hasAccess ? (
-                                                <p className="text-2xl font-bold text-primary">Sudah Terdaftar</p>
+                                                <p className="text-2xl font-bold text-primary">{t('webinar.catalog.registered')}</p>
                                             ) : webinar.price === 0 ? (
-                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Gratis</p>
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{t('webinar.catalog.free')}</p>
                                             ) : (
-                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Rp. {webinar.price.toLocaleString('id-ID')}</p>
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Rp. {webinar.price.toLocaleString(i18n.language === 'id' ? 'id-ID' : 'en-US')}</p>
                                             )}
                                         </div>
                                         {/* Presenter */}
@@ -178,7 +180,7 @@ export default function WebinarSection({ categories, webinars, myWebinarIds }: W
 
                                     {/* CTA Bar */}
                                     <div className="mt-auto flex items-center justify-between px-5 py-3 mx-4 mb-4 rounded-xl border border-gray-200 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:bg-primary group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
-                                        <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">{hasAccess ? 'Lihat Materi' : 'Daftar Sekarang'}</span>
+                                        <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">{hasAccess ? t('webinar.catalog.viewMaterial') : t('webinar.catalog.registerNow')}</span>
                                         <ArrowRight className="h-6 w-6 text-gray-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white dark:text-gray-400" />
                                     </div>
                                 </div>
@@ -193,7 +195,7 @@ export default function WebinarSection({ categories, webinars, myWebinarIds }: W
                 <div className="mb-8 flex justify-center">
                     <Magnetic>
                         <Button type="button" size="lg" className="rounded-full px-8 py-3 text-base font-bold shadow-lg" onClick={() => setVisibleCount((prev) => prev + 6)}>
-                            Lihat Lebih Banyak <GalleryVerticalEnd className="ml-2" />
+                            {t('webinar.catalog.loadMore')} <GalleryVerticalEnd className="ml-2" />
                         </Button>
                     </Magnetic>
                 </div>

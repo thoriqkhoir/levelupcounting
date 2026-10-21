@@ -1,5 +1,6 @@
 import { BookOpen, CheckCircle, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Bootcamp {
     curriculum?: string | null;
@@ -13,6 +14,7 @@ function parseCurriculum(curriculum?: string | null): string[] {
 }
 
 export default function TimelineSection({ bootcamp }: { bootcamp: Bootcamp }) {
+    const { t } = useTranslation('user');
     const curriculumList = parseCurriculum(bootcamp.curriculum);
 
     return (
@@ -33,23 +35,23 @@ export default function TimelineSection({ bootcamp }: { bootcamp: Bootcamp }) {
                 >
                     <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
                         <Sparkles className="h-4 w-4" />
-                        Kurikulum Bootcamp
+                        {t('bootcamp.detail.curriculumBadge')}
                     </span>
                     <h2 className="mt-3 text-3xl font-extrabold text-gray-900 dark:text-white md:text-4xl">
-                        Materi yang Akan{' '}
+                        {t('bootcamp.detail.curriculumTitleLead')}
                         <span className="relative inline-block">
-                            <span className="relative z-10 text-primary">Kamu Pelajari</span>
+                            <span className="relative z-10 text-primary">{t('bootcamp.detail.curriculumTitleHighlight')}</span>
                             <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                         </span>
                     </h2>
                     <p className="mx-auto mt-4 max-w-xl text-base text-gray-500 dark:text-gray-400">
-                        Kurikulum terstruktur yang dirancang membawamu dari pemula hingga mahir dalam waktu singkat
+                        {t('bootcamp.detail.curriculumSubtitle')}
                     </p>
 
                     {curriculumList.length > 0 && (
                         <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
                             <BookOpen className="h-4 w-4" />
-                            {curriculumList.length} Modul Pembelajaran
+                            {t('bootcamp.detail.curriculumCountBadge', { count: curriculumList.length })}
                         </div>
                     )}
                 </motion.div>
@@ -86,7 +88,7 @@ export default function TimelineSection({ bootcamp }: { bootcamp: Bootcamp }) {
                                 {/* Included badge */}
                                 <div className="relative z-10 flex items-center gap-1.5">
                                     <CheckCircle className="h-3.5 w-3.5 text-green-500" />
-                                    <span className="text-[11px] font-medium text-green-600 dark:text-green-400">Included</span>
+                                    <span className="text-[11px] font-medium text-green-600 dark:text-green-400">{t('bootcamp.detail.curriculumIncluded')}</span>
                                 </div>
                             </motion.div>
                         ))}
@@ -100,7 +102,7 @@ export default function TimelineSection({ bootcamp }: { bootcamp: Bootcamp }) {
                         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800">
                             <BookOpen className="h-10 w-10 text-gray-400" />
                         </div>
-                        <p className="text-center text-gray-500 dark:text-gray-400">Kurikulum akan segera ditambahkan</p>
+                        <p className="text-center text-gray-500 dark:text-gray-400">{t('bootcamp.detail.curriculumEmpty')}</p>
                     </motion.div>
                 )}
             </div>

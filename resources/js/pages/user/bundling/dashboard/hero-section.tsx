@@ -1,20 +1,23 @@
 import { Button } from '@/components/ui/button';
 import { BookOpen, Check, Infinity, Layers, Package, Percent, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const stats = [
-    { label: 'Hemat Lebih Banyak', value: '70%', icon: Percent, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Program dalam 1 Paket', value: '2+', icon: Layers, color: 'text-secondary', bg: 'bg-secondary/10' },
-    { label: 'Akses Selamanya', value: '100%', icon: Infinity, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
-];
-
-const floatingBadges = [
-    { icon: Check, label: 'Hemat Hingga 70%', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.6 },
-    { icon: Layers, label: 'Multi Program', color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', delay: 0.75 },
-    { icon: BookOpen, label: 'Sertifikat Semua Program', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.9 },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function HeroSection() {
+    const { t } = useTranslation('user');
+
+    const stats = [
+        { label: t('bundling.dashboard.hero.statSave'), value: '70%', icon: Percent, color: 'text-primary', bg: 'bg-primary/10' },
+        { label: t('bundling.dashboard.hero.statPrograms'), value: '2+', icon: Layers, color: 'text-secondary', bg: 'bg-secondary/10' },
+        { label: t('bundling.dashboard.hero.statLifetime'), value: '100%', icon: Infinity, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    ];
+
+    const floatingBadges = [
+        { icon: Check, label: t('bundling.dashboard.hero.badgeSave'), color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30', delay: 0.6 },
+        { icon: Layers, label: t('bundling.dashboard.hero.badgeMulti'), color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/30', delay: 0.75 },
+        { icon: BookOpen, label: t('bundling.dashboard.hero.badgeCert'), color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30', delay: 0.9 },
+    ];
+
     return (
         <section className="relative overflow-hidden py-20 text-gray-900 dark:text-white">
             <div className="relative z-10 mx-auto max-w-7xl px-4">
@@ -27,7 +30,7 @@ export default function HeroSection() {
                 >
                     <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/20">
                         <Sparkles className="h-4 w-4 animate-pulse" />
-                        Penawaran Spesial Paket Bundling
+                        {t('bundling.dashboard.hero.badge')}
                     </span>
                 </motion.div>
 
@@ -38,9 +41,9 @@ export default function HeroSection() {
                     transition={{ duration: 0.7, delay: 0.25 }}
                     className="font-av-estiana mx-auto mb-6 max-w-4xl text-center text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
                 >
-                    <span className="text-primary">Belajar Lebih Banyak</span>,{' '}
+                    <span className="text-primary">{t('bundling.dashboard.hero.titlePart1')}</span>,{' '}
                     <span className="relative inline-block">
-                        <span className="relative z-10">Bayar Lebih Hemat!</span>
+                        <span className="relative z-10">{t('bundling.dashboard.hero.titlePart2')}</span>
                         <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-secondary/20" />
                     </span>{' '}
                     🎉
@@ -53,7 +56,7 @@ export default function HeroSection() {
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="mx-auto mb-10 max-w-2xl text-center text-base text-gray-600 dark:text-gray-300 md:text-lg"
                 >
-                    Dapatkan akses ke beberapa program pembelajaran sekaligus dengan harga spesial. Tingkatkan skill-mu dengan paket bundling yang dirancang khusus untuk percepatan karirmu!
+                    {t('bundling.dashboard.hero.desc')}
                 </motion.p>
 
                 {/* CTA Buttons */}
@@ -66,12 +69,12 @@ export default function HeroSection() {
                     <a href="#bundles">
                         <Button size="lg" className="gap-2 px-8 text-base rounded-full shadow-lg">
                             <Package size={20} />
-                            Lihat Paket Bundling
+                            {t('bundling.dashboard.hero.btnViewBundles')}
                         </Button>
                     </a>
                     <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                         <Button size="lg" variant="outline" className="px-8 text-base rounded-full">
-                            Konsultasi Gratis
+                            {t('bundling.dashboard.hero.btnFreeConsultation')}
                         </Button>
                     </a>
                 </motion.div>

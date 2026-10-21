@@ -1,5 +1,6 @@
 import { BookOpen, CheckCircle, Gift, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface CertificationProgram {
     description?: string | null;
@@ -23,6 +24,7 @@ function parseList(items?: string | null): ListItem[] {
 }
 
 export default function InformationSection({ program }: { program: CertificationProgram }) {
+    const { t } = useTranslation();
     if (!program.description && !program.benefits) return null;
 
     const benefitList = parseList(program.benefits);
@@ -45,11 +47,11 @@ export default function InformationSection({ program }: { program: Certification
                 >
                     <div className="mb-4 flex items-center justify-center gap-2">
                         <Sparkles className="text-primary h-6 w-6" />
-                        <span className="bg-primary/10 text-primary rounded-full px-4 py-1 text-sm font-semibold">Informasi Program</span>
+                        <span className="bg-primary/10 text-primary rounded-full px-4 py-1 text-sm font-semibold">{t('certificationProgram.detail.information.badge')}</span>
                     </div>
-                    <h2 className="mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl dark:text-white">Kenali Lebih Dalam</h2>
+                    <h2 className="mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl dark:text-white">{t('certificationProgram.detail.information.title')}</h2>
                     <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-                        Pelajari detail program dan temukan berbagai manfaat yang akan kamu peroleh
+                        {t('certificationProgram.detail.information.subtitle')}
                     </p>
                 </motion.div>
 
@@ -70,8 +72,8 @@ export default function InformationSection({ program }: { program: Certification
                                     <BookOpen className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Tentang Program</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Deskripsi singkat</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t('certificationProgram.detail.information.aboutTitle')}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.information.aboutSubtitle')}</p>
                                 </div>
                             </div>
 
@@ -98,8 +100,8 @@ export default function InformationSection({ program }: { program: Certification
                                     <Gift className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Manfaat yang Didapatkan</h3>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Investasi yang menguntungkan</p>
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t('certificationProgram.detail.information.benefitsTitle')}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.information.benefitsSubtitle')}</p>
                                 </div>
                             </div>
 

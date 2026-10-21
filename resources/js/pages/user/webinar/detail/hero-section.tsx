@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Users, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Webinar {
     title: string;
@@ -11,6 +12,12 @@ interface Webinar {
 }
 
 export default function HeroSection({ webinar }: { webinar: Webinar }) {
+    const { t, i18n } = useTranslation();
+
+    const durationHours = Math.ceil(
+        (new Date(webinar.end_time).getTime() - new Date(webinar.start_time).getTime()) / (1000 * 60 * 60)
+    );
+
     return (
         <section className="relative mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 p-8 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/60 sm:p-12">
@@ -35,7 +42,7 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                             {/* Overlay Badge */}
                             <div className="absolute top-3 right-3 md:top-4 md:right-4">
                                 <div className="rounded-full bg-white/90 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 shadow-lg">
-                                    <p className="text-xs md:text-sm font-bold text-primary">🎯 Webinar Live</p>
+                                    <p className="text-xs md:text-sm font-bold text-primary">🎯 {t('webinar.detail.liveWebinar')}</p>
                                 </div>
                             </div>
 
@@ -44,12 +51,12 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-white">
                                     <div>
                                         <p className="text-xs md:text-sm font-bold">
-                                           Durasi {Math.ceil((new Date(webinar.end_time).getTime() - new Date(webinar.start_time).getTime()) / (1000 * 60 * 60))} Jam
+                                            {t('webinar.detail.durationHours', { hours: durationHours })}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-4 w-4 md:h-5 md:w-5" />
-                                        <span className="text-xs md:text-sm font-medium">Sesi Interaktif</span>
+                                        <span className="text-xs md:text-sm font-medium">{t('webinar.detail.interactiveSession')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -72,7 +79,7 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                         >
                             <Sparkles className="h-3 w-3 md:h-4 md:w-4 text-primary" />
                             <span className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white">
-                                Webinar Interaktif
+                                {t('webinar.detail.interactiveBadge')}
                             </span>
                         </motion.div>
 
@@ -95,8 +102,7 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                             transition={{ duration: 0.6, delay: 0.3 }}
                             className="text-sm md:text-base lg:text-lg leading-relaxed text-gray-600 dark:text-gray-300"
                         >
-                            {webinar.description ||
-                                'Ikuti webinar kami untuk mendapatkan wawasan mendalam tentang topik terkini. Daftar sekarang dan jangan lewatkan kesempatan untuk belajar dari para ahli di bidangnya.'}
+                            {webinar.description || t('webinar.detail.heroDefaultDesc')}
                         </motion.p>
 
                         {/* Info Cards */}
@@ -112,9 +118,9 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                                     <Calendar className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[10px] md:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">Tanggal</p>
+                                    <p className="text-[10px] md:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{t('webinar.detail.date')}</p>
                                     <p className="font-bold text-xs md:text-sm lg:text-base text-gray-900 dark:text-white truncate">
-                                        {new Date(webinar.start_time).toLocaleDateString('id-ID', {
+                                        {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                             day: 'numeric',
                                             month: 'short',
                                             year: 'numeric',
@@ -129,19 +135,19 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                                     <Clock className="h-5 w-5 md:h-6 md:w-6 text-secondary" />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[10px] md:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">Waktu</p>
+                                    <p className="text-[10px] md:text-xs font-medium text-gray-500 dark:text-gray-400 truncate">{t('webinar.detail.time')}</p>
                                     <p className="font-bold text-xs md:text-sm lg:text-base text-gray-900 dark:text-white truncate">
-                                        {new Date(webinar.start_time).toLocaleTimeString('id-ID', {
+                                        {new Date(webinar.start_time).toLocaleTimeString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                             hour: '2-digit',
                                             minute: '2-digit',
                                             timeZone: 'Asia/Jakarta',
                                         })}{' '}
                                         -{' '}
-                                        {new Date(webinar.end_time).toLocaleTimeString('id-ID', {
+                                        {new Date(webinar.end_time).toLocaleTimeString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
                                             hour: '2-digit',
                                             minute: '2-digit',
                                             timeZone: 'Asia/Jakarta',
-                                        })} WIB
+                                        })} {t('webinar.detail.timeZoneWib')}
                                     </p>
                                 </div>
                             </div>
@@ -157,12 +163,12 @@ export default function HeroSection({ webinar }: { webinar: Webinar }) {
                             <a href="#register">
                                 <Button size="default" className="px-6 md:px-8 text-sm md:text-base font-bold shadow-lg">
                                     <Sparkles className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                                    Daftar Sekarang
+                                    {t('webinar.detail.btnRegisterNow')}
                                 </Button>
                             </a>
                             <a href="https://wa.me/+6287775764475" target="_blank" rel="noopener noreferrer">
                                 <Button size="default" variant="outline" className="px-6 md:px-8 text-sm md:text-base font-bold">
-                                    Hubungi Kami
+                                    {t('webinar.detail.btnContactUs')}
                                 </Button>
                             </a>
                         </motion.div>

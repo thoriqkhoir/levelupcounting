@@ -1,11 +1,14 @@
 import { Wrench, Sparkles, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Webinar {
     tools?: { name: string; description?: string | null; icon: string | null }[];
 }
 
 export default function ToolsSection({ webinar }: { webinar: Webinar }) {
+    const { t } = useTranslation();
+
     return (
         <section className="relative mx-auto w-full max-w-7xl px-4 pt-6 pb-12" id="tools">
             {/* Background Decoration */}
@@ -25,14 +28,14 @@ export default function ToolsSection({ webinar }: { webinar: Webinar }) {
                     <div className="mb-4 flex items-center justify-center gap-2">
                         <Sparkles className="h-6 w-6 text-primary" />
                         <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                            Tools & Teknologi
+                            {t('webinar.detail.toolsBadge')}
                         </span>
                     </div>
                     <h2 className="mb-4 text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white">
-                        Tools yang Akan Digunakan
+                        {t('webinar.detail.toolsTitle')}
                     </h2>
                     <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-                        Teknologi dan tools yang akan dibahas dalam webinar ini
+                        {t('webinar.detail.toolsSubtitle')}
                     </p>
                 </motion.div>
 
@@ -77,7 +80,7 @@ export default function ToolsSection({ webinar }: { webinar: Webinar }) {
                                         {/* Check Badge */}
                                         <div className="mt-4 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
                                             <CheckCircle className="h-4 w-4" />
-                                            <span className="font-medium">Industry Standard</span>
+                                            <span className="font-medium">{t('webinar.detail.industryStandard')}</span>
                                         </div>
                                     </div>
 
@@ -102,7 +105,7 @@ export default function ToolsSection({ webinar }: { webinar: Webinar }) {
                     >
                         <Wrench className="h-16 w-16 text-gray-400" />
                         <p className="text-center text-gray-500 dark:text-gray-400">
-                            Tools akan segera ditambahkan
+                            {t('webinar.detail.toolsEmpty')}
                         </p>
                     </motion.div>
                 )}

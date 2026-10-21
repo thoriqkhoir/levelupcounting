@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Calendar, Clock, Percent } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
     id: string;
@@ -57,6 +58,9 @@ interface LatestProductsProps {
 }
 
 export default function LatestProductsSection({ latestProducts, myProductIds }: LatestProductsProps) {
+    const { t, i18n } = useTranslation('home');
+    const dateLocale = i18n.language === 'en' ? 'en-US' : 'id-ID';
+
     const safeMyProductIds = {
         courses: myProductIds?.courses || [],
         bootcamps: myProductIds?.bootcamps || [],
@@ -70,31 +74,31 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
             case 'course':
                 return (
                     <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
-                        Kelas Online
+                        {t('latest.badges.course')}
                     </span>
                 );
             case 'bootcamp':
                 return (
                     <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
-                        Bootcamp
+                        {t('latest.badges.bootcamp')}
                     </span>
                 );
             case 'webinar':
                 return (
                     <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
-                        Webinar
+                        {t('latest.badges.webinar')}
                     </span>
                 );
             case 'bundle':
                 return (
                     <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-1 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
-                        Bundle
+                        {t('latest.badges.bundle')}
                     </span>
                 );
             case 'certification-program':
                 return (
                     <span className="absolute top-2 left-2 z-20 rounded-lg border border-white/40 bg-white/30 px-2 py-1 text-xs font-semibold shadow backdrop-blur-md dark:bg-gray-800/30">
-                        Sertifikasi
+                        {t('latest.badges.certification')}
                     </span>
                 );
             default:
@@ -178,7 +182,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
 
             return {
                 name: primaryMentor?.name ?? '-',
-                bio: primaryMentor?.bio ?? 'Tidak ada bio',
+                bio: primaryMentor?.bio ?? t('latest.noBio'),
                 avatar: primaryMentor?.avatar,
                 extraLabel: mentorCount > 1 ? ` +${mentorCount - 1} mentor` : '',
             };
@@ -186,7 +190,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
 
         return {
             name: product.user?.name ?? '-',
-            bio: product.user?.bio ?? 'Tidak ada bio',
+            bio: product.user?.bio ?? t('latest.noBio'),
             avatar: product.user?.avatar,
             extraLabel: '',
         };
@@ -214,15 +218,15 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
         <section id="latest-products" className="mx-auto w-full max-w-7xl px-4 py-8">
             <div className="mx-auto">
                 <h2 className="dark:text-primary-foreground font-av-estiana mx-auto max-w-2xl pb-8 text-center text-2xl font-semibold text-gray-900 md:text-3xl">
-                    Unlock New Possibilities
+                    {t('latest.unlock')}
                 </h2>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {(() => {
                         if (safeLatestProducts.length === 0) {
                             return (
                                 <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
-                                    <img src="/assets/images/not-found.svg" alt="Produk Belum Tersedia" className="w-48" />
-                                    <div className="text-center text-gray-500">Belum ada produk yang tersedia saat ini.</div>
+                                    <img src="/assets/images/not-found.svg" alt={t('latest.empty')} className="w-48" />
+                                    <div className="text-center text-gray-500">{t('latest.empty')}</div>
                                 </div>
                             );
                         }
@@ -230,8 +234,8 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                         if (availableProducts.length === 0) {
                             return (
                                 <div className="col-span-full flex flex-col items-center justify-center gap-4 py-12">
-                                    <div className="text-center text-lg font-semibold">Anda sudah memiliki akses semua produk terbaru kami. 😁🙏</div>
-                                    <p className="text-center text-gray-500">Terima kasih telah menjadi bagian dari Level Up Accounting!</p>
+                                    <div className="text-center text-lg font-semibold">{t('latest.allOwned')}</div>
+                                    <p className="text-center text-gray-500">{t('latest.thankYou')}</p>
                                 </div>
                             );
                         }
@@ -268,7 +272,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                 <div className="absolute top-2 right-2 z-20">
                                                     <Badge className="bg-red-500 text-white shadow-lg">
                                                         <Percent size={12} className="mr-1" />
-                                                        Hemat {discount}%
+                                                        {t('latest.save', { discount })}
                                                     </Badge>
                                                 </div>
                                             )}
@@ -297,9 +301,9 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                             </div>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            {product.level === 'beginner' && <p>Level Beginner</p>}
-                                                            {product.level === 'intermediate' && <p>Level Intermediate</p>}
-                                                            {product.level === 'advanced' && <p>Level Advanced</p>}
+                                                            {product.level === 'beginner' && <p>{t('latest.levels.beginner')}</p>}
+                                                            {product.level === 'intermediate' && <p>{t('latest.levels.intermediate')}</p>}
+                                                            {product.level === 'advanced' && <p>{t('latest.levels.advanced')}</p>}
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </div>
@@ -329,7 +333,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                     </p>
                                                 )}
                                                 {product.price === 0 ? (
-                                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">Gratis</p>
+                                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{t('latest.free')}</p>
                                                 ) : (
                                                     <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                                                         Rp. {product.price.toLocaleString('id-ID')}
@@ -343,7 +347,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                 <span className="line-clamp-1">
                                                     {product.type === 'bootcamp' && product.start_date && (
                                                         <>
-                                                            {new Date(product.start_date).toLocaleDateString('id-ID', {
+                                                            {new Date(product.start_date).toLocaleDateString(dateLocale, {
                                                                 day: 'numeric',
                                                                 month: 'short',
                                                                 year: 'numeric',
@@ -351,7 +355,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                             {product.end_date && (
                                                                 <>
                                                                     {' - '}
-                                                                    {new Date(product.end_date).toLocaleDateString('id-ID', {
+                                                                    {new Date(product.end_date).toLocaleDateString(dateLocale, {
                                                                         day: 'numeric',
                                                                         month: 'short',
                                                                         year: 'numeric',
@@ -362,7 +366,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                     )}
                                                     {product.type === 'webinar' && product.start_time && (
                                                         <>
-                                                            {new Date(product.start_time).toLocaleDateString('id-ID', {
+                                                            {new Date(product.start_time).toLocaleDateString(dateLocale, {
                                                                 day: 'numeric',
                                                                 month: 'long',
                                                                 year: 'numeric',
@@ -372,25 +376,27 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                                     {product.type === 'certification-program' && (
                                                         <>
                                                             {certDeadline ? (
-                                                                `Daftar s/d ${new Date(certDeadline).toLocaleDateString('id-ID', {
-                                                                    day: 'numeric',
-                                                                    month: 'short',
-                                                                    year: 'numeric',
-                                                                })}`
+                                                                t('latest.registerUntil', {
+                                                                    date: new Date(certDeadline).toLocaleDateString(dateLocale, {
+                                                                        day: 'numeric',
+                                                                        month: 'short',
+                                                                        year: 'numeric',
+                                                                    })
+                                                                })
                                                             ) : (
-                                                                'Pendaftaran Terbuka'
+                                                                t('latest.registrationOpen')
                                                             )}
                                                         </>
                                                     )}
-                                                    {product.type === 'course' && 'Akses Selamanya'}
+                                                    {product.type === 'course' && t('latest.lifetimeAccess')}
                                                     {product.type === 'bundle' && (
                                                         <>
                                                             {product.registration_deadline ? (() => {
                                                                 const deadline = new Date(product.registration_deadline);
                                                                 const now = new Date();
                                                                 const daysLeft = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                                                                return daysLeft > 0 ? `Daftar sebelum ${daysLeft} hari lagi` : 'Pendaftaran ditutup';
-                                                            })() : 'Akses Selamanya'}
+                                                                return daysLeft > 0 ? t('latest.registerBefore', { days: daysLeft }) : t('latest.registrationClosed');
+                                                            })() : t('latest.lifetimeAccess')}
                                                         </>
                                                     )}
                                                 </span>
@@ -452,7 +458,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
                                         {/* CTA Button - Outside content padding for flush edges on hover */}
                                         <div className="group-hover:bg-primary mx-4 mt-auto mb-4 flex items-center justify-between rounded-xl border border-gray-200 px-5 py-3 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
                                             <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">
-                                                Daftar Sekarang
+                                                {t('latest.registerNow')}
                                             </span>
                                             <ArrowRight className="h-6 w-6 text-gray-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white dark:text-gray-400" />
                                         </div>
@@ -465,7 +471,7 @@ export default function LatestProductsSection({ latestProducts, myProductIds }: 
             </div>
             <div className="mt-8 flex justify-center">
                 <Link href="/bootcamp" className="text-primary font-semibold">
-                    View More...
+                    {t('latest.viewMore')}
                 </Link>
             </div>
         </section>

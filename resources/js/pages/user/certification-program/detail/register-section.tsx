@@ -3,9 +3,10 @@ import { Separator } from '@/components/ui/separator';
 import { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { enUS, id } from 'date-fns/locale';
 import { AlertCircle, BadgeCheck, CalendarDays, Clock, GraduationCap, Percent, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Mentor {
     id: string;
@@ -46,6 +47,8 @@ interface RegisterSectionProps {
 }
 
 export default function RegisterSection({ program, isEnrolled, scholarshipApplication }: RegisterSectionProps) {
+    const { t, i18n } = useTranslation();
+    const currentLocale = i18n.language === 'en' ? enUS : id;
     const { auth } = usePage<SharedData>().props;
 
     // Regular program deadline
@@ -74,7 +77,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
 
     let warningMessage: string | null = null;
     if (program.document_required) {
-        warningMessage = program.document_description ?? 'Peserta wajib mengunggah dokumen pendukung sebelum pendaftaran diproses.';
+        warningMessage = program.document_description ?? t('certificationProgram.detail.register.docRequiredDefault');
     }
 
     return (
@@ -90,14 +93,14 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                     <div className="mb-4 flex items-center justify-center gap-2">
                         <Sparkles className="h-6 w-6 text-primary" />
                         <span className="rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
-                            Penawaran Terbatas
+                            {t('certificationProgram.detail.register.limitedOffer')}
                         </span>
                     </div>
                     <h2 className="dark:text-primary-foreground mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl">
-                        Mulai Perjalanan Belajarmu Sekarang!
+                        {t('certificationProgram.detail.register.startJourneyTitle')}
                     </h2>
                     <p className="text-md text-gray-600 dark:text-gray-400">
-                        Investasi terbaik untuk masa depan karirmu
+                        {t('certificationProgram.detail.register.startJourneySubtitle')}
                     </p>
                 </motion.div>
 
@@ -116,7 +119,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                 <div className="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-3 text-center">
                                     <div className="flex items-center justify-center gap-2 text-white">
                                         <Percent className="h-5 w-5" />
-                                        <span className="text-lg font-bold">Hemat {discount}% - Promo Terbatas!</span>
+                                        <span className="text-lg font-bold">{t('certificationProgram.detail.register.saveLimitedPromo', { percent: discount })}</span>
                                     </div>
                                 </div>
                             )}
@@ -125,7 +128,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                 {/* Price */}
                                 <div className="mb-6 text-center">
                                     <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                                        Investasi untuk Masa Depanmu
+                                        {t('certificationProgram.detail.register.investmentForFuture')}
                                     </p>
                                     {displayPrice > 0 ? (
                                         <>
@@ -139,18 +142,18 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                             </span>
                                             {!isScholarshipNotApproved && program.type === 'scholarship' && program.scholarship_price !== undefined && program.scholarship_price > 0 && (
                                                 <span className="mt-2 inline-block rounded-full bg-purple-100 px-4 py-1 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                                                    Harga Beasiswa
+                                                    {t('certificationProgram.detail.register.scholarshipPrice')}
                                                 </span>
                                             )}
                                             {!program.scholarship_price && (
                                                 <span className="mt-2 inline-block rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
-                                                    Bayar Sekali, Akses Selamanya
+                                                    {t('certificationProgram.detail.register.payOnceLifetime')}
                                                 </span>
                                             )}
                                         </>
                                     ) : (
                                         <span className="block text-5xl font-extrabold text-green-600">
-                                            GRATIS
+                                            {t('certificationProgram.detail.register.free')}
                                         </span>
                                     )}
                                 </div>
@@ -160,34 +163,34 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                 {/* Quick Info */}
                                 <div className="mb-6 space-y-3">
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Lokasi</span>
-                                        <span className="font-bold text-gray-900 dark:text-white">Online</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.register.location')}</span>
+                                        <span className="font-bold text-gray-900 dark:text-white">{t('certificationProgram.detail.register.online')}</span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Batch</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.register.batch')}</span>
                                         <span className="font-bold text-gray-900 dark:text-white">{program.batch || '-'}</span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Total Sesi</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.register.totalSessions')}</span>
                                         <span className="font-bold text-gray-900 dark:text-white">
-                                            {program.schedules.length} Pertemuan
+                                            {t('certificationProgram.detail.register.sessionsCount', { count: program.schedules.length })}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Tipe Program</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.register.programType')}</span>
                                         <span className="font-bold text-gray-900 dark:text-white">
-                                            {program.type === 'scholarship' ? 'Beasiswa' : 'Reguler'}
+                                            {program.type === 'scholarship' ? t('certificationProgram.dashboard.catalog.badgeScholarship') : t('certificationProgram.dashboard.catalog.badgeRegular')}
                                         </span>
                                     </div>
                                     <div className="flex flex-col gap-1 rounded-lg bg-gray-50 p-3 dark:bg-zinc-800">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm text-gray-600 dark:text-gray-400">Deadline</span>
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.register.deadline')}</span>
                                             <span className="font-bold text-red-600">
                                                 {program.type === 'scholarship' && scholarshipDeadline 
-                                                    ? format(scholarshipDeadline, 'dd MMM yyyy', { locale: id })
+                                                    ? format(scholarshipDeadline, 'dd MMM yyyy', { locale: currentLocale })
                                                     : regularDeadline 
-                                                        ? format(regularDeadline, 'dd MMM yyyy', { locale: id })
-                                                        : 'Tidak Ada Batas'}
+                                                        ? format(regularDeadline, 'dd MMM yyyy', { locale: currentLocale })
+                                                        : t('certificationProgram.detail.register.noDeadline')}
                                             </span>
                                         </div>
                                     </div>
@@ -205,7 +208,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                 <div className="space-y-3">
                                     {isEnrolled && (
                                         <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center dark:border-green-800 dark:bg-green-900/20">
-                                            <p className="text-sm font-medium text-green-600 dark:text-green-400">✓ Anda sudah terdaftar di program ini</p>
+                                            <p className="text-sm font-medium text-green-600 dark:text-green-400">{t('certificationProgram.detail.register.alreadyEnrolled')}</p>
                                         </div>
                                     )}
 
@@ -215,10 +218,10 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                                 <Button asChild className="w-full py-4 text-md font-bold shadow-lg" size="lg" disabled={!canRegisterRegular}>
                                                     <Link href={route('certification-programs.register', program.slug)}>
                                                         {isEnrolled
-                                                            ? '✓ Sudah Terdaftar'
+                                                            ? t('certificationProgram.detail.register.btnEnrolled')
                                                             : canRegisterRegular
-                                                            ? 'Daftar Program Reguler'
-                                                            : 'Pendaftaran Reguler Ditutup'}
+                                                            ? t('certificationProgram.detail.register.btnRegisterRegular')
+                                                            : t('certificationProgram.detail.register.btnRegularClosed')}
                                                     </Link>
                                                 </Button>
                                             )}
@@ -232,7 +235,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                                 >
                                                     <Link href={canRegisterScholarship ? route('certification-programs.register', { program: program.slug, scholarship: 1 }) : '#'}>
                                                         <GraduationCap className="mr-2 h-5 w-5" />
-                                                        {canRegisterScholarship ? 'Ajukan Beasiswa' : 'Pendaftaran Beasiswa Ditutup'}
+                                                        {canRegisterScholarship ? t('certificationProgram.detail.register.btnApplyScholarship') : t('certificationProgram.detail.register.btnScholarshipClosed')}
                                                     </Link>
                                                 </Button>
                                             )}
@@ -241,7 +244,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                         <Button asChild className="w-full py-4 text-md font-bold shadow-lg" size="lg">
                                             <Link href={route('certification-programs.register', program.slug)}>
                                                 <Sparkles className="mr-2 h-5 w-5" />
-                                                Daftar Sekarang
+                                                {t('certificationProgram.detail.register.btnRegisterNow')}
                                             </Link>
                                         </Button>
                                     )}
@@ -251,15 +254,15 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                 <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Terpercaya</span>
+                                        <span>{t('certificationProgram.detail.register.trustTrusted')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Aman</span>
+                                        <span>{t('certificationProgram.detail.register.trustSecure')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <BadgeCheck className="h-4 w-4 text-green-600" />
-                                        <span>Berkualitas</span>
+                                        <span>{t('certificationProgram.detail.register.trustQuality')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -273,7 +276,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                             className="mt-4 text-center"
                         >
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                🔒 Pembayaran aman & terpercaya
+                                {t('certificationProgram.detail.register.securePayment')}
                             </p>
                         </motion.div>
                     </motion.div>
@@ -298,21 +301,21 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                         <div className="rounded-2xl border-2 p-6 shadow-lg dark:border-zinc-700">
                             <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
                                 <CalendarDays className="h-6 w-6 text-primary" />
-                                Jadwal Pelaksanaan
+                                {t('certificationProgram.detail.register.scheduleTitle')}
                             </h3>
                             
                             {/* Date Range */}
                             <div className="mb-4 rounded-lg bg-primary/5 p-4">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Periode Program</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{t('certificationProgram.detail.register.programPeriod')}</p>
                                 <p className="font-bold text-gray-900 dark:text-white">
                                     {firstSchedule && lastSchedule ? (
                                         <>
-                                            {format(new Date(firstSchedule), 'dd MMMM yyyy', { locale: id })}
+                                            {format(new Date(firstSchedule), 'dd MMMM yyyy', { locale: currentLocale })}
                                             {' - '}
-                                            {format(new Date(lastSchedule), 'dd MMMM yyyy', { locale: id })}
+                                            {format(new Date(lastSchedule), 'dd MMMM yyyy', { locale: currentLocale })}
                                         </>
                                     ) : (
-                                        'Jadwal belum tersedia'
+                                        t('certificationProgram.detail.register.scheduleNotAvailable')
                                     )}
                                 </p>
                             </div>
@@ -335,10 +338,10 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="font-semibold text-gray-900 dark:text-white capitalize">
-                                                        {schedule.day || (scheduleDate ? format(new Date(scheduleDate), 'EEEE', { locale: id }) : `Sesi ${index + 1}`)}
+                                                        {schedule.day || (scheduleDate ? format(new Date(scheduleDate), 'EEEE', { locale: currentLocale }) : t('certificationProgram.detail.schedule.sessionPrefix', { index: index + 1 }))}
                                                     </p>
                                                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                        {scheduleDate ? format(new Date(scheduleDate), 'dd MMM yyyy', { locale: id }) : '-'}
+                                                        {scheduleDate ? format(new Date(scheduleDate), 'dd MMM yyyy', { locale: currentLocale }) : '-'}
                                                     </p>
                                                     {(schedule.start_time || schedule.end_time) && (
                                                         <p className="text-sm font-medium text-primary">
@@ -352,7 +355,7 @@ export default function RegisterSection({ program, isEnrolled, scholarshipApplic
                                 ) : (
                                     <div className="flex flex-col items-center justify-center gap-2 py-8 text-gray-500 dark:text-gray-400">
                                         <Clock className="h-12 w-12 opacity-50" />
-                                        <p className="text-sm">Jadwal akan segera diumumkan</p>
+                                        <p className="text-sm">{t('certificationProgram.detail.schedule.scheduleAnnouncedSoon')}</p>
                                     </div>
                                 )}
                             </ul>

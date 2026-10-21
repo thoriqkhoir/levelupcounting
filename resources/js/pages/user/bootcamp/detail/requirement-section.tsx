@@ -1,5 +1,6 @@
 import { CheckCircle, Gift, ListChecks, Sparkles, XCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Bootcamp {
     benefits?: string | null;
@@ -14,6 +15,7 @@ function parseList(items?: string | null): string[] {
 }
 
 export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp }) {
+    const { t } = useTranslation('user');
     const requirementList = parseList(bootcamp.requirements);
     const benefitList = parseList(bootcamp.benefits);
 
@@ -35,17 +37,17 @@ export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp })
                 >
                     <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
                         <Sparkles className="h-4 w-4" />
-                        Persyaratan & Manfaat
+                        {t('bootcamp.detail.reqAndBenefitsBadge')}
                     </span>
                     <h2 className="mt-3 text-3xl font-extrabold text-gray-900 dark:text-white md:text-4xl">
-                        Siap Untuk{' '}
+                        {t('bootcamp.detail.reqAndBenefitsTitleLead')}
                         <span className="relative inline-block">
-                            <span className="relative z-10 text-primary">Bergabung?</span>
+                            <span className="relative z-10 text-primary">{t('bootcamp.detail.reqAndBenefitsTitleHighlight')}</span>
                             <span className="absolute bottom-1 left-0 z-0 h-3 w-full -rotate-1 rounded bg-primary/20" />
                         </span>
                     </h2>
                     <p className="mx-auto mt-4 max-w-xl text-base text-gray-500 dark:text-gray-400">
-                        Pastikan kamu memenuhi persyaratan dan lihat manfaat luar biasa yang akan kamu dapatkan
+                        {t('bootcamp.detail.reqAndBenefitsSubtitle')}
                     </p>
                 </motion.div>
 
@@ -70,8 +72,8 @@ export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp })
                                     <ListChecks className="h-7 w-7 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Persyaratan Peserta</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Yang perlu kamu siapkan</p>
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('bootcamp.detail.participantRequirements')}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('bootcamp.detail.requirementsSub')}</p>
                                 </div>
                             </div>
 
@@ -99,7 +101,7 @@ export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp })
                             ) : (
                                 <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-blue-200 py-10 dark:border-blue-900/30">
                                     <XCircle className="h-10 w-10 text-gray-300" />
-                                    <p className="text-sm text-gray-500">Tidak ada persyaratan khusus</p>
+                                    <p className="text-sm text-gray-500">{t('bootcamp.detail.requirementsEmpty')}</p>
                                 </div>
                             )}
                         </div>
@@ -123,8 +125,8 @@ export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp })
                                     <Gift className="h-7 w-7 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Manfaat yang Didapatkan</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Investasi yang menguntungkan</p>
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('bootcamp.detail.benefitsGained')}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('bootcamp.detail.benefitsSub')}</p>
                                 </div>
                             </div>
 
@@ -152,7 +154,7 @@ export default function RequirementSection({ bootcamp }: { bootcamp: Bootcamp })
                             ) : (
                                 <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-green-200 py-10 dark:border-green-900/30">
                                     <Gift className="h-10 w-10 text-gray-300" />
-                                    <p className="text-sm text-gray-500">Manfaat akan segera ditambahkan</p>
+                                    <p className="text-sm text-gray-500">{t('bootcamp.detail.benefitsEmpty')}</p>
                                 </div>
                             )}
                         </div>

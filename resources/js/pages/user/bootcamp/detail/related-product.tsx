@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Calendar, Percent } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
     id: string;
@@ -33,6 +34,7 @@ interface RelatedProductProps {
 }
 
 export default function RelatedProduct({ relatedBootcamps, myBootcampIds }: RelatedProductProps) {
+    const { t, i18n } = useTranslation('user');
     const calcDiscount = (original: number, price: number) => {
         if (original === 0) return 0;
         return Math.round(((original - price) / original) * 100);
@@ -58,12 +60,12 @@ export default function RelatedProduct({ relatedBootcamps, myBootcampIds }: Rela
                 className="mb-10 text-center"
             >
                 <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary ring-1 ring-primary/20">
-                    Bootcamp Serupa
+                    {t('bootcamp.detail.similarTitle')}
                 </span>
                 <h2 className="dark:text-primary-foreground mt-3 text-2xl font-extrabold text-gray-900 md:text-3xl">
-                    Mungkin Kamu Juga Tertarik
+                    {t('bootcamp.detail.relatedHeading')}
                 </h2>
-                <p className="mt-2 text-gray-600 dark:text-gray-400">Eksplorasi bootcamp lain yang relevan dengan topik ini</p>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">{t('bootcamp.detail.similarSubtitle')}</p>
             </motion.div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -95,7 +97,7 @@ export default function RelatedProduct({ relatedBootcamps, myBootcampIds }: Rela
                                         {/* Discount Badge - Top Right */}
                                         {discount > 0 && (
                                             <div className="absolute top-2 right-2 z-20 inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-lg">
-                                                <Percent size={10} />Hemat {discount}%
+                                                <Percent size={10} />{t('bootcamp.detail.savePercent', { percent: discount })}
                                             </div>
                                         )}
                                         {/* Category - Bottom Left */}
@@ -109,9 +111,9 @@ export default function RelatedProduct({ relatedBootcamps, myBootcampIds }: Rela
                                             <div className="flex items-center gap-2">
                                                 <Calendar size={12} />
                                                 <p className="text-xs font-semibold text-black dark:text-gray-400">
-                                                    {new Date(bootcamp.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {new Date(bootcamp.start_date).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                     {' - '}
-                                                    {new Date(bootcamp.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    {new Date(bootcamp.end_date).toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </p>
                                             </div>
                                         </div>
@@ -122,12 +124,12 @@ export default function RelatedProduct({ relatedBootcamps, myBootcampIds }: Rela
                                         <h2 className="line-clamp-2 text-lg font-bold text-gray-900 dark:text-gray-100">{bootcamp.title}</h2>
                                         <div>
                                             {bootcamp.strikethrough_price > 0 && bootcamp.strikethrough_price > bootcamp.price && (
-                                                <p className="text-base text-red-500 line-through">Rp. {bootcamp.strikethrough_price.toLocaleString('id-ID')}</p>
+                                                <p className="text-base text-red-500 line-through">Rp. {bootcamp.strikethrough_price.toLocaleString(i18n.language === 'id' ? 'id-ID' : 'en-US')}</p>
                                             )}
                                             {bootcamp.price === 0 ? (
-                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Gratis</p>
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{t('bootcamp.detail.free')}</p>
                                             ) : (
-                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Rp. {bootcamp.price.toLocaleString('id-ID')}</p>
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">Rp. {bootcamp.price.toLocaleString(i18n.language === 'id' ? 'id-ID' : 'en-US')}</p>
                                             )}
                                         </div>
                                         {/* Mentor */}
@@ -141,14 +143,14 @@ export default function RelatedProduct({ relatedBootcamps, myBootcampIds }: Rela
                                             )}
                                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                                 {primaryMentor?.name ?? '-'}
-                                                {mentors.length > 1 ? ` +${mentors.length - 1} mentor` : ''}
+                                                {mentors.length > 1 ? ` ${t('bootcamp.detail.otherMentorsCount', { count: mentors.length - 1 })}` : ''}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* CTA Bar */}
                                     <div className="mt-auto flex items-center justify-between px-5 py-3 mx-4 mb-4 rounded-xl border border-gray-200 transition-all duration-300 group-hover:mx-0 group-hover:mb-0 group-hover:rounded-none group-hover:rounded-b-[14px] group-hover:border-transparent group-hover:bg-primary group-hover:px-5 group-hover:py-4 dark:border-zinc-600">
-                                        <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">Daftar Sekarang</span>
+                                        <span className="text-base font-semibold text-gray-700 transition-colors duration-300 group-hover:text-white dark:text-gray-300">{t('bootcamp.detail.btnRegisterNow')}</span>
                                         <ArrowRight className="h-6 w-6 text-gray-500 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white dark:text-gray-400" />
                                     </div>
                                 </div>

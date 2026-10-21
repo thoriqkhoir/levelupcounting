@@ -5,9 +5,10 @@ import { useInitials } from '@/hooks/use-initials';
 import UserLayout from '@/layouts/user-layout';
 import { Head, Link } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id, enUS } from 'date-fns/locale';
 import { BookText, Calendar, Clock, Eye, Presentation, Share2, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
     id: string;
@@ -54,6 +55,8 @@ interface ArticleShowProps {
 const GRID_PATTERN = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230000ff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
 
 export default function ArticleShow({ article, relatedArticles }: ArticleShowProps) {
+    const { t, i18n } = useTranslation('user');
+    const dateLocale = i18n.language === 'en' ? enUS : id;
     const getInitials = useInitials();
 
     const handleShare = async () => {
@@ -65,7 +68,7 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
             }
         } else {
             navigator.clipboard.writeText(window.location.href);
-            alert('Link berhasil disalin!');
+            alert(t('article.linkCopied'));
         }
     };
 
@@ -112,22 +115,22 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
                                                 {getInitials(article.user.name)}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <span>{article.user.name}</span>
+                                        <span>{article.user.name === 'Admin' ? t('article.team') : article.user.name}</span>
                                     </div>
                                     <Separator orientation="vertical" className="h-5 bg-white/40" />
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="h-4 w-4" />
-                                        {format(new Date(article.published_at), 'dd MMMM yyyy', { locale: id })}
+                                        {format(new Date(article.published_at), 'dd MMMM yyyy', { locale: dateLocale })}
                                     </div>
                                     <Separator orientation="vertical" className="h-5 bg-white/40" />
                                     <div className="flex items-center gap-1.5">
                                         <Clock className="h-4 w-4" />
-                                        {article.read_time} min read
+                                        {t('article.minRead', { count: article.read_time })}
                                     </div>
                                     <Separator orientation="vertical" className="h-5 bg-white/40" />
                                     <div className="flex items-center gap-1.5">
                                         <Eye className="h-4 w-4" />
-                                        {article.views.toLocaleString()} views
+                                        {t('article.views', { count: article.views.toLocaleString() })}
                                     </div>
                                 </div>
                             </div>
@@ -159,22 +162,22 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
                                                 {getInitials(article.user.name)}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <span className="text-foreground font-semibold">{article.user.name}</span>
+                                        <span className="text-foreground font-semibold">{article.user.name === 'Admin' ? t('article.team') : article.user.name}</span>
                                     </div>
                                     <Separator orientation="vertical" className="h-4" />
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="h-4 w-4" />
-                                        {format(new Date(article.published_at), 'dd MMMM yyyy', { locale: id })}
+                                        {format(new Date(article.published_at), 'dd MMMM yyyy', { locale: dateLocale })}
                                     </div>
                                     <Separator orientation="vertical" className="h-4" />
                                     <div className="flex items-center gap-1.5">
                                         <Clock className="h-4 w-4" />
-                                        {article.read_time} min read
+                                        {t('article.minRead', { count: article.read_time })}
                                     </div>
                                     <Separator orientation="vertical" className="h-4" />
                                     <div className="flex items-center gap-1.5">
                                         <Eye className="h-4 w-4" />
-                                        {article.views.toLocaleString()} views
+                                        {t('article.views', { count: article.views.toLocaleString() })}
                                     </div>
                                 </div>
                             </div>
@@ -211,7 +214,7 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
                                 ) : (
                                     <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-3xl opacity-60">
                                         <BookText className="h-12 w-12 mb-4" />
-                                        <p className="text-xl font-medium">Konten artikel tidak tersedia.</p>
+                                        <p className="text-xl font-medium">{t('article.noContent')}</p>
                                     </div>
                                 )}
                             </motion.div>
@@ -231,13 +234,13 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
                                 </Avatar>
                                 <div className="flex-1 text-center md:text-left">
                                     <Badge variant="outline" className="mb-3 border-primary/30 text-primary bg-primary/5 uppercase tracking-wider text-[10px] font-semibold">
-                                        Penulis Artikel
+                                        {t('article.authorBadge')}
                                     </Badge>
                                     <h3 className="mb-2 font-av-estiana text-2xl font-bold text-foreground">
-                                        {article.user.name === 'Admin' ? 'Level Up Accounting Team' : article.user.name}
+                                        {article.user.name === 'Admin' ? t('article.team') : article.user.name}
                                     </h3>
                                     <p className="text-muted-foreground leading-relaxed">
-                                        {article.user.bio || 'Penulis di Level Up Accounting yang membagikan wawasan dan pengetahuan seputar akuntansi, pajak, dan pengembangan karir.'}
+                                        {article.user.bio || t('article.authorDefaultBio')}
                                     </p>
                                 </div>
                             </motion.div>
@@ -258,7 +261,7 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
                                 className="group flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-primary bg-white/80 text-primary backdrop-blur-sm hover:bg-primary hover:text-white px-6 py-4 text-lg font-bold shadow-sm transition-all hover:shadow-md dark:bg-zinc-950/80"
                             >
                                 <Share2 className="h-5 w-5 transition-transform group-hover:scale-110" />
-                                Bagikan Artikel
+                                {t('article.shareArticle')}
                             </button>
                         </motion.div>
 
@@ -273,7 +276,7 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
                                 <div className="mb-5">
                                     <span className="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-4 py-1.5 text-sm font-semibold text-secondary shadow-sm ring-1 ring-secondary/20">
                                         <BookText className="h-4 w-4" />
-                                        Artikel Terkait
+                                        {t('article.relatedArticles')}
                                     </span>
                                 </div>
                                 <div className="space-y-4">
@@ -295,8 +298,8 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
                                                     {related.title}
                                                 </h4>
                                                 <div className="mt-2 flex items-center gap-3 text-xs font-medium text-muted-foreground">
-                                                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {related.read_time} min</span>
-                                                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(new Date(related.published_at), 'dd MMM', { locale: id })}</span>
+                                                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {t('article.min', { count: related.read_time })}</span>
+                                                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(new Date(related.published_at), 'dd MMM', { locale: dateLocale })}</span>
                                                 </div>
                                             </div>
                                         </Link>
@@ -317,16 +320,16 @@ export default function ArticleShow({ article, relatedArticles }: ArticleShowPro
                             <div className="relative p-8">
                                 <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/30">
                                     <Sparkles className="h-3.5 w-3.5" />
-                                    Eksplorasi Program
+                                    {t('article.explorePrograms')}
                                 </div>
-                                <h3 className="mb-3 font-av-estiana text-2xl font-bold">Ingin Belajar Lebih Lanjut?</h3>
+                                <h3 className="mb-3 font-av-estiana text-2xl font-bold">{t('article.wantToLearnMore')}</h3>
                                 <p className="mb-6 text-sm text-white/80 leading-relaxed font-medium">
-                                    Jelajahi berbagai produk edukasi kami untuk meningkatkan skill dan karir Anda di bidang Akuntansi &amp; Perpajakan.
+                                    {t('article.ctaSubtext')}
                                 </p>
                                 <div className="space-y-3">
                                     {[
-                                        { href: '/course', icon: BookText, label: 'Kelas Online' },
-                                        { href: '/bootcamp', icon: Presentation, label: 'Program Bootcamp' },
+                                        { href: '/course', icon: BookText, label: t('article.onlineCourse') },
+                                        { href: '/bootcamp', icon: Presentation, label: t('article.bootcampProgram') },
                                     ].map(({ href, icon: Icon, label }) => (
                                         <Link
                                             key={href}
