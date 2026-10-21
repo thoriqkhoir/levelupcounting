@@ -821,4 +821,149 @@ class ManjoCallbackTest extends TestCase
 
         $this->assertEquals('paid', $invoice->fresh()->status);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ASPI SNAP ROOT ENDPOINT (/v1.0/qr/qr-mpm-notify) TESTS
+    |--------------------------------------------------------------------------
+    */
+
+    public function test_aspi_qris_notify_root_endpoint_settles_invoice_with_snap_response(): void
+    {
+        Event::fake([TransactionPaid::class]);
+        Mail::fake();
+
+        $invoice = $this->createPendingInvoice([
+            'amount' => 150000,
+            'payment_reference' => 'REF-ASPI-QRIS-001',
+        ]);
+
+        $payload = [
+            'originalReferenceNo' => 'REF-ASPI-QRIS-001',
+            'originalPartnerReferenceNo' => $invoice->invoice_code,
+            'latestTransactionStatus' => '00',
+            'transactionStatusDesc' => 'SUCCESS',
+            'customerNumber' => '9360082112345678919',
+            'amount' => [
+                'value' => '150000.00',
+                'currency' => 'IDR',
+            ],
+            'additionalInfo' => [
+                'trxTime' => now()->format('YmdHis'),
+                'issuerName' => 'BCA',
+            ],
+        ];
+
+        // Memanggil endpoint ASPI root persis tanpa prefix /api
+        $response = $this->postQrisNotification($payload, [], '/v1.0/qr/qr-mpm-notify');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'responseCode' => '2005200',
+                'responseMessage' => 'Successful',
+            ]);
+
+        $this->assertEquals('paid', $invoice->fresh()->status);
+    }
+
+    public function test_aspi_qris_notify_root_endpoint_invalid_payloads_do_not_settle(): void
+    {
+        Event::fake([TransactionPaid::class]);
+
+        $invoice = $this->createPendingInvoice([
+            'amount' => 100000,
+            'payment_reference' => 'REF-ASPI-QRIS-002',
+        ]);
+
+        // 1. Missing originalPartnerReferenceNo & originalReferenceNo
+        $payloadMissingRef = [
+            'latestTransactionStatus' => '00',
+            'amount' => [
+                'value' => '100000.00',
+                'currency' => 'IDR',
+            ],
+        ];
+        $resMissing = $this->postQrisNotification($payloadMissingRef, [], '/v1.0/qr/qr-mpm-notify');
+        $resMissing->assertStatus(400)
+            ->assertJson([
+                'responseCode' => '4005202',
+                'responseMessage' => 'Invalid Mandatory Field originalPartnerReferenceNo',
+            ]);
+
+        // 2. Transaction Not Found
+        $payloadNotFound = [
+            'originalPartnerReferenceNo' => 'INV-NONEXISTENT-999',
+            'latestTransactionStatus' => '00',
+            'amount' => [
+                'value' => '100000.00',
+                'currency' => 'IDR',
+            ],
+        ];
+        $resNotFound = $this->postQrisNotification($payloadNotFound, [], '/v1.0/qr/qr-mpm-notify');
+        $resNotFound->assertStatus(404)
+            ->assertJson([
+                'responseCode' => '4045201',
+                'responseMessage' => 'Transaction Not Found',
+            ]);
+
+        // 3. Invalid signature
+        $payloadValid = [
+            'originalPartnerReferenceNo' => $invoice->invoice_code,
+            'latestTransactionStatus' => '00',
+            'amount' => [
+                'value' => '100000.00',
+                'currency' => 'IDR',
+            ],
+        ];
+        $resBadSig = $this->postQrisNotification($payloadValid, ['X-SIGNATURE' => 'invalid_signature_hex'], '/v1.0/qr/qr-mpm-notify');
+        $resBadSig->assertStatus(401)
+            ->assertJson([
+                'responseCode' => '4015200',
+            ]);
+
+        // Invoice harus tetap pending (tidak tersettle)
+        $this->assertEquals('pending', $invoice->fresh()->status);
+    }
+
+    public function test_legacy_manjo_routes_still_work_properly(): void
+    {
+        Event::fake([TransactionPaid::class]);
+        Mail::fake();
+
+        // Tes legacy /api/callback/manjo/qris
+        $invoice1 = $this->createPendingInvoice([
+            'amount' => 50000,
+            'payment_reference' => 'REF-LEGACY-01',
+        ]);
+        $payload1 = [
+            'originalReferenceNo' => 'REF-LEGACY-01',
+            'originalPartnerReferenceNo' => $invoice1->invoice_code,
+            'latestTransactionStatus' => '00',
+            'amount' => [
+                'value' => '50000.00',
+                'currency' => 'IDR',
+            ],
+        ];
+        $res1 = $this->postQrisNotification($payload1, [], '/api/callback/manjo/qris');
+        $res1->assertStatus(200)->assertJson(['responseCode' => '2005200']);
+        $this->assertEquals('paid', $invoice1->fresh()->status);
+
+        // Tes legacy /api/v1.0/qr/qr-mpm-notify
+        $invoice2 = $this->createPendingInvoice([
+            'amount' => 75000,
+            'payment_reference' => 'REF-LEGACY-02',
+        ]);
+        $payload2 = [
+            'originalReferenceNo' => 'REF-LEGACY-02',
+            'originalPartnerReferenceNo' => $invoice2->invoice_code,
+            'latestTransactionStatus' => '00',
+            'amount' => [
+                'value' => '75000.00',
+                'currency' => 'IDR',
+            ],
+        ];
+        $res2 = $this->postQrisNotification($payload2, [], '/api/v1.0/qr/qr-mpm-notify');
+        $res2->assertStatus(200)->assertJson(['responseCode' => '2005200']);
+        $this->assertEquals('paid', $invoice2->fresh()->status);
+    }
 }
