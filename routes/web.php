@@ -166,6 +166,8 @@ Route::get('/certification-programs/{program:slug}/scholarship-apply', [UserCert
 Route::post('/certification-programs/{program:slug}/scholarship-store', [UserCertificationProgramController::class, 'scholarshipStore']);
 Route::get('/certification-programs/{program:slug}/scholarship-success', [UserCertificationProgramController::class, 'scholarshipSuccess']);
 
+Route::get('/payment/va-banks', [InvoiceController::class, 'getVaBanks'])->name('payment.va-banks');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/course/checkout/success', [UserCourseController::class, 'showCheckoutSuccess'])->name('course.checkout.success');
     Route::get('/bootcamp/register/success', [UserBootcampController::class, 'showRegisterSuccess'])->name('bootcamp.register.success');
@@ -177,6 +179,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/certification-program/{program:slug}/apply-regular', [UserCertificationProgramController::class, 'applyRegular'])->name('certification-programs.apply-regular');
     Route::post('/certification-programs/{program:slug}/apply-regular', [UserCertificationProgramController::class, 'applyRegular']);
     Route::get('/invoice/{id}', [InvoiceController::class, 'show'])->name('invoice.show');
+    Route::get('/invoice/{id}/qr-image', [InvoiceController::class, 'renderQrisImage'])->name('invoice.qris.image')->middleware('throttle:60,1');
     Route::post('/invoice/{id}/cancel', [InvoiceController::class, 'cancel'])->name('invoice.cancel');
     Route::post('/invoice/expire-old', [InvoiceController::class, 'expireOldInvoices'])->name('invoice.expire-old');
 

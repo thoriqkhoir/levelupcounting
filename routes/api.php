@@ -4,9 +4,11 @@ use App\Http\Controllers\Api\InvoiceApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\DiscountCodeController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ManjoQrisCallbackController;
+use App\Http\Controllers\ManjoVaCallbackController;
+use App\Http\Controllers\MidtransCallbackController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TripayCallbackController;
-use App\Http\Controllers\MidtransCallbackController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,11 @@ Route::post('/xendit/callback', [InvoiceController::class, 'callbackXendit'])->n
 Route::post('/callback/tripay', [TripayCallbackController::class, 'handle'])->name('tripay.callback');
 
 Route::post('/callback/midtrans', [MidtransCallbackController::class, 'handle'])->name('midtrans.callback');
+
+// Manjo Payment Gateways Callbacks
+Route::post('/callback/manjo/qris', [ManjoQrisCallbackController::class, 'handle'])->name('manjo.qris.callback');
+Route::post('/v1.0/qr/qr-mpm-notify', [ManjoQrisCallbackController::class, 'handle'])->name('manjo.qris.snap_notify');
+Route::post('/callback/manjo/va', [ManjoVaCallbackController::class, 'handle'])->name('manjo.va.callback');
 
 Route::get('/search', [SearchController::class, 'search']);
 

@@ -1,5 +1,6 @@
 import { parseISO } from 'date-fns';
 import InstallmentOptions, { ActiveInstallmentData, InstallmentTermOption } from '@/components/installment-options';
+import PaymentMethodSelector from '@/components/payment-method-selector';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -194,7 +195,8 @@ export default function CheckoutBundle({
     //     return flatFee + percentFee;
     // };
 
-    const adminFee = 5000; //calculateAdminFee(selectedChannel);
+    const [selectedChannel, setSelectedChannel] = useState<string>('qris');
+    const adminFee = 5000;
 
     const [emailExists, setEmailExists] = useState(false);
     const [checkingEmail, setCheckingEmail] = useState(false);
@@ -481,6 +483,7 @@ export default function CheckoutBundle({
             nett_amount: bundle.price - (discountData?.discount_amount || 0),
             transaction_fee: adminFee,
             total_amount: totalPrice,
+            payment_channel: selectedChannel,
         };
 
         if (discountData?.valid && codeType === 'voucher') {
@@ -610,6 +613,7 @@ export default function CheckoutBundle({
                             nett_amount: calculatedNettAmount,
                             transaction_fee: adminFee,
                             total_amount: calculatedTotalAmount,
+                            payment_channel: checkoutData.payment_channel || selectedChannel || 'qris',
                         };
 
                         if (checkoutData.discountData?.valid) {
@@ -1488,6 +1492,14 @@ export default function CheckoutBundle({
                                                         </div>
                                                     </div>
 
+                                                    {/* Payment Method Selector */}
+                                                    <div className="mb-6">
+                                                        <PaymentMethodSelector
+                                                            selectedChannel={selectedChannel}
+                                                            onChannelChange={setSelectedChannel}
+                                                        />
+                                                    </div>
+
                                                     {/* Price Breakdown */}
                                                     <div className="mb-6 space-y-3 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">
                                                         <div className="flex items-center justify-between text-sm">
@@ -1741,6 +1753,15 @@ export default function CheckoutBundle({
                                                         )}
                                                     </div>
                                                 </div>
+
+                                                {/* Payment Method Selector */}
+                                                <div className="mb-6">
+                                                    <PaymentMethodSelector
+                                                        selectedChannel={selectedChannel}
+                                                        onChannelChange={setSelectedChannel}
+                                                    />
+                                                </div>
+
                                                 {/* Price Breakdown */}
                                                 <div className="mb-6 space-y-3 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">
                                                     <div className="flex items-center justify-between text-sm">

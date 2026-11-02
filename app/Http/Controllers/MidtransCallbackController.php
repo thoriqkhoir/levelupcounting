@@ -16,16 +16,19 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\MidtransService;
+use App\Services\PaymentSettlementService;
 
 class MidtransCallbackController extends Controller
 {
     use WablasTrait;
 
     protected $midtransService;
+    protected $settlementService;
 
-    public function __construct(MidtransService $midtransService)
+    public function __construct(MidtransService $midtransService, PaymentSettlementService $settlementService)
     {
         $this->midtransService = $midtransService;
+        $this->settlementService = $settlementService;
     }
 
     public function handle(Request $request)
@@ -106,35 +109,7 @@ class MidtransCallbackController extends Controller
                     Log::info('Payment pending', ['invoice_code' => $orderId]);
                     $this->updatePendingDetails($invoice, $request);
                 } else if ($transactionStatus == 'deny' || $transactionStatus == 'expire' || $transactionStatus == 'cancel') {
-                    if ($invoice->status === 'paid') {
-                        Log::warning('Midtrans callback received failed/expired status for already paid invoice', [
-                            'invoice_code' => $orderId,
-                            'transaction_status' => $transactionStatus
-                        ]);
-                    } else if ($invoice->status === 'failed') {
-                        Log::info('Midtrans callback: Invoice already marked as failed', [
-                            'invoice_code' => $orderId,
-                            'transaction_status' => $transactionStatus
-                        ]);
-                    } else {
-                        $invoice->update([
-                            'status' => 'failed',
-                        ]);
-                        Log::info('Payment failed/expired/cancelled', [
-                            'invoice_code' => $orderId,
-                            'status' => $transactionStatus
-                        ]);
-
-                        // Refund poin jika invoice ini menggunakan redeem poin
-                        try {
-                            app(\App\Services\PointService::class)->refundPoints($invoice);
-                        } catch (\Exception $e) {
-                            Log::error('Gagal refund poin untuk invoice: ' . $invoice->invoice_code, ['error' => $e->getMessage()]);
-                        }
-
-                        // Kirim WhatsApp untuk pembayaran gagal
-                        $this->sendWhatsAppPaymentFailed($invoice, $transactionStatus);
-                    }
+                    $this->settlementService->fail($invoice, 'Payment failed/expired/cancelled', $transactionStatus);
                 }
 
                 DB::commit();
@@ -214,75 +189,13 @@ class MidtransCallbackController extends Controller
         // Ambil payment channel
         $paymentChannel = $request->payment_type ?? $invoice->payment_channel;
 
-        // ====== INSTALLMENT CHILD HANDLER ======
-        if ($invoice->isInstallmentChild()) {
-            $invoice->update([
-                'status' => 'paid',
-                'paid_at' => Carbon::now('Asia/Jakarta'),
-                'payment_reference' => $request->transaction_id ?? $request->order_id,
-                'payment_channel' => $paymentChannel,
-                'va_number' => $vaNumber,
-            ]);
-
-            $parentInvoice = Invoice::with([
-                'user',
-                'courseItems.course',
-                'bootcampItems.bootcamp',
-                'webinarItems.webinar',
-                'certificationProgramItems.certificationProgram',
-                'bundleEnrollments.bundle',
-            ])->find($invoice->parent_invoice_id);
-
-            if ($parentInvoice) {
-                // Jika termin ke-1 (DP): aktifkan akses
-                if ($invoice->installment_number === 1) {
-                    $this->activateInstallmentEnrollments($parentInvoice);
-                }
-
-                // Pulihkan akses jika sebelumnya dibekukan
-                $parentInvoice->update(['access_suspended_at' => null]);
-
-                // Catat komisi affiliate untuk termin ini
-                $this->recordAffiliateCommission($invoice);
-
-                // Cek apakah semua termin lunas
-                if ($parentInvoice->isFullyPaid()) {
-                    $parentInvoice->update(['status' => 'paid', 'paid_at' => Carbon::now('Asia/Jakarta')]);
-                    event(new \App\Events\TransactionPaid($parentInvoice));
-                    $this->sendWhatsAppInstallmentComplete($parentInvoice, $invoice);
-                } else {
-                    $this->sendWhatsAppTermPaid($invoice, $parentInvoice);
-                }
-            }
-
-            return;
-        }
-        // ====== END INSTALLMENT CHILD HANDLER ======
-
-        $invoice->update([
-            'status' => 'paid',
+        $this->settlementService->settle($invoice, [
             'paid_at' => Carbon::now('Asia/Jakarta'),
-            'payment_reference' => $request->transaction_id ?? $request->order_id,
+            'payment_method' => $invoice->payment_method ?: 'midtrans',
             'payment_channel' => $paymentChannel,
+            'payment_reference' => $request->transaction_id ?? $request->order_id,
             'va_number' => $vaNumber,
         ]);
-
-        Log::info('Payment processed successfully', [
-            'invoice_code' => $invoice->invoice_code,
-            'payment_type' => $paymentChannel,
-            'transaction_id' => $request->transaction_id
-        ]);
-
-        $this->processInvoiceEnrollments($invoice);
-        $this->recordAffiliateCommission($invoice);
-
-        // Dispatch event untuk reward referral
-        event(new \App\Events\TransactionPaid($invoice));
-
-        $this->sendEmailNotification($invoice);
-
-        // Kirim WhatsApp setelah pembayaran berhasil
-        $this->sendWhatsAppNotification($invoice);
     }
 
     /**
