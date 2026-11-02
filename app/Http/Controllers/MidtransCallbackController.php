@@ -290,15 +290,72 @@ class MidtransCallbackController extends Controller
      */
     private function activateInstallmentEnrollments(Invoice $parentInvoice): void
     {
+        $parentInvoice->loadMissing([
+            'courseItems',
+            'bootcampItems',
+            'webinarItems',
+            'certificationProgramItems',
+            'bundleEnrollments.bundle.bundleItems.bundleable',
+        ]);
+
+        $userId = $parentInvoice->user_id;
+
+        if ($parentInvoice->courseItems && $parentInvoice->courseItems->count() > 0) {
+            foreach ($parentInvoice->courseItems as $item) {
+                $item->update([
+                    'completed_at' => Carbon::now('Asia/Jakarta')
+                ]);
+                $this->addToCertificateParticipants('course', $item->course_id, $userId);
+            }
+        }
+
+        if ($parentInvoice->bootcampItems && $parentInvoice->bootcampItems->count() > 0) {
+            foreach ($parentInvoice->bootcampItems as $item) {
+                $item->update([
+                    'completed_at' => Carbon::now('Asia/Jakarta')
+                ]);
+                $this->addToCertificateParticipants('bootcamp', $item->bootcamp_id, $userId);
+            }
+        }
+
+        if ($parentInvoice->webinarItems && $parentInvoice->webinarItems->count() > 0) {
+            foreach ($parentInvoice->webinarItems as $item) {
+                $item->update([
+                    'completed_at' => Carbon::now('Asia/Jakarta')
+                ]);
+                $this->addToCertificateParticipants('webinar', $item->webinar_id, $userId);
+            }
+        }
+
+        if ($parentInvoice->certificationProgramItems && $parentInvoice->certificationProgramItems->count() > 0) {
+            foreach ($parentInvoice->certificationProgramItems as $item) {
+                $item->update([
+                    'completed_at' => Carbon::now('Asia/Jakarta')
+                ]);
+            }
+        }
+
         if ($parentInvoice->bundleEnrollments && $parentInvoice->bundleEnrollments->count() > 0) {
             foreach ($parentInvoice->bundleEnrollments as $bundleEnrollment) {
+                $bundleEnrollment->update([
+                    'completed_at' => Carbon::now('Asia/Jakarta')
+                ]);
+
                 if (method_exists($bundleEnrollment, 'createIndividualEnrollments')) {
                     $bundleEnrollment->createIndividualEnrollments();
+                }
+
+                $bundle = $bundleEnrollment->bundle;
+                if ($bundle && $bundle->bundleItems) {
+                    foreach ($bundle->bundleItems as $bundleItem) {
+                        $type = $bundleItem->getTypeSlug();
+                        $this->addToCertificateParticipants($type, $bundleItem->bundleable_id, $userId);
+                    }
                 }
             }
         }
 
-        Log::info('Installment DP paid - access activated', [
+        Log::info('Installment DP paid - access activated (Midtrans)', [
             'parent_invoice_code' => $parentInvoice->invoice_code,
             'user_id' => $parentInvoice->user_id,
         ]);
